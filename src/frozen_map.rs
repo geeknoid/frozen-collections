@@ -22,7 +22,7 @@ where
     Scanning4(ScanningMap<K, V, 4>),
     Fallback(FallbackMap<K, V>),
     Integer32(IntegerMap<i32, V>),
-    String(StringMap<V>),
+    String(StringMap<String, V>),
 }
 
 pub struct FrozenMap<K, V>
@@ -148,13 +148,13 @@ where
             return Self {
                 implementation: ImplementationTypes::Integer32(IntegerMap::from_iter(payload)),
             };
-        } else if TypeId::of::<K>() == TypeId::of::<&str>() {
+        } else if TypeId::of::<K>() == TypeId::of::<String>() {
             // We're going to move out of the old payload, so mark it as
             // manually dropped, so we don't double-free
             let payload = ManuallyDrop::new(payload);
 
             // SAFETY: We know `K` is `&str` so this cast is okay
-            let payload: &[(&str, V); N] = unsafe { transmute(&payload) };
+            let payload: &[(String, V); N] = unsafe { transmute(&payload) };
 
             // SAFETY: We know we're reading the right type, and we're reading
             // from a ManuallyDrop, so we don't have to worry about
@@ -208,6 +208,16 @@ mod test {
     fn test_i32_map() {
         let m = FrozenMap::<i32, i32>::from([(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)]);
         assert_eq!(m.get(&6), Some(&6));
+    }
+
+    #[test]
+    fn test_string_map() {
+        let m = FrozenMap::<String, u64>::from([
+            ("First".to_string(), 1),
+            ("Second".to_string(), 2),
+            ("Third".to_string(), 3),
+        ]);
+        assert_eq!(m.get(&"Second".to_string()), Some(&2));
     }
 
     /*

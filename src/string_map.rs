@@ -1,14 +1,15 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
-use crate::implementation_map::ImplementationMap;
-
-pub(crate) struct StringMap<'a, V> {
-    entries: HashMap<&'a str, V>,
+pub(crate) struct StringMap<K, V> {
+    entries: HashMap<K, V>,
 }
 
-impl<'a, V> FromIterator<(&'a str, V)> for StringMap<'a, V> {
-    fn from_iter<T: IntoIterator<Item = (&'a str, V)>>(iter: T) -> Self {
+impl<K, V> FromIterator<(K, V)> for StringMap<K, V>
+where
+    K: Eq + std::hash::Hash,
+{
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
         let mut entries = HashMap::new();
         entries.extend(iter);
 
@@ -16,26 +17,30 @@ impl<'a, V> FromIterator<(&'a str, V)> for StringMap<'a, V> {
     }
 }
 
-impl<'a, V> ImplementationMap<&str, V> for StringMap<'a, V> {
-    fn get(&self, key: &&str) -> Option<&V> {
+impl<K, V> StringMap<K, V>
+where
+    K: Eq + std::hash::Hash,
+{
+    pub fn get(&self, key: &K) -> Option<&V> {
         self.entries.get(key)
     }
 
-    fn get_key_value(&self, key: &&str) -> Option<(&&str, &V)> {
+    pub fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
         self.entries.get_key_value(key)
     }
 
-    fn contains_key(&self, key: &&str) -> bool {
+    pub fn contains_key(&self, key: &K) -> bool {
         self.entries.contains_key(key)
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.entries.len()
     }
 }
 
-impl<'a, V> Debug for StringMap<'a, V>
+impl<'a, K, V> Debug for StringMap<K, V>
 where
+    K: Debug,
     V: Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
