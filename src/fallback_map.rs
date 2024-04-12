@@ -1,4 +1,3 @@
-use crate::implementation_map::ImplementationMap;
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
@@ -22,23 +21,23 @@ where
     }
 }
 
-impl<K, V> ImplementationMap<K, V> for FallbackMap<K, V>
+impl<K, V> FallbackMap<K, V>
 where
     K: Eq + Hash,
 {
-    fn get(&self, key: &K) -> Option<&V> {
+    pub fn get(&self, key: &K) -> Option<&V> {
         self.entries.get(key)
     }
 
-    fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
+    pub fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
         self.entries.get_key_value(key)
     }
 
-    fn contains_key(&self, key: &K) -> bool {
+    pub fn contains_key(&self, key: &K) -> bool {
         self.entries.contains_key(key)
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.entries.len()
     }
 }

@@ -1,27 +1,25 @@
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
-use crate::implementation_map::ImplementationMap;
-
 pub(crate) struct EmptyMap<K, V> {
     key: PhantomData<K>,
     value: PhantomData<V>,
 }
 
-impl<K, V> ImplementationMap<K, V> for EmptyMap<K, V> {
-    fn get(&self, _key: &K) -> Option<&V> {
+impl<K, V> EmptyMap<K, V> {
+    pub fn get(&self, _key: &K) -> Option<&V> {
         None
     }
 
-    fn get_key_value(&self, _key: &K) -> Option<(&K, &V)> {
+    pub fn get_key_value(&self, _key: &K) -> Option<(&K, &V)> {
         None
     }
 
-    fn contains_key(&self, _key: &K) -> bool {
+    pub fn contains_key(&self, _key: &K) -> bool {
         false
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         0
     }
 }

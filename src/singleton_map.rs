@@ -2,8 +2,6 @@ use std::fmt::{Debug, Formatter};
 
 use hashbrown::Equivalent;
 
-use crate::implementation_map::ImplementationMap;
-
 pub(crate) struct SingletonMap<K, V>
 where
     K: Equivalent<K>,
@@ -21,11 +19,11 @@ where
     }
 }
 
-impl<K, V> ImplementationMap<K, V> for SingletonMap<K, V>
+impl<K, V> SingletonMap<K, V>
 where
     K: Equivalent<K>,
 {
-    fn get(&self, key: &K) -> Option<&V> {
+    pub fn get(&self, key: &K) -> Option<&V> {
         if key.equivalent(&self.key) {
             return Some(&self.value);
         }
@@ -33,7 +31,7 @@ where
         None
     }
 
-    fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
+    pub fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
         if key.equivalent(&self.key) {
             return Some((&self.key, &self.value));
         }
@@ -41,11 +39,11 @@ where
         None
     }
 
-    fn contains_key(&self, key: &K) -> bool {
+    pub fn contains_key(&self, key: &K) -> bool {
         key.equivalent(&self.key)
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         1
     }
 }

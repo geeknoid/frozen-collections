@@ -2,8 +2,6 @@ use std::fmt::{Debug, Formatter};
 
 use hashbrown::Equivalent;
 
-use crate::implementation_map::ImplementationMap;
-
 pub(crate) struct ScanningMap<K, V, const N: usize>
 where
     K: Equivalent<K>,
@@ -23,11 +21,11 @@ where
     }
 }
 
-impl<K, V, const N: usize> ImplementationMap<K, V> for ScanningMap<K, V, N>
+impl<K, V, const N: usize> ScanningMap<K, V, N>
 where
     K: Equivalent<K>,
 {
-    fn get(&self, key: &K) -> Option<&V> {
+    pub fn get(&self, key: &K) -> Option<&V> {
         for entry in &self.entries {
             if key.equivalent(&entry.0) {
                 return Some(&entry.1);
@@ -37,7 +35,7 @@ where
         None
     }
 
-    fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
+    pub fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
         for entry in &self.entries {
             if key.equivalent(&entry.0) {
                 return Some((&entry.0, &entry.1));
@@ -47,7 +45,7 @@ where
         None
     }
 
-    fn contains_key(&self, key: &K) -> bool {
+    pub fn contains_key(&self, key: &K) -> bool {
         for entry in &self.entries {
             if key.equivalent(&entry.0) {
                 return true;
@@ -57,8 +55,8 @@ where
         false
     }
 
-    fn len(&self) -> usize {
-        self.entries.len()
+    pub fn len(&self) -> usize {
+        N
     }
 }
 

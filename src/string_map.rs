@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 
-use crate::implementation_map::ImplementationMap;
-
 pub(crate) struct StringMap<V> {
     entries: HashMap<&str, V>,
 }
@@ -16,25 +14,25 @@ impl<V> FromIterator<(&str, V)> for StringMap<V> {
     }
 }
 
-impl<V> ImplementationMap<&str, V> for StringMap<V> {
-    fn get(&self, key: &&str) -> Option<&V> {
+impl<V> StringMap<V> {
+    pub fn get(&self, key: &&str) -> Option<&V> {
         self.entries.get(key)
     }
 
-    fn get_key_value(&self, key: &&str) -> Option<(&&str, &V)> {
+    pub fn get_key_value(&self, key: &&str) -> Option<(&&str, &V)> {
         self.entries.get_key_value(key)
     }
 
-    fn contains_key(&self, key: &&str) -> bool {
+    pub fn contains_key(&self, key: &&str) -> bool {
         self.entries.contains_key(key)
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.entries.len()
     }
 }
 
-impl<'a, V> Debug for StringMap<V>
+impl<V> Debug for StringMap<V>
 where
     V: Debug,
 {

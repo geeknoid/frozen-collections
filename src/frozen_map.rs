@@ -6,7 +6,6 @@ use std::ptr;
 
 use crate::empty_map::EmptyMap;
 use crate::fallback_map::FallbackMap;
-use crate::implementation_map::ImplementationMap;
 use crate::integer_map::IntegerMap;
 use crate::scanning_map::ScanningMap;
 use crate::singleton_map::SingletonMap;

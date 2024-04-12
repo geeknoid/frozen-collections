@@ -4,8 +4,6 @@ use std::hash::Hash;
 
 use num_integer::Integer;
 
-use crate::implementation_map::ImplementationMap;
-
 pub(crate) struct IntegerMap<K, V>
 where
     K: Integer,
@@ -25,23 +23,23 @@ where
     }
 }
 
-impl<K, V> ImplementationMap<K, V> for IntegerMap<K, V>
+impl<K, V> IntegerMap<K, V>
 where
     K: Hash + Integer,
 {
-    fn get(&self, key: &K) -> Option<&V> {
+    pub fn get(&self, key: &K) -> Option<&V> {
         self.entries.get(key)
     }
 
-    fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
+    pub fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
         self.entries.get_key_value(key)
     }
 
-    fn contains_key(&self, key: &K) -> bool {
+    pub fn contains_key(&self, key: &K) -> bool {
         self.entries.contains_key(key)
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.entries.len()
     }
 }
