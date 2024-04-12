@@ -1,11 +1,13 @@
 use std::any::TypeId;
 use std::hash::Hash;
+use std::mem::{transmute, ManuallyDrop};
+use std::ptr;
 
 use hashbrown::Equivalent;
 
 use crate::empty_map::EmptyMap;
 use crate::fallback_map::FallbackMap;
-use crate::implementation_map::ImplementationMap;
+use crate::implementation_map::{self, ImplementationMap};
 use crate::integer_map::IntegerMap;
 use crate::scanning_map::ScanningMap;
 use crate::singleton_map::SingletonMap;
@@ -64,17 +66,21 @@ where
         }
 
         if TypeId::of::<K>() == TypeId::of::<i32>() {
-            todo!();
-            /*
-                       unsafe {
+            // We're going to move out of the old payload, so mark it as
+            // manually drop so we don't double-free
+            let payload = ManuallyDrop::new(payload);
+            // SAFETY: We know `K` is `i32` so this cast is okay
+            let payload: &[(i32, V); N] = unsafe { transmute(&payload) };
+            // SAFETY: We know we're reading the right type, and we're reading
+            // from a ManuallyDrop so we don't have to worry about
+            // double-dropping.
+            let payload = unsafe { ptr::read(payload) };
+            let implementation =
+                Box::new(IntegerMap::from_iter(payload)) as Box<dyn ImplementationMap<i32, _>>;
+            // SAFETY: We know K == i32, so we're undoing the first transmute.
+            let implementation = unsafe { transmute(implementation) };
 
-                           let p: [(i32, V); N] = mem::transmute(payload);
-                           let m: Box<dyn ImplementationMap<i32, V>> = Box::new(IntegerMap::from_iter(p));
-                           let r: Box<dyn ImplementationMap<K, V>> = mem::transmute(m);
-
-                           return Self { implementation: r };
-                       }
-            */
+            return Self { implementation };
         }
 
         Self {
@@ -103,52 +109,63 @@ where
     }
 }
 
-#[test]
-fn test_empty_map() {
-    type FM = FrozenMap<i32, i32>;
+#[cfg(test)]
+mod test {
+    use super::FrozenMap;
 
-    let m = FM::default();
-    assert_eq!(m.len(), 0);
+    #[test]
+    fn test_empty_map() {
+        type FM = FrozenMap<i32, i32>;
+
+        let m = FM::default();
+        assert_eq!(m.len(), 0);
+    }
+
+    #[test]
+    fn test_i32_map() {
+        let m = FrozenMap::<i32, i32>::from([(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)]);
+        assert_eq!(m.get(&6), Some(&6));
+    }
+
+    /*
+    #[test]
+    fn test_debug() {
+        type HM = HashMap<i32, i32>;
+        type FM = FrozenMap<i32, i32>;
+
+        let fm = FM::from([]);
+        let fs = format!("{:?}", fm);
+
+        let hm = HM::from([]);
+        let hs = format!("{:?}", hm);
+
+        println!("{}", fs);
+        format!("{:?}", fm);
+
+        println!("{}", hs);
+        format!("{:?}", hm);
+    }
+
+    #[test]
+    fn test_small_inline_map() {
+        type FM = FrozenMap<i32, i32>;
+
+        let m = FM::from([(1, 2), (3, 4), (5, 6)]);
+        assert_eq!(m.len(), 3);
+
+        let v = m.get(&3);
+        assert_eq!(v.unwrap(), &4);
+    }
+
+    #[test]
+    fn test_small_dynamic_map() {
+        type FM = FrozenMap<i32, i32>;
+
+        let m = FM::from_iter([(1, 2), (3, 4), (5, 6)]);
+        assert_eq!(m.len(), 3);
+
+        let v = m.get(&3);
+        assert_eq!(v.unwrap(), &4);
+    }
+    */
 }
-
-/*
-#[test]
-fn test_debug() {
-    type HM = HashMap<i32, i32>;
-    type FM = FrozenMap<i32, i32>;
-
-    let fm = FM::from([]);
-    let fs = format!("{:?}", fm);
-
-    let hm = HM::from([]);
-    let hs = format!("{:?}", hm);
-
-    println!("{}", fs);
-    format!("{:?}", fm);
-
-    println!("{}", hs);
-    format!("{:?}", hm);
-}
-
-#[test]
-fn test_small_inline_map() {
-    type FM = FrozenMap<i32, i32>;
-
-    let m = FM::from([(1, 2), (3, 4), (5, 6)]);
-    assert_eq!(m.len(), 3);
-
-    let v = m.get(&3);
-    assert_eq!(v.unwrap(), &4);
-}
-
-#[test]
-fn test_small_dynamic_map() {
-    type FM = FrozenMap<i32, i32>;
-
-    let m = FM::from_iter([(1, 2), (3, 4), (5, 6)]);
-    assert_eq!(m.len(), 3);
-
-    let v = m.get(&3);
-    assert_eq!(v.unwrap(), &4);
-}
-*/
