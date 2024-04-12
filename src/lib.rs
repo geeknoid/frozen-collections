@@ -5,3 +5,4 @@ mod implementation_map;
 mod integer_map;
 mod scanning_map;
 mod singleton_map;
+mod string_map;
