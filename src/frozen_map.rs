@@ -109,58 +109,63 @@ where
     }
 }
 
-#[test]
-fn test_empty_map() {
-    type FM = FrozenMap<i32, i32>;
+#[cfg(test)]
+mod test {
+    use super::FrozenMap;
 
-    let m = FM::default();
-    assert_eq!(m.len(), 0);
+    #[test]
+    fn test_empty_map() {
+        type FM = FrozenMap<i32, i32>;
+
+        let m = FM::default();
+        assert_eq!(m.len(), 0);
+    }
+
+    #[test]
+    fn test_i32_map() {
+        let m = FrozenMap::<i32, i32>::from([(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)]);
+        assert_eq!(m.get(&6), Some(&6));
+    }
+
+    /*
+    #[test]
+    fn test_debug() {
+        type HM = HashMap<i32, i32>;
+        type FM = FrozenMap<i32, i32>;
+
+        let fm = FM::from([]);
+        let fs = format!("{:?}", fm);
+
+        let hm = HM::from([]);
+        let hs = format!("{:?}", hm);
+
+        println!("{}", fs);
+        format!("{:?}", fm);
+
+        println!("{}", hs);
+        format!("{:?}", hm);
+    }
+
+    #[test]
+    fn test_small_inline_map() {
+        type FM = FrozenMap<i32, i32>;
+
+        let m = FM::from([(1, 2), (3, 4), (5, 6)]);
+        assert_eq!(m.len(), 3);
+
+        let v = m.get(&3);
+        assert_eq!(v.unwrap(), &4);
+    }
+
+    #[test]
+    fn test_small_dynamic_map() {
+        type FM = FrozenMap<i32, i32>;
+
+        let m = FM::from_iter([(1, 2), (3, 4), (5, 6)]);
+        assert_eq!(m.len(), 3);
+
+        let v = m.get(&3);
+        assert_eq!(v.unwrap(), &4);
+    }
+    */
 }
-
-#[test]
-fn test_i32_map() {
-    let m = FrozenMap::<i32, i32>::from([(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)]);
-    assert_eq!(m.get(&6), Some(&6));
-}
-
-/*
-#[test]
-fn test_debug() {
-    type HM = HashMap<i32, i32>;
-    type FM = FrozenMap<i32, i32>;
-
-    let fm = FM::from([]);
-    let fs = format!("{:?}", fm);
-
-    let hm = HM::from([]);
-    let hs = format!("{:?}", hm);
-
-    println!("{}", fs);
-    format!("{:?}", fm);
-
-    println!("{}", hs);
-    format!("{:?}", hm);
-}
-
-#[test]
-fn test_small_inline_map() {
-    type FM = FrozenMap<i32, i32>;
-
-    let m = FM::from([(1, 2), (3, 4), (5, 6)]);
-    assert_eq!(m.len(), 3);
-
-    let v = m.get(&3);
-    assert_eq!(v.unwrap(), &4);
-}
-
-#[test]
-fn test_small_dynamic_map() {
-    type FM = FrozenMap<i32, i32>;
-
-    let m = FM::from_iter([(1, 2), (3, 4), (5, 6)]);
-    assert_eq!(m.len(), 3);
-
-    let v = m.get(&3);
-    assert_eq!(v.unwrap(), &4);
-}
-*/
