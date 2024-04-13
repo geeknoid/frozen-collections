@@ -11,7 +11,7 @@ use crate::scanning_map::ScanningMap;
 use crate::singleton_map::SingletonMap;
 use crate::string_map::StringMap;
 
-enum ImplementationTypes<K, V>
+enum ImplementationTypes<'a, K, V>
 where
     K: Eq + Hash,
 {
@@ -22,17 +22,17 @@ where
     Scanning4(ScanningMap<K, V, 4>),
     Fallback(FallbackMap<K, V>),
     Integer32(IntegerMap<i32, V>),
-    String(StringMap<String, V>),
+    String(StringMap<&'a str, V>),
 }
 
-pub struct FrozenMap<K, V>
+pub struct FrozenMap<'a, K, V>
 where
     K: Eq + Hash,
 {
-    implementation: ImplementationTypes<K, V>,
+    implementation: ImplementationTypes<'a, K, V>,
 }
 
-impl<K, V> FrozenMap<K, V>
+impl<K, V> FrozenMap<'_, K, V>
 where
     K: Eq + Hash,
 {
@@ -99,11 +99,11 @@ where
     }
 }
 
-impl<K, V: 'static, const N: usize> From<[(K, V); N]> for FrozenMap<K, V>
+impl<K, V: 'static, const N: usize> From<[(K, V); N]> for FrozenMap<'static, K, V>
 where
     K: Eq + Hash + Equivalent<K> + 'static,
 {
-    fn from(payload: [(K, V); N]) -> FrozenMap<K, V> {
+    fn from(payload: [(K, V); N]) -> FrozenMap<'static, K, V> {
         if N == 0 {
             return FrozenMap::default();
         } else if N == 1 {
@@ -148,13 +148,13 @@ where
             return Self {
                 implementation: ImplementationTypes::Integer32(IntegerMap::from_iter(payload)),
             };
-        } else if TypeId::of::<K>() == TypeId::of::<String>() {
+        } else if TypeId::of::<K>() == TypeId::of::<&str>() {
             // We're going to move out of the old payload, so mark it as
             // manually dropped, so we don't double-free
             let payload = ManuallyDrop::new(payload);
 
             // SAFETY: We know `K` is `&str` so this cast is okay
-            let payload: &[(String, V); N] = unsafe { transmute(&payload) };
+            let payload: &[(&str, V); N] = unsafe { transmute(&payload) };
 
             // SAFETY: We know we're reading the right type, and we're reading
             // from a ManuallyDrop, so we don't have to worry about
@@ -172,7 +172,7 @@ where
     }
 }
 
-impl<K, V> FromIterator<(K, V)> for FrozenMap<K, V>
+impl<K, V> FromIterator<(K, V)> for FrozenMap<'_, K, V>
 where
     K: Eq + Hash + Equivalent<K>,
 {
@@ -181,7 +181,7 @@ where
     }
 }
 
-impl<K, V: 'static> Default for FrozenMap<K, V>
+impl<K, V: 'static> Default for FrozenMap<'_, K, V>
 where
     K: Eq + Hash,
 {
@@ -198,7 +198,7 @@ mod test {
 
     #[test]
     fn test_empty_map() {
-        type FM = FrozenMap<i32, i32>;
+        type FM<'a> = FrozenMap<'a, i32, i32>;
 
         let m = FM::default();
         assert_eq!(m.len(), 0);
@@ -218,6 +218,12 @@ mod test {
             ("Third".to_string(), 3),
         ]);
         assert_eq!(m.get(&"Second".to_string()), Some(&2));
+    }
+
+    #[test]
+    fn test_string_view_map() {
+        let m = FrozenMap::from([("First", 11), ("Second", 22), ("Third", 33)]);
+        assert_eq!(m.get(&"Second"), Some(&22));
     }
 
     /*
