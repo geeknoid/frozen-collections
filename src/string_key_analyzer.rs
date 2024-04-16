@@ -62,7 +62,9 @@ fn try_use_substring(
     // Instead of ensuring that 95% of data is good, we stop when we know that at least 5% is bad.
     let acceptable_non_unique_count = unique_strings.len() / 20;
 
-    let mut set = HashSet::with_capacity(unique_strings.len());
+    // This set is reused for each "is sufficiently unique" check just to reuse the allocation.
+    let mut scratch_set = HashSet::with_capacity(unique_strings.len());
+
     let mut control = SubstringControl {
         substring_index: 0,
         substring_count: 0,
@@ -85,7 +87,7 @@ fn try_use_substring(
             control.substring_index = index;
 
             if is_sufficiently_unique(
-                &mut set,
+                &mut scratch_set,
                 control,
                 unique_strings,
                 acceptable_non_unique_count,
@@ -115,7 +117,7 @@ fn try_use_substring(
                 control.substring_index = index - count;
 
                 if is_sufficiently_unique(
-                    &mut set,
+                    &mut scratch_set,
                     control,
                     unique_strings,
                     acceptable_non_unique_count,
@@ -147,10 +149,10 @@ fn test() {
     assert_eq!(set.len(), 1);
 }
 
-fn is_sufficiently_unique<'a>(
-    set: &'a mut HashSet<Substring<'a>>,
+fn is_sufficiently_unique<'scratch, 'values>(
+    set: &'scratch mut HashSet<Substring<'values>>,
     control: SubstringControl,
-    unique_strings: &'a [&str],
+    unique_strings: &'values [&'values str],
     acceptable_num_unique_count: usize,
 ) -> bool {
     set.clear();
