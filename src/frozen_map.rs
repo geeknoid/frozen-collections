@@ -1,15 +1,15 @@
-use hashbrown::Equivalent;
 use std::any::TypeId;
 use std::hash::Hash;
 use std::mem::{transmute, ManuallyDrop};
 use std::ptr;
+
+use hashbrown::Equivalent;
 
 use crate::empty_map::EmptyMap;
 use crate::fallback_map::FallbackMap;
 use crate::integer_map::IntegerMap;
 use crate::scanning_map::ScanningMap;
 use crate::singleton_map::SingletonMap;
-use crate::string_map::StringMap;
 
 enum ImplementationTypes<K, V>
 where
@@ -22,7 +22,7 @@ where
     Scanning4(ScanningMap<K, V, 4>),
     Fallback(FallbackMap<K, V>),
     Integer32(IntegerMap<i32, V>),
-    String(StringMap<V>),
+    //    String(StringMap<V>),
 }
 
 pub struct FrozenMap<K, V>
@@ -45,7 +45,7 @@ where
             ImplementationTypes::Scanning4(m) => m.get(key),
             ImplementationTypes::Fallback(m) => m.get(key),
             ImplementationTypes::Integer32(m) => m.get(unsafe { transmute(key) }),
-            ImplementationTypes::String(m) => m.get(unsafe { transmute(key) }),
+            //            ImplementationTypes::String(m) => m.get(unsafe { transmute(key) }),
         }
     }
 
@@ -60,7 +60,7 @@ where
             ImplementationTypes::Integer32(m) => unsafe {
                 transmute(m.get_key_value(transmute(key)))
             },
-            ImplementationTypes::String(m) => unsafe { transmute(m.get_key_value(transmute(key))) },
+            //            ImplementationTypes::String(m) => unsafe { transmute(m.get_key_value(transmute(key))) },
         }
     }
 
@@ -73,7 +73,7 @@ where
             ImplementationTypes::Scanning4(m) => m.contains_key(key),
             ImplementationTypes::Fallback(m) => m.contains_key(key),
             ImplementationTypes::Integer32(m) => m.contains_key(unsafe { transmute(key) }),
-            ImplementationTypes::String(m) => m.contains_key(unsafe { transmute(key) }),
+            //            ImplementationTypes::String(m) => m.contains_key(unsafe { transmute(key) }),
         }
     }
 
@@ -86,7 +86,7 @@ where
             ImplementationTypes::Scanning4(m) => m.len(),
             ImplementationTypes::Fallback(m) => m.len(),
             ImplementationTypes::Integer32(m) => m.len(),
-            ImplementationTypes::String(m) => m.len(),
+            //            ImplementationTypes::String(m) => m.len(),
         }
     }
 
@@ -148,22 +148,24 @@ where
             return Self {
                 implementation: ImplementationTypes::Integer32(IntegerMap::from_iter(payload)),
             };
-        } else if TypeId::of::<K>() == TypeId::of::<&str>() {
-            // We're going to move out of the old payload, so mark it as
-            // manually dropped, so we don't double-free
-            let payload = ManuallyDrop::new(payload);
+        /*
+               } else if TypeId::of::<K>() == TypeId::of::<&str>() {
+                   // We're going to move out of the old payload, so mark it as
+                   // manually dropped, so we don't double-free
+                   let payload = ManuallyDrop::new(payload);
 
-            // SAFETY: We know `K` is `&str` so this cast is okay
-            let payload: &[(&str, V); N] = unsafe { transmute(&payload) };
+                   // SAFETY: We know `K` is `&str` so this cast is okay
+                   let payload: &[(&str, V); N] = unsafe { transmute(&payload) };
 
-            // SAFETY: We know we're reading the right type, and we're reading
-            // from a ManuallyDrop, so we don't have to worry about
-            // double-dropping.
-            let payload = unsafe { ptr::read(payload) };
+                   // SAFETY: We know we're reading the right type, and we're reading
+                   // from a ManuallyDrop, so we don't have to worry about
+                   // double-dropping.
+                   let payload = unsafe { ptr::read(payload) };
 
-            return Self {
-                implementation: ImplementationTypes::String(StringMap::from_iter(payload)),
-            };
+                   return Self {
+                       implementation: ImplementationTypes::String(StringMap::from_iter(payload)),
+                   };
+        */
         } else {
             Self {
                 implementation: ImplementationTypes::Fallback(FallbackMap::from_iter(payload)),
@@ -176,7 +178,7 @@ impl<K, V> FromIterator<(K, V)> for FrozenMap<K, V>
 where
     K: Eq + Hash + Equivalent<K>,
 {
-    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(_iter: T) -> Self {
         todo!()
     }
 }
