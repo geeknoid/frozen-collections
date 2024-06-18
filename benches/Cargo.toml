@@ -1,0 +1,24 @@
+[package]
+name = "benches"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[dev-dependencies]
+frozen-collections = { path = "../frozen-collections" }
+rand = "0.9.0-alpha.1"
+criterion = "0.5.1"
+ahash = "0.8.11"
+
+[[bench]]
+name = "frozen_map"
+path = "frozen_map.rs"
+harness = false
+
+[[bench]]
+name = "frozen_set"
+path = "frozen_set.rs"
+harness = false
+
+[lints]
+workspace = true

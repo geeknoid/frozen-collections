@@ -1,0 +1,24 @@
+[package]
+name = "codegen"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[dev-dependencies]
+frozen-collections = { path = "../frozen-collections" }
+ahash = "0.8.11"
+
+[[example]]
+name = "complex"
+path = "complex.rs"
+
+[[example]]
+name = "string_slice"
+path = "string_slice.rs"
+
+[[example]]
+name = "string_length"
+path = "string_length.rs"
+
+[lints]
+workspace = true

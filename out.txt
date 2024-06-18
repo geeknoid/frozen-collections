@@ -1,0 +1,36 @@
+warning: it is more concise to loop over references to containers instead of using explicit iteration methods
+  --> frozen-collections-core\src\specialized_maps\scanning_map.rs:47:22
+   |
+47 |         for entry in self.entries.iter() {
+   |                      ^^^^^^^^^^^^^^^^^^^ help: to write this more concisely, try: `&self.entries`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#explicit_iter_loop
+   = note: `-W clippy::explicit-iter-loop` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::explicit_iter_loop)]`
+
+warning: it is more concise to loop over references to containers instead of using explicit iteration methods
+  --> frozen-collections-core\src\specialized_maps\scanning_map.rs:63:22
+   |
+63 |         for entry in self.entries.iter_mut() {
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^ help: to write this more concisely, try: `&mut self.entries`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#explicit_iter_loop
+
+warning: it is more concise to loop over references to containers instead of using explicit iteration methods
+  --> frozen-collections-core\src\specialized_maps\scanning_map.rs:79:22
+   |
+79 |         for entry in self.entries.iter() {
+   |                      ^^^^^^^^^^^^^^^^^^^ help: to write this more concisely, try: `&self.entries`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#explicit_iter_loop
+
+   Compiling frozen-collections-core v0.1.0 (C:\src\geeknoid\frozen-collections\frozen-collections-core)
+warning: `frozen-collections-core` (lib) generated 3 warnings (run `cargo clippy --fix --lib -p frozen-collections-core` to apply 3 suggestions)
+    Checking frozen-collections-macros v0.1.0 (C:\src\geeknoid\frozen-collections\frozen-collections-macros)
+warning: `frozen-collections-core` (lib test) generated 3 warnings (3 duplicates)
+warning: `frozen-collections-core` (lib) generated 3 warnings (3 duplicates)
+    Checking frozen-collections v0.1.0 (C:\src\geeknoid\frozen-collections\frozen-collections)
+    Checking examples v0.0.0 (C:\src\geeknoid\frozen-collections\examples)
+    Checking codegen v0.0.0 (C:\src\geeknoid\frozen-collections\codegen)
+    Checking benches v0.0.0 (C:\src\geeknoid\frozen-collections\benches)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.45s

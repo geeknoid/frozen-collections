@@ -1,0 +1,48 @@
+[workspace]
+resolver = "2"
+members = [
+    "frozen-collections",
+    "frozen-collections-core",
+    "frozen-collections-macros",
+    "benches",
+    "examples",
+    "codegen",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+categories = ["data-structures"]
+keywords = ["map", "set", "collection"]
+repository = "https://github.com/geeknoid/frozen-collections"
+license = "MIT"
+readme = "README.md"
+authors = ["Martin Taillefer <martin@taillefer.org>"]
+rust-version = "1.79.0"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+correctness = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+single_call_fn = "allow"
+min_ident_chars = "allow"
+unused_self = "allow"
+wildcard_imports = "allow"
+too_many_lines = "allow"
+multiple_crate_versions = "allow"
+from-iter-instead-of-collect = "allow"
+into_iter_without_iter = "allow"
+inline_always = "allow"
+
+[profile.bench]
+codegen-units = 1
+lto = "fat"
+
+[profile.release]         # Modify profile settings via config.
+codegen-units = 1
+lto = "fat"
+debug = true             # Include debug info.
+strip = "none"           # Removes symbols or debuginfo.
