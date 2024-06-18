@@ -1,0 +1,349 @@
+use alloc::vec::Vec;
+use core::borrow::Borrow;
+use core::fmt::{Debug, Formatter, Result};
+use core::ops::Index;
+
+use crate::analyzers::{analyze_scalar_keys, ScalarKeyAnalysisResult};
+use crate::hashers::PassthroughHasher;
+use crate::maps::{
+    DenseScalarLookupMap, HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys,
+    SparseScalarLookupMap, Values, ValuesMut,
+};
+use crate::traits::{LargeCollection, Len, Map, MapIterator, Scalar};
+use crate::utils::dedup_by_keep_last;
+
+#[derive(Clone)]
+enum MapTypes<K, V> {
+    Hash(HashMap<K, V, LargeCollection, PassthroughHasher>),
+    Dense(DenseScalarLookupMap<K, V>),
+    Sparse(SparseScalarLookupMap<K, V, LargeCollection>),
+}
+
+/// A map optimized for fast read access using scalar keys.
+///
+#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/about.md")]
+#[derive(Clone)]
+#[allow(clippy::module_name_repetitions)]
+pub struct FacadeScalarMap<K, V> {
+    map_impl: MapTypes<K, V>,
+}
+
+impl<K, V> FacadeScalarMap<K, V>
+where
+    K: Scalar,
+{
+    /// Creates a frozen map.
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
+    pub fn new(mut entries: Vec<(K, V)>) -> Self {
+        entries.sort_by(|x, y| x.0.cmp(&y.0));
+        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
+
+        Self {
+            map_impl: match analyze_scalar_keys(entries.iter().map(|x| x.0)) {
+                ScalarKeyAnalysisResult::DenseRange => {
+                    MapTypes::Dense(DenseScalarLookupMap::new_raw(entries))
+                }
+                ScalarKeyAnalysisResult::SparseRange => {
+                    MapTypes::Sparse(SparseScalarLookupMap::new_raw(entries))
+                }
+                ScalarKeyAnalysisResult::General => {
+                    let h = PassthroughHasher::new();
+                    MapTypes::Hash(HashMap::new_half_baked(entries, h).unwrap())
+                }
+            },
+        }
+    }
+}
+
+impl<K, V> FacadeScalarMap<K, V> {
+    #[doc = include_str!("../doc_snippets/get_method.md")]
+    #[inline(always)]
+    #[must_use]
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        K: Borrow<Q>,
+        Q: Scalar,
+    {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.get(key),
+            MapTypes::Dense(m) => m.get(key),
+            MapTypes::Sparse(m) => m.get(key),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_key_value_method.md")]
+    #[inline]
+    #[must_use]
+    pub fn get_key_value<Q>(&self, key: &Q) -> Option<(&K, &V)>
+    where
+        K: Borrow<Q>,
+        Q: Scalar,
+    {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.get_key_value(key),
+            MapTypes::Dense(m) => m.get_key_value(key),
+            MapTypes::Sparse(m) => m.get_key_value(key),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_mut_method.md")]
+    #[inline]
+    #[must_use]
+    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
+    where
+        K: Borrow<Q>,
+        Q: Scalar,
+    {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => m.get_mut(key),
+            MapTypes::Dense(m) => m.get_mut(key),
+            MapTypes::Sparse(m) => m.get_mut(key),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_many_mut_method.md")]
+    #[must_use]
+    pub fn get_many_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]>
+    where
+        K: Borrow<Q>,
+        Q: Scalar,
+    {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => m.get_many_mut(keys),
+            MapTypes::Dense(m) => m.get_many_mut(keys),
+            MapTypes::Sparse(m) => m.get_many_mut(keys),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/contains_key_method.md")]
+    #[inline]
+    #[must_use]
+    pub fn contains_key<Q>(&self, key: &Q) -> bool
+    where
+        K: Borrow<Q>,
+        Q: Scalar,
+    {
+        self.get(key).is_some()
+    }
+}
+
+impl<K, V> Len for FacadeScalarMap<K, V> {
+    fn len(&self) -> usize {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.len(),
+            MapTypes::Dense(m) => m.len(),
+            MapTypes::Sparse(m) => m.len(),
+        }
+    }
+}
+
+impl<K, V, Q> Index<&Q> for FacadeScalarMap<K, V>
+where
+    K: Borrow<Q>,
+    Q: Scalar,
+{
+    type Output = V;
+
+    fn index(&self, index: &Q) -> &Self::Output {
+        self.get(index).expect("index should be valid")
+    }
+}
+
+impl<K, V> Default for FacadeScalarMap<K, V> {
+    fn default() -> Self {
+        Self {
+            map_impl: MapTypes::Dense(DenseScalarLookupMap::default()),
+        }
+    }
+}
+
+impl<K, V> Debug for FacadeScalarMap<K, V>
+where
+    K: Debug,
+    V: Debug,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.fmt(f),
+            MapTypes::Dense(m) => m.fmt(f),
+            MapTypes::Sparse(m) => m.fmt(f),
+        }
+    }
+}
+
+impl<K, V, MT> PartialEq<MT> for FacadeScalarMap<K, V>
+where
+    K: Scalar,
+    V: PartialEq,
+    MT: Map<K, V>,
+{
+    fn eq(&self, other: &MT) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+
+        self.iter()
+            .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
+    }
+}
+
+impl<K, V> Eq for FacadeScalarMap<K, V>
+where
+    K: Scalar,
+    V: Eq,
+{
+}
+
+impl<'a, K, V> IntoIterator for &'a FacadeScalarMap<K, V> {
+    type Item = (&'a K, &'a V);
+    type IntoIter = Iter<'a, K, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, K, V> IntoIterator for &'a mut FacadeScalarMap<K, V> {
+    type Item = (&'a K, &'a mut V);
+    type IntoIter = IterMut<'a, K, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl<K, V> IntoIterator for FacadeScalarMap<K, V> {
+    type Item = (K, V);
+    type IntoIter = IntoIter<K, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self.map_impl {
+            MapTypes::Hash(m) => m.into_iter(),
+            MapTypes::Dense(m) => m.into_iter(),
+            MapTypes::Sparse(m) => m.into_iter(),
+        }
+    }
+}
+
+impl<K, V> MapIterator<K, V> for FacadeScalarMap<K, V> {
+    type Iterator<'a>
+        = Iter<'a, K, V>
+    where
+        K: 'a,
+        V: 'a;
+
+    type KeyIterator<'a>
+        = Keys<'a, K, V>
+    where
+        K: 'a,
+        V: 'a;
+
+    type ValueIterator<'a>
+        = Values<'a, K, V>
+    where
+        K: 'a,
+        V: 'a;
+
+    type IntoKeyIterator = IntoKeys<K, V>;
+    type IntoValueIterator = IntoValues<K, V>;
+
+    type MutIterator<'a>
+        = IterMut<'a, K, V>
+    where
+        K: 'a,
+        V: 'a;
+
+    type ValueMutIterator<'a>
+        = ValuesMut<'a, K, V>
+    where
+        K: 'a,
+        V: 'a;
+
+    fn iter(&self) -> Self::Iterator<'_> {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.iter(),
+            MapTypes::Dense(m) => m.iter(),
+            MapTypes::Sparse(m) => m.iter(),
+        }
+    }
+
+    fn keys(&self) -> Self::KeyIterator<'_> {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.keys(),
+            MapTypes::Dense(m) => m.keys(),
+            MapTypes::Sparse(m) => m.keys(),
+        }
+    }
+
+    fn values(&self) -> Self::ValueIterator<'_> {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.values(),
+            MapTypes::Dense(m) => m.values(),
+            MapTypes::Sparse(m) => m.values(),
+        }
+    }
+
+    fn into_keys(self) -> Self::IntoKeyIterator {
+        match self.map_impl {
+            MapTypes::Hash(m) => m.into_keys(),
+            MapTypes::Dense(m) => m.into_keys(),
+            MapTypes::Sparse(m) => m.into_keys(),
+        }
+    }
+
+    fn into_values(self) -> Self::IntoValueIterator {
+        match self.map_impl {
+            MapTypes::Hash(m) => m.into_values(),
+            MapTypes::Dense(m) => m.into_values(),
+            MapTypes::Sparse(m) => m.into_values(),
+        }
+    }
+
+    fn iter_mut(&mut self) -> Self::MutIterator<'_> {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => m.iter_mut(),
+            MapTypes::Dense(m) => m.iter_mut(),
+            MapTypes::Sparse(m) => m.iter_mut(),
+        }
+    }
+
+    fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => m.values_mut(),
+            MapTypes::Dense(m) => m.values_mut(),
+            MapTypes::Sparse(m) => m.values_mut(),
+        }
+    }
+}
+
+impl<K, V> Map<K, V> for FacadeScalarMap<K, V>
+where
+    K: Scalar,
+{
+    #[inline]
+    fn contains_key(&self, key: &K) -> bool {
+        self.contains_key(key)
+    }
+
+    #[inline]
+    fn get(&self, key: &K) -> Option<&V> {
+        self.get(key)
+    }
+
+    #[inline]
+    fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
+        self.get_key_value(key)
+    }
+
+    #[inline]
+    fn get_mut(&mut self, key: &K) -> Option<&mut V> {
+        self.get_mut(key)
+    }
+
+    #[inline]
+    fn get_many_mut<const N: usize>(&mut self, keys: [&K; N]) -> Option<[&mut V; N]> {
+        self.get_many_mut(keys)
+    }
+}

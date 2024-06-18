@@ -1,0 +1,29 @@
+[package]
+name = "codegen"
+version = "0.0.0"
+publish = false
+edition.workspace = true
+rust-version.workspace = true
+
+[dev-dependencies]
+frozen-collections = { path = "../frozen-collections" }
+ahash = "0.8.11"
+
+[[example]]
+name = "misc_keys"
+path = "misc_keys.rs"
+
+[[example]]
+name = "string_keys_subslice"
+path = "string_keys_subslice.rs"
+
+[[example]]
+name = "string_keys_length"
+path = "string_keys_length.rs"
+
+[[example]]
+name = "int_keys"
+path = "int_keys.rs"
+
+[lints]
+workspace = true

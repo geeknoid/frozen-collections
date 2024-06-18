@@ -1,0 +1,132 @@
+use crate::maps::DenseScalarLookupMap;
+use crate::sets::decl_macros::{
+    bitand_fn, bitor_fn, bitxor_fn, contains_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn,
+    partial_eq_fn, set_boilerplate, set_iterator_boilerplate, sub_fn,
+};
+use crate::sets::{IntoIter, Iter};
+use crate::traits::{Len, MapIterator, Scalar, Set, SetIterator};
+use core::borrow::Borrow;
+use core::fmt::Debug;
+use core::hash::Hash;
+use core::ops::{BitAnd, BitOr, BitXor, Sub};
+
+/// A set whose values are a continuous range in a sequence of scalar values.
+///
+#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/about.md")]
+///
+#[derive(Clone)]
+pub struct DenseScalarLookupSet<T> {
+    map: DenseScalarLookupMap<T, ()>,
+}
+
+impl<T> DenseScalarLookupSet<T>
+where
+    T: Scalar,
+{
+    /// Creates a frozen set.
+    ///
+    /// # Errors
+    ///
+    /// Fails if the all the values in the input vector, after sorting and dedupping,
+    /// don't represent a continuous range.
+    #[must_use]
+    pub const fn new(map: DenseScalarLookupMap<T, ()>) -> Self {
+        Self { map }
+    }
+}
+
+impl<T> DenseScalarLookupSet<T> {
+    get_fn!(Scalar);
+    contains_fn!(Scalar);
+}
+
+impl<T> Len for DenseScalarLookupSet<T> {
+    fn len(&self) -> usize {
+        self.map.len()
+    }
+}
+
+impl<T> Debug for DenseScalarLookupSet<T>
+where
+    T: Debug,
+{
+    debug_fn!();
+}
+
+impl<T> Default for DenseScalarLookupSet<T>
+where
+    T: Scalar,
+{
+    fn default() -> Self {
+        Self {
+            map: DenseScalarLookupMap::default(),
+        }
+    }
+}
+
+impl<T> IntoIterator for DenseScalarLookupSet<T> {
+    into_iter_fn!();
+}
+
+impl<'a, T> IntoIterator for &'a DenseScalarLookupSet<T> {
+    into_iter_ref_fn!();
+}
+
+impl<T> SetIterator<T> for DenseScalarLookupSet<T> {
+    type Iterator<'a>
+        = Iter<'a, T>
+    where
+        T: 'a;
+
+    set_iterator_boilerplate!();
+}
+
+impl<T> Set<T> for DenseScalarLookupSet<T>
+where
+    T: Scalar,
+{
+    set_boilerplate!();
+}
+
+impl<T, ST> BitOr<&ST> for &DenseScalarLookupSet<T>
+where
+    T: Scalar + Hash,
+    ST: Set<T>,
+{
+    bitor_fn!(RandomState);
+}
+
+impl<T, ST> BitAnd<&ST> for &DenseScalarLookupSet<T>
+where
+    T: Scalar + Hash,
+    ST: Set<T>,
+{
+    bitand_fn!(RandomState);
+}
+
+impl<T, ST> BitXor<&ST> for &DenseScalarLookupSet<T>
+where
+    T: Scalar + Hash,
+    ST: Set<T>,
+{
+    bitxor_fn!(RandomState);
+}
+
+impl<T, ST> Sub<&ST> for &DenseScalarLookupSet<T>
+where
+    T: Scalar + Hash,
+    ST: Set<T>,
+{
+    sub_fn!(RandomState);
+}
+
+impl<T, ST> PartialEq<ST> for DenseScalarLookupSet<T>
+where
+    T: Scalar,
+    ST: Set<T>,
+{
+    partial_eq_fn!();
+}
+
+impl<T> Eq for DenseScalarLookupSet<T> where T: Scalar {}

@@ -1,0 +1,29 @@
+[package]
+name = "benches"
+version = "0.0.0"
+publish = false
+edition.workspace = true
+rust-version.workspace = true
+
+[dev-dependencies]
+frozen-collections = { path = "../frozen-collections" }
+criterion = "0.5.1"
+ahash = "0.8.11"
+
+[[bench]]
+name = "string_keys"
+path = "string_keys.rs"
+harness = false
+
+[[bench]]
+name = "int_keys"
+path = "int_keys.rs"
+harness = false
+
+[[bench]]
+name = "misc_keys"
+path = "misc_keys.rs"
+harness = false
+
+[lints]
+workspace = true
