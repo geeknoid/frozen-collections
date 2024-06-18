@@ -1,0 +1,32 @@
+[package]
+name = "frozen-collections"
+description = "Fast partially-immutable collections."
+readme.workspace = true
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[dependencies]
+ahash = { version = "0.8.11", optional = true }
+hashbrown = { version = "0.14.5", optional = true }
+
+[dependencies.frozen-collections-macros]
+path = "../frozen-collections-macros"
+optional = true
+
+[dependencies.frozen-collections-core]
+path = "../frozen-collections-core"
+default-features = false
+
+[lints]
+workspace = true
+
+[features]
+default = ["macros", "facades", "std"]
+std = ["frozen-collections-core/std"]
+macros = ["frozen-collections-macros", "ahash", "hashbrown"]
+facades = []

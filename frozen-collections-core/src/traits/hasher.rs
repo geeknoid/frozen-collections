@@ -1,0 +1,13 @@
+/// Hashes values of a specific type.
+///
+/// This provides a hashing mechanisms which is orthogonal to the normal
+/// `std::hash::Hash` trait. This allows for the creation of hashers that are
+/// specialized for specific types, and can be used in contexts where the
+/// standard `std::hash::Hash` trait is not desirable.
+pub trait Hasher<T>
+where
+    T: ?Sized,
+{
+    /// Produce a hash value for the given value.
+    fn hash(&self, value: &T) -> u64;
+}

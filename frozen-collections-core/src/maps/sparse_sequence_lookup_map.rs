@@ -1,0 +1,304 @@
+use crate::maps::decl_macros::{
+    contains_key_fn, debug_fn, get_many_mut_body, get_many_mut_fn, index_fn, index_mut_fn,
+    into_iter_fn_for_slice, into_iter_mut_ref_fn, into_iter_ref_fn, map_boilerplate_for_slice,
+    map_iterator_boilerplate_for_slice, partial_eq_fn, sparse_sequence_lookup_core,
+};
+use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
+use crate::traits::{CollectionMagnitude, Len, Map, MapIterator, Sequence};
+use crate::utils::dedup_by_keep_last;
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
+use core::borrow::Borrow;
+use core::fmt::{Debug, Formatter, Result};
+use core::ops::{Index, IndexMut};
+
+/// A map whose keys are a sparse range of values from a sequence.
+///
+/// # Compatibility Note
+///
+/// This type is an implementation detail of the `frozen-collections` crate.
+/// This API is therefore not stable and may change at any time.
+#[derive(Clone)]
+pub struct SparseSequenceLookupMap<K, V, CM> {
+    min: K,
+    max: K,
+    lookup: Box<[CM]>,
+    entries: Box<[(K, V)]>,
+}
+
+impl<K, V, CM> SparseSequenceLookupMap<K, V, CM>
+where
+    K: Sequence,
+    CM: CollectionMagnitude,
+    <CM as TryFrom<usize>>::Error: Debug,
+{
+    /// Creates a new `IntegerSparseLookupMap` from a list of entries.
+    ///
+    /// Note that this supports 1 less entry relative to the maximum capacity of the collection scale
+    /// since 0 is used as a sentinel value within the lookup table.
+    #[allow(clippy::missing_errors_doc)]
+    pub fn new(mut entries: Vec<(K, V)>) -> core::result::Result<Self, String> {
+        if entries.is_empty() {
+            return Ok(Self::default());
+        }
+
+        entries.sort_by_key(|x| x.0);
+        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
+
+        let min = entries[0].0;
+        let max = entries[entries.len() - 1].0;
+
+        let count = K::count(&min, &max);
+        if let Some(count) = count {
+            if count <= CM::MAX_CAPACITY {
+                return Ok(Self::new_internal(entries));
+            }
+        }
+
+        Err("the range of keys is too large for the selected collection magnitude".to_string())
+    }
+
+    #[must_use]
+    #[allow(clippy::missing_errors_doc)]
+    #[allow(clippy::missing_panics_doc)]
+    pub fn new_internal(entries: Vec<(K, V)>) -> Self {
+        let min = entries[0].0;
+        let max = entries[entries.len() - 1].0;
+        let count = K::count(&min, &max)
+            .expect("this condition should have been validated in the new function");
+
+        let mut lookup = Vec::<CM>::with_capacity(count);
+        lookup.resize(lookup.capacity(), CM::ZERO);
+
+        for (i, entry) in entries.iter().enumerate() {
+            let index_in_lookup = K::offset(&min, &max, &entry.0).unwrap();
+            let index_in_entries = CM::try_from(i + 1).expect("less than CM::MAX");
+            lookup[index_in_lookup] = index_in_entries;
+        }
+
+        Self {
+            min,
+            max,
+            lookup: lookup.into_boxed_slice(),
+            entries: entries.into_boxed_slice(),
+        }
+    }
+}
+
+impl<K, V, CM> SparseSequenceLookupMap<K, V, CM>
+where
+    CM: CollectionMagnitude,
+{
+    sparse_sequence_lookup_core!();
+}
+
+impl<K, V, CM> Len for SparseSequenceLookupMap<K, V, CM> {
+    fn len(&self) -> usize {
+        self.entries.len()
+    }
+}
+
+impl<K, V, CM> Debug for SparseSequenceLookupMap<K, V, CM>
+where
+    K: Debug,
+    V: Debug,
+{
+    debug_fn!();
+}
+
+impl<K, V, CM> Default for SparseSequenceLookupMap<K, V, CM>
+where
+    K: Sequence,
+{
+    fn default() -> Self {
+        Self {
+            min: K::MAX,
+            max: K::MIN,
+            lookup: Box::new([]),
+            entries: Box::new([]),
+        }
+    }
+}
+
+impl<Q, K, V, CM> Index<&Q> for SparseSequenceLookupMap<K, V, CM>
+where
+    K: Borrow<Q>,
+    Q: Sequence,
+    CM: CollectionMagnitude,
+{
+    index_fn!();
+}
+
+impl<Q, K, V, CM> IndexMut<&Q> for SparseSequenceLookupMap<K, V, CM>
+where
+    K: Borrow<Q>,
+    Q: Sequence,
+    CM: CollectionMagnitude,
+{
+    index_mut_fn!();
+}
+
+impl<K, V, CM> IntoIterator for SparseSequenceLookupMap<K, V, CM> {
+    into_iter_fn_for_slice!(entries);
+}
+
+impl<'a, K, V, CM> IntoIterator for &'a SparseSequenceLookupMap<K, V, CM> {
+    into_iter_ref_fn!();
+}
+
+impl<'a, K, V, CM> IntoIterator for &'a mut SparseSequenceLookupMap<K, V, CM> {
+    into_iter_mut_ref_fn!();
+}
+
+impl<K, V, MT, CM> PartialEq<MT> for SparseSequenceLookupMap<K, V, CM>
+where
+    K: Sequence,
+    V: PartialEq,
+    MT: Map<K, V>,
+    CM: CollectionMagnitude,
+{
+    partial_eq_fn!();
+}
+
+impl<K, V, CM> Eq for SparseSequenceLookupMap<K, V, CM>
+where
+    K: Sequence,
+    V: Eq,
+    CM: CollectionMagnitude,
+{
+}
+
+impl<K, V, CM> MapIterator<K, V> for SparseSequenceLookupMap<K, V, CM> {
+    type Iterator<'a> = Iter<'a, K, V>
+    where
+        K: 'a,
+        V: 'a,
+        CM: 'a;
+
+    type KeyIterator<'a> = Keys<'a, K, V>
+    where
+        K: 'a,
+        V: 'a,
+        CM: 'a;
+
+    type ValueIterator<'a> = Values<'a, K, V>
+    where
+        K: 'a,
+        V: 'a,
+        CM: 'a;
+
+    type MutIterator<'a> = IterMut<'a, K, V>
+    where
+        K: 'a,
+        V: 'a,
+        CM: 'a;
+
+    type ValueMutIterator<'a> = ValuesMut<'a, K, V>
+    where
+        K: 'a,
+        V: 'a,
+        CM: 'a;
+
+    map_iterator_boilerplate_for_slice!(entries);
+}
+
+impl<K, V, CM> Map<K, V> for SparseSequenceLookupMap<K, V, CM>
+where
+    K: Sequence,
+    CM: CollectionMagnitude,
+{
+    map_boilerplate_for_slice!(entries);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::maps::map_tests::test_map_trait_impl;
+    use crate::traits::SmallCollection;
+    use std::collections::HashMap as StdHashMap;
+
+    #[test]
+    fn test_sparse_sequence_lookup_map() {
+        let map =
+            SparseSequenceLookupMap::<_, _, SmallCollection>::new(vec![(1, 1), (2, 2), (3, 3)])
+                .unwrap();
+        let reference = StdHashMap::from([(1, 1), (2, 2), (3, 3)]);
+        let other = StdHashMap::from([(1, 1), (2, 2), (3, 3), (4, 4)]);
+        test_map_trait_impl(&map, &reference, &other);
+
+        let map = SparseSequenceLookupMap::<_, _, SmallCollection>::new(vec![]).unwrap();
+        let reference = StdHashMap::from([]);
+        let other = StdHashMap::from([(1, 1), (2, 2), (3, 3), (4, 4)]);
+        test_map_trait_impl(&map, &reference, &other);
+
+        let map = SparseSequenceLookupMap::<_, _, SmallCollection>::new(vec![
+            (1, 1),
+            (2, 2),
+            (3, 3),
+            (1, 4),
+        ])
+        .unwrap();
+        let reference = StdHashMap::from([(2, 2), (3, 3), (1, 4)]);
+        let other = StdHashMap::from([(1, 1), (2, 2), (3, 3), (4, 4)]);
+        test_map_trait_impl(&map, &reference, &other);
+
+        let map = SparseSequenceLookupMap::<_, _, SmallCollection>::new(vec![
+            (1, 1),
+            (2, 2),
+            (3, 3),
+            (99, 4),
+        ])
+        .unwrap();
+        let reference = StdHashMap::from([(1, 1), (2, 2), (3, 3), (99, 4)]);
+        let other = StdHashMap::from([(1, 1), (2, 2), (3, 3), (77, 4)]);
+        test_map_trait_impl(&map, &reference, &other);
+    }
+
+    #[test]
+    fn test_error_in_new() {
+        let map = SparseSequenceLookupMap::<u32, u8, SmallCollection>::new(vec![
+            (1, 1),
+            (2, 2),
+            (256, 3),
+        ]);
+        assert_eq!(
+            map,
+            Err("the range of keys is too large for the selected collection magnitude".to_string())
+        );
+    }
+
+    #[test]
+    fn test_get_many_mut() {
+        let mut map =
+            SparseSequenceLookupMap::<_, _, SmallCollection>::new(vec![(1, 1), (2, 2), (4, 4)])
+                .unwrap();
+
+        let values = map.get_many_mut([&1, &2, &4]);
+        assert_eq!(values, Some([&mut 1, &mut 2, &mut 4]));
+
+        let values = map.get_many_mut([]);
+        assert_eq!(values, Some([]));
+
+        let values = map.get_many_mut([&1, &2, &3, &4]);
+        assert_eq!(values, None);
+    }
+
+    #[test]
+    fn test_into_iter() {
+        let map =
+            &SparseSequenceLookupMap::<_, _, SmallCollection>::new(vec![(1, 1), (2, 2), (3, 3)])
+                .unwrap();
+        let into_map: StdHashMap<_, _> = map.into_iter().map(|(k, v)| (*k, *v)).collect();
+        assert_eq!(map, &into_map);
+
+        let map = &mut SparseSequenceLookupMap::<_, _, SmallCollection>::new(vec![
+            (1, 1),
+            (2, 2),
+            (3, 3),
+        ])
+        .unwrap();
+        let into_map: StdHashMap<_, _> = map.into_iter().map(|(k, v)| (*k, *v)).collect();
+        assert_eq!(map, &into_map);
+    }
+}
