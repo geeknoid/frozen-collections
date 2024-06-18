@@ -1,0 +1,35 @@
+[package]
+name = "benches"
+version = "0.0.0"
+publish = false
+edition.workspace = true
+rust-version.workspace = true
+
+[dev-dependencies]
+frozen-collections = { path = "../frozen-collections", features = [], default-features = false }
+criterion = "0.5.1"
+ahash = "0.8.11"
+hashbrown = "0.15.2"
+
+[[bench]]
+name = "string_keys"
+path = "string_keys.rs"
+harness = false
+
+[[bench]]
+name = "scalar_keys"
+path = "scalar_keys.rs"
+harness = false
+
+[[bench]]
+name = "hash_keys"
+path = "hash_keys.rs"
+harness = false
+
+[[bench]]
+name = "ordered_keys"
+path = "ordered_keys.rs"
+harness = false
+
+[lints]
+workspace = true
