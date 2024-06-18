@@ -1,0 +1,46 @@
+[package]
+name = "examples"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+# If you copy one of the examples into a new project, you should be using
+# [dependencies] instead, and delete the **path**.
+[dev-dependencies]
+frozen-collections = { path = "../frozen-collections" }
+ahash = "0.8.11"
+
+[[example]]
+name = "hash_map"
+path = "hash_map.rs"
+
+[[example]]
+name = "hash_set"
+path = "hash_set.rs"
+
+[[example]]
+name = "ordered_map"
+path = "ordered_map.rs"
+
+[[example]]
+name = "ordered_set"
+path = "ordered_set.rs"
+
+[[example]]
+name = "scalar_map"
+path = "scalar_map.rs"
+
+[[example]]
+name = "scalar_set"
+path = "scalar_set.rs"
+
+[[example]]
+name = "string_map"
+path = "string_map.rs"
+
+[[example]]
+name = "string_set"
+path = "string_set.rs"
+
+[lints]
+workspace = true

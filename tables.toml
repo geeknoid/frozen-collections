@@ -1,0 +1,42 @@
+[top_comments]
+Overview = """
+These compare the various map implementation types available in frozen collections.
+
+The map implemnentation type `StdHashMap` represents the normal `std::collections::HashMap`,
+while `StdHashMap(ahash)` represents the same map type but using the much faster `ahash` crate
+for hashing.
+
+The benchmarks assume a 50% hit rate when probing for keys, meaning that
+half the queries are for non-existing keys. Some algorithms perform differently between
+present vs. non-existing keys, so real world performance of these algorithms depends on the
+real world hit rate you experience.
+"""
+
+[table_comments]
+string_keys_length = """
+String maps where the length of the strings may be used as hash code for each key.
+"""
+
+string_keys_subslice = """
+String maps where the subslices of the strings may be used to compute the hash code for each key.
+"""
+
+string_keys = """
+String maps of small sizes.
+"""
+
+misc_keys = """
+Maps of small sizes using a complex key type.
+"""
+
+int_keys_dense_lookup = """
+Integer maps where the keys are in a contiguous range.
+"""
+
+int_keys_sparse_lookup = """
+Integer maps where the keys are in a non-contiguous range.
+"""
+
+int_keys = """
+Integer maps of small sizes.
+"""
