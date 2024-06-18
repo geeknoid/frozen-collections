@@ -1,0 +1,25 @@
+[package]
+name = "frozen-collections"
+description = "Fast read-only collections."
+readme.workspace = true
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[dependencies]
+num-traits = "0.2.19"
+bitvec = "1.0.1"
+nameof = "1.2.2"
+
+[dependencies.frozen-collections-macros]
+path = "../frozen-collections-macros"
+
+[dependencies.frozen-collections-core]
+path = "../frozen-collections-core"
+
+[lints]
+workspace = true
