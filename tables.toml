@@ -1,0 +1,48 @@
+[top_comments]
+Overview = """
+These benchmarks compare the performance of the frozen collecitons relative
+to the classic Rust collections.
+
+The frozen collections have different optimizations depending on the type of data they
+storeta and how it is declared. The benchmarks probe those different features to show
+the effect of the different optimizations on effective performance.
+
+When you see `HashSet(classic)` vs. `HashSet(ahash)` this reflects the performance difference between the
+normal hasher used by the standard collections as opposed to the performnace that the
+`ahash` hasher provides.
+
+The benchmarks assume a 50% hit rate when probing for lookup, meaning that
+half the queries are for non-existing data. Some algorithms perform differently between
+present vs. non-existing cases, so real world performance of these algorithms depends on the
+real world hit rate you experience.
+"""
+
+[table_comments]
+
+dense_scalar = """
+Scalar sets where the values are in a contiguous range.
+"""
+
+sparse_scalar = """
+Scalar sets where the values are in a non-contiguous range.
+"""
+
+random_scalar = """
+Scalar sets where the values are randomly distributed.
+"""
+
+random_string = """
+String sets where the values are random.
+"""
+
+prefixed_string = """
+String sets where the values are random, but share a common prefix.
+"""
+
+hashed = """
+Sets with a complex key type that is hashable.
+"""
+
+ordered = """
+Sets with a complex key type that is ordered.
+"""
