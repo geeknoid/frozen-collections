@@ -1,0 +1,34 @@
+[package]
+name = "codegen"
+version = "0.0.0"
+publish = false
+edition.workspace = true
+rust-version.workspace = true
+
+[dev-dependencies]
+frozen-collections = { path = "../frozen-collections", features = [], default-features = false }
+ahash = "0.8.11"
+hashbrown = "0.15.2"
+
+[[example]]
+name = "hashed_keys"
+path = "hashed_keys.rs"
+
+[[example]]
+name = "string_keys_subslice"
+path = "string_keys_subslice.rs"
+
+[[example]]
+name = "string_keys_length"
+path = "string_keys_length.rs"
+
+[[example]]
+name = "scalar_keys"
+path = "scalar_keys.rs"
+
+[[example]]
+name = "ordered_keys"
+path = "ordered_keys.rs"
+
+[lints]
+workspace = true
