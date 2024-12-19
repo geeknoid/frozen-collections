@@ -43,18 +43,18 @@ See [BENCHMARKS.md](./BENCHMARKS.md) for current benchmark numbers.
 
 Frozen collections are created with one of eight macros:
 [`fz_hash_map!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_hash_map.html),
-[`fz_ordered_map!`](https://docs.rs/frozen-collections/latest/macro.fz_ordered_map.html),
-[`fz_scalar_map!`](https://docs.rs/frozen-collections/latest/macro.fz_scalar_map.html),
-[`fz_string_map!`](https://docs.rs/frozen-collections/latest/macro.fz_string_map.html),
-[`fz_hash_set!`](https://docs.rs/frozen-collections/latest/macro.fz_hash_set.html),
-[`fz_ordered_set!`](https://docs.rs/frozen-collections/latest/macro.fz_ordered_set.html),
-[`fz_scalar_set!`](https://docs.rs/frozen-collections/latest/macro.fz_scalar_set.html), or
-[`fz_string_set!`](https://docs.rs/frozen-collections/latest/macro.fz_string_set.html).
+[`fz_ordered_map!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_ordered_map.html),
+[`fz_scalar_map!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_scalar_map.html),
+[`fz_string_map!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_string_map.html),
+[`fz_hash_set!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_hash_set.html),
+[`fz_ordered_set!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_ordered_set.html),
+[`fz_scalar_set!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_scalar_set.html), or
+[`fz_string_set!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_string_set.html).
 These macros analyze the data you provide
 and return a custom implementation type that's optimized for the data. All the
 possible implementations types implement the
-[`Map`](https://docs.rs/frozen-collections/latest/trait.Map.html) or
-[`Set`](https://docs.rs/frozen-collections/latest/trait.Set.html) traits.
+[`Map`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) or
+[`Set`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Set.html) traits.
 
 The macros exist in a short form and a long form, described below.
 
@@ -77,7 +77,7 @@ let m = fz_string_map!({
 
 At build time, the  macro analyzes the data supplied and determines the best map
 implementation type to use. As such, the type of `m` is not known to this code. `m` will
-always implement the [`Map`](https://docs.rs/frozen-collections/latest/trait.Map.html) trait however, so you can leverage type inference even though
+always implement the [`Map`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) trait however, so you can leverage type inference even though
 you don't know the actual type of `m`:
 
 ```rust
@@ -186,18 +186,18 @@ fz_string_map!(let m: MyMapType<&str, i32>, v);
 
 The maps created by the frozen collections macros implement the following traits:
 
-- [`Map`](https://docs.rs/frozen-collections/latest/trait.Map.html). The primary representation of a map. This trait has [`MapQuery`](https://docs.rs/frozen-collections/latest/trait.MapQuery.html) and
-  [`MapIteration`](https://docs.rs/frozen-collections/latest/trait.MapIteration.html) as super-traits.
-- [`MapQuery`](https://docs.rs/frozen-collections/latest/trait.MapQuery.html). A trait for querying maps. This is an object-safe trait.
-- [`MapIteration`](https://docs.rs/frozen-collections/latest/trait.MapIteration.html). A trait for iterating over maps.
+- [`Map`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). The primary representation of a map. This trait has [`MapQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapQuery.html) and
+  [`MapIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapIteration.html) as super-traits.
+- [`MapQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapQuery.html). A trait for querying maps. This is an object-safe trait.
+- [`MapIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapIteration.html). A trait for iterating over maps.
 
 The sets created by the frozen collection macros implement the following traits:
 
-- [`Set`](https://docs.rs/frozen-collections/latest/trait.Set.html). The primary representation of a set. This trait has [`SetQuery`](https://docs.rs/frozen-collections/latest/trait.Map.html),
-  [`SetIteration`](https://docs.rs/frozen-collections/latest/trait.Map.html) and [`SetOps`](https://docs.rs/frozen-collections/latest/trait.Map.html) as super-traits.
-- [`SetQuery`](https://docs.rs/frozen-collections/latest/trait.Map.html). A trait for querying sets. This is an object-safe trait.
-- [`SetIteration`](https://docs.rs/frozen-collections/latest/trait.Map.html). A trait for iterating over sets.
-- [`SetOps`](https://docs.rs/frozen-collections/latest/trait.Map.html). A trait for set operations like union and intersections.
+- [`Set`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Set.html). The primary representation of a set. This trait has [`SetQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html),
+  [`SetIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) and [`SetOps`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) as super-traits.
+- [`SetQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). A trait for querying sets. This is an object-safe trait.
+- [`SetIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). A trait for iterating over sets.
+- [`SetOps`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). A trait for set operations like union and intersections.
 
 ## Performance Considerations
 
@@ -240,7 +240,7 @@ The available implementation strategies are:
 - **Linear Scan**. For very small collections, this avoids hashing completely by scanning through
   the entries in linear order.
 
-- **Ordered Scan**. For very small collections where the keys implement the [`Ord`] trait,
+- **Ordered Scan**. For very small collections where the keys implement the [`Ord`](https://doc.rust-lang.org/std/cmp/trait.Ord.html) trait,
   this avoids hashing completely by scanning through the entries in linear order. Unlike the
   Linear Scan strategy, this one can early exit when keys are not found during the scan.
 
@@ -249,10 +249,10 @@ The available implementation strategies are:
   [`HashMap`](https://doc.rust-lang.org/std/collections/hash/map/struct.HashMap.html) and
   [`HashSet`](https://doc.rust-lang.org/std/collections/hash/set/struct.HashSet.html).
 
-- **Binary Search**. For relatively small collections where the keys implement the [`Ord`] trait,
+- **Binary Search**. For relatively small collections where the keys implement the [`Ord`](https://doc.rust-lang.org/std/cmp/trait.Ord.html) trait,
   classic binary searching is used.
 
-- **Eytzinger Search**. For larger collections where the keys implement the [`Ord`] trait,
+- **Eytzinger Search**. For larger collections where the keys implement the [`Ord`](https://doc.rust-lang.org/std/cmp/trait.Ord.html) trait,
 a cache-friendly Eytzinger search is used.
 
 ## Cargo Features
