@@ -10,7 +10,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-categories = ["data-structures", "no-std", "collections"]
+categories = ["data-structures", "no-std"]
 keywords = ["map", "set", "collection"]
 repository = "https://github.com/geeknoid/frozen-collections"
 license = "MIT"
