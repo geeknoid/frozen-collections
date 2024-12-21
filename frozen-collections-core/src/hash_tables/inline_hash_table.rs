@@ -10,8 +10,8 @@ use core::ops::Range;
 ///
 /// - `T`: The data held in the hash table.
 /// - `CM`: The magnitude of the collection.
-/// - `SZ`: The length of the map.
-/// - `NHS`: The number of hash table slots.
+/// - `SZ`: The number of entries in the hash table.
+/// - `NHS`: The number of hash table slots. This must be a power of two.
 ///
 /// This implementation always has a power-of-two number of hash slots. This speeds up
 /// lookups by avoiding the need to perform a modulo operation.

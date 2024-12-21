@@ -9,6 +9,7 @@ categories.workspace = true
 keywords.workspace = true
 repository.workspace = true
 license.workspace = true
+rust-version.workspace = true
 
 [lib]
 name = "frozen_collections_macros"

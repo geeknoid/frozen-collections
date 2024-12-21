@@ -38,8 +38,8 @@ cognitive_complexity = "allow"
 codegen-units = 1
 lto = "fat"
 
-[profile.release]         # Modify profile settings via config.
+[profile.release]
 codegen-units = 1
 lto = "fat"
-debug = true             # Include debug info.
-strip = "none"           # Removes symbols or debuginfo.
+debug = true
+strip = "none"
