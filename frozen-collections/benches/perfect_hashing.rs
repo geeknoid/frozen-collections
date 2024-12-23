@@ -1,0 +1,179 @@
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use frozen_collections::{fz_hash_set, fz_string_set, SetQuery};
+use rand::Rng;
+use std::collections::HashSet;
+
+fn random_strings(size: usize) -> Vec<String> {
+    let mut rng = rand::rng();
+
+    let mut set = HashSet::with_capacity(size);
+    for _ in 0..size {
+        let len: u32 = rng.random();
+        let len = (len % 10) + 5;
+        let mut s = String::new();
+        for _ in 0..len {
+            let x: u8 = rng.random();
+            let x = (x % 26) + 97;
+            s.push(x as char);
+        }
+
+        set.insert(s);
+    }
+
+    set.into_iter().collect()
+}
+
+fn creation(c: &mut Criterion) {
+    let mut group = c.benchmark_group("creation");
+
+    _ = group.sample_size(10);
+
+    for size in [10, 100, 10000, 100_000] {
+        let strings = random_strings(size);
+
+        group.bench_with_input(BenchmarkId::new("ph", size), &size, |b, _| {
+            b.iter(|| {
+                _ = ph::fmph::Function::from(strings.clone());
+            });
+        });
+
+        group.bench_with_input(BenchmarkId::new("boomphf", size), &size, |b, _| {
+            b.iter(|| {
+                _ = boomphf::Mphf::new(1.7, &strings);
+            });
+        });
+        /*
+                group.bench_with_input(BenchmarkId::new("ptr_hash", size), &size, |b, _| {
+                    b.iter(|| {
+                        let mut params = ptr_hash::PtrHashParams::default();
+                        params.print_stats = false;
+
+                        _ = ptr_hash::PtrHash::<String, ptr_hash::tiny_ef::TinyEf, hash::FxHash, Vec<u8>>::new(&strings, params);
+                    });
+                });
+        */
+        group.bench_with_input(BenchmarkId::new("fzhashset", size), &size, |b, _| {
+            b.iter(|| {
+                _ = fz_hash_set!(strings.clone());
+            });
+        });
+
+        group.bench_with_input(BenchmarkId::new("fzstringset", size), &size, |b, _| {
+            let mut tmp = Vec::with_capacity(strings.len());
+            for s in &strings {
+                tmp.push(s.as_str());
+            }
+
+            b.iter(|| {
+                _ = fz_string_set!(tmp.clone());
+            });
+        });
+    }
+
+    group.finish();
+}
+
+fn lookup(c: &mut Criterion) {
+    let mut group = c.benchmark_group("lookup");
+
+    _ = group.sample_size(10);
+
+    for size in [10, 100, 10000, 100_000] {
+        let strings = random_strings(size);
+
+        let f = ph::fmph::Function::from(strings.clone());
+        group.bench_with_input(BenchmarkId::new("ph", size), &size, |b, _| {
+            b.iter(|| {
+                for s in &strings {
+                    f.get(s);
+                }
+            });
+        });
+
+        let f = boomphf::Mphf::new(1.7, &strings);
+        group.bench_with_input(BenchmarkId::new("boomphf", size), &size, |b, _| {
+            b.iter(|| {
+                for s in &strings {
+                    f.hash(s);
+                }
+            });
+        });
+
+        /*
+                let mut params = ptr_hash::PtrHashParams::default();
+                params.print_stats = false;
+
+                let f = ptr_hash::PtrHash::<String, ptr_hash::tiny_ef::TinyEf, hash::FxHash, Vec<u8> >::new(&strings, params);
+                group.bench_with_input(BenchmarkId::new("ptr_hash", size), &size, |b, _| {
+                    b.iter(|| {
+                        for s in &strings {
+                            f.index_minimal(s);
+                        }
+                    });
+                });
+        */
+
+        let f = fz_hash_set!(strings.clone());
+        group.bench_with_input(BenchmarkId::new("fzhashset", size), &size, |b, _| {
+            b.iter(|| {
+                for s in &strings {
+                    _ = f.contains(s);
+                }
+            });
+        });
+
+        let mut tmp = Vec::with_capacity(strings.len());
+        for s in &strings {
+            tmp.push(s.as_str());
+        }
+
+        let f = fz_string_set!(tmp.clone());
+        group.bench_with_input(BenchmarkId::new("fzstringset", size), &size, |b, _| {
+            b.iter(|| {
+                for s in &strings {
+                    _ = f.contains(&s.as_str());
+                }
+            });
+        });
+    }
+
+    group.finish();
+}
+
+criterion_group!(benches, creation, lookup);
+criterion_main!(benches);
+
+/* https://docs.rs/ptr_hash/latest/ptr_hash/
+ *   - Minimal perfect hash
+ *   - Runtime construction only
+ *   - Requires keys be default + send + sync + hash
+ *   - Requires std
+ *   - A little messy, having debug-related stuff in the main crate
+ *   - Modified 3 weeks ago
+ *   - Large set of dependencies
+ *
+ * https://10xgenomics.github.io/rust-boomphf/master/boomphf/index.html
+ * https://github.com/10XGenomics/rust-boomphf
+ *   - Minimal perfect hash
+ *   - Runtime construction only
+ *   - Requires keys be hash + clone + debug
+ *   - Requires std
+ *   - Modified over a year ago
+ *   - Large set of dependencies
+ *
+ * https://docs.rs/ph/latest/ph/
+ *   - Minimal perfect hash
+ *   - Runtime construction only
+ *   - Requires keys be hash + sync
+ *   - Requires std
+ *   - Modified 2 months ago
+ *   - Small set of dependencies
+ *   - Fallible construction!
+ *
+ * https://docs.rs/quickphf/latest/quickphf/
+ *   - Not a minimal phf.
+ *   - Only compile-time construction
+ *
+ * https://docs.rs/phf/latest/phf/
+ *   - Not a minimal phf.
+ */

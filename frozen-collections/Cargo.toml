@@ -13,13 +13,16 @@ rust-version.workspace = true
 
 [dependencies]
 ahash = { version = "0.8.11" }
+ph = "0.8.5"
 rand = "0.9.0-beta.1"
 
 [dev-dependencies]
 quote = { version = "1.0.37" }
 hashbrown = { version = "0.15.2" }
 criterion = "0.5.1"
-ahash = "0.8.11"
+boomphf = "0.6.0"
+ph = "0.8.5"
+ptr_hash = "0.1.1"
 
 [build-dependencies]
 rand = "0.9.0-beta.1"
@@ -47,6 +50,10 @@ harness = false
 
 [[bench]]
 name = "ordered_keys"
+harness = false
+
+[[bench]]
+name = "perfect_hashing"
 harness = false
 
 [lints]

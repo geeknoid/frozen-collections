@@ -10,5 +10,4 @@ include!(concat!(env!("OUT_DIR"), "/random_string.rs"));
 include!(concat!(env!("OUT_DIR"), "/prefixed_string.rs"));
 
 criterion_group!(benches, random_string, prefixed_string,);
-
 criterion_main!(benches);

@@ -10,5 +10,4 @@ include!(concat!(env!("OUT_DIR"), "/sparse_scalar.rs"));
 include!(concat!(env!("OUT_DIR"), "/random_scalar.rs"));
 
 criterion_group!(benches, dense_scalar, sparse_scalar, random_scalar,);
-
 criterion_main!(benches);
