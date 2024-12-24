@@ -1,5 +1,6 @@
 use core::fmt::Debug;
 use frozen_collections_core::traits::Map;
+use serde::Serialize;
 use std::collections::HashMap as StdHashMap;
 use std::collections::HashSet as StdHashSet;
 use std::hash::Hash;
@@ -12,7 +13,7 @@ pub fn test_map<MT, K, V>(
 ) where
     K: Hash + Eq + Clone + Debug + Default,
     V: Hash + Eq + Clone + Debug + Default,
-    MT: Map<K, V> + Debug + Clone + Eq,
+    MT: Map<K, V> + Debug + Clone + Eq + Serialize,
 {
     assert_same(map, reference);
 
@@ -21,6 +22,13 @@ pub fn test_map<MT, K, V>(
         let key_str = format!("{key:?}");
         assert!(formatted_map.contains(&key_str));
     }
+
+    // for now, we just effectively test that this doesn't crash
+    let j = serde_json::to_string(&map).unwrap();
+    assert!(!j.is_empty());
+
+    //    let m2: StdHashMap<K, V, ahash::RandomState> = serde_json::from_str(&j).unwrap();
+    //    assert_same(map, &m2);
 
     let m2 = map.clone();
     let r2 = reference.clone();

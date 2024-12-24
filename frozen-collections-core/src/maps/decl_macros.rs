@@ -117,6 +117,22 @@ macro_rules! debug_fn {
     };
 }
 
+#[cfg(feature = "serde")]
+macro_rules! serialize_fn {
+    () => {
+        fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let mut map = serializer.serialize_map(Some(self.len()))?;
+            for (k, v) in self {
+                map.serialize_entry(k, v)?;
+            }
+            map.end()
+        }
+    };
+}
+
 macro_rules! map_iteration_funcs {
     ($($entries:ident)+) => {
         type IntoKeyIterator = IntoKeys<K, V>;
@@ -446,3 +462,6 @@ pub(crate) use ordered_scan_query_funcs;
 pub(crate) use partial_eq_fn;
 pub(crate) use scan_query_funcs;
 pub(crate) use sparse_scalar_lookup_query_funcs;
+
+#[cfg(feature = "serde")]
+pub(crate) use serialize_fn;

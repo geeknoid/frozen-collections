@@ -4,11 +4,12 @@ use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use frozen_collections::Set;
 use frozen_collections_core::traits::SetOps;
 use hashbrown::HashSet as HashbrownSet;
+use serde::Serialize;
 
 pub fn test_set<ST, T>(set: &ST, reference: &HashbrownSet<T>, other: &HashbrownSet<T>)
 where
     T: Hash + Eq + Clone + Debug + Default,
-    ST: Set<T> + Debug + Clone,
+    ST: Set<T> + Debug + Clone + Serialize,
 {
     assert_same(set, reference);
 
@@ -37,6 +38,13 @@ where
         let value_str = format!("{value:?}");
         assert!(formatted_set.contains(&value_str));
     }
+
+    // for now, we just effectively test that this doesn't crash
+    let j = serde_json::to_string(&set).unwrap();
+    assert!(!j.is_empty());
+
+    //    let s2: StdHashSet<T, ahash::RandomState> = serde_json::from_str(&j).unwrap();
+    //    assert_same(set, &s2);
 
     let s2 = set.clone();
     let r2 = reference.clone();

@@ -12,6 +12,13 @@ use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
 
+#[cfg(feature = "serde")]
+use {
+    crate::sets::decl_macros::serialize_fn,
+    serde::ser::SerializeSeq,
+    serde::{Serialize, Serializer},
+};
+
 /// A general purpose set implemented using a hash table.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -160,4 +167,12 @@ where
     T: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<T, CM, H> Serialize for HashSet<T, CM, H>
+where
+    T: Serialize,
+{
+    serialize_fn!();
 }

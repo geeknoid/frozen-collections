@@ -96,6 +96,22 @@ macro_rules! debug_fn {
     };
 }
 
+#[cfg(feature = "serde")]
+macro_rules! serialize_fn {
+    () => {
+        fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let mut seq = serializer.serialize_seq(Some(self.len()))?;
+            for v in self {
+                seq.serialize_element(v)?;
+            }
+            seq.end()
+        }
+    };
+}
+
 macro_rules! set_iteration_funcs {
     () => {
         fn iter(&self) -> Iter<'_, T> {
@@ -114,3 +130,6 @@ pub(crate) use into_iter_ref_fn;
 pub(crate) use partial_eq_fn;
 pub(crate) use set_iteration_funcs;
 pub(crate) use sub_fn;
+
+#[cfg(feature = "serde")]
+pub(crate) use serialize_fn;

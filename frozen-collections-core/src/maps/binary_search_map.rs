@@ -11,6 +11,13 @@ use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
 
+#[cfg(feature = "serde")]
+use {
+    crate::maps::decl_macros::serialize_fn,
+    serde::ser::SerializeMap,
+    serde::{Serialize, Serializer},
+};
+
 /// A general purpose map implemented using binary search.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -146,4 +153,13 @@ where
     V: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<K, V> Serialize for BinarySearchMap<K, V>
+where
+    K: Serialize,
+    V: Serialize,
+{
+    serialize_fn!();
 }

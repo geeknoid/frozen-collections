@@ -10,31 +10,26 @@ keywords.workspace = true
 repository.workspace = true
 license.workspace = true
 rust-version.workspace = true
+resolver = "2"
 
 [dependencies]
 ahash = { version = "0.8.11" }
-ph = "0.8.5"
 rand = "0.9.0-beta.1"
+frozen-collections-macros = { path = "../frozen-collections-macros" }
+frozen-collections-core = { path = "../frozen-collections-core", default-features = false }
 
 [dev-dependencies]
-quote = { version = "1.0.37" }
-hashbrown = { version = "0.15.2" }
+quote = "1.0.37"
+hashbrown = { version = "0.15.2", features = ["serde"] }
 criterion = "0.5.1"
 boomphf = "0.6.0"
 ph = "0.8.5"
-ptr_hash = "0.1.1"
+frozen-collections-core = { path = "../frozen-collections-core", features = ["std", "serde"], default-features = false }
+serde = "1.0.216"
+serde_json = "1.0.134"
 
 [build-dependencies]
 rand = "0.9.0-beta.1"
-
-[dependencies.frozen-collections-macros]
-path = "../frozen-collections-macros"
-version = "0.1.0"
-
-[dependencies.frozen-collections-core]
-path = "../frozen-collections-core"
-default-features = false
-version = "0.1.0"
 
 [[bench]]
 name = "string_keys"
@@ -61,4 +56,5 @@ workspace = true
 
 [features]
 default = ["std"]
+serde = ["frozen-collections-core/serde"]
 std = ["frozen-collections-core/std"]

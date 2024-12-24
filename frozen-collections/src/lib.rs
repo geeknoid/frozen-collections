@@ -235,6 +235,7 @@
 //! You can specify the following features when you include the `frozen_collections` crate in your
 //! `Cargo.toml` file:
 //!
+//! - **`serde`**. Enables serialization and deserialization support for the frozen collections.
 //! - **`std`**. Enables small features only available when building with the standard library.
 //!
 //! The `std` feature is enabled by default.

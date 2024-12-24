@@ -8,6 +8,13 @@ use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 
+#[cfg(feature = "serde")]
+use {
+    crate::maps::decl_macros::serialize_fn,
+    serde::ser::SerializeMap,
+    serde::{Serialize, Serializer},
+};
+
 /// A map whose keys are a continuous range in a sequence of scalar values.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -138,4 +145,13 @@ where
     V: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<K, V, const SZ: usize> Serialize for InlineDenseScalarLookupMap<K, V, SZ>
+where
+    K: Serialize,
+    V: Serialize,
+{
+    serialize_fn!();
 }

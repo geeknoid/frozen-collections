@@ -10,6 +10,7 @@ license.workspace = true
 authors.workspace = true
 readme = "README.md"
 rust-version.workspace = true
+resolver = "2"
 
 [dependencies]
 ahash = "0.8.11"
@@ -20,13 +21,15 @@ quote = { version = "1.0.37" }
 proc-macro2 = { version = "1.0.92" }
 mutants = "0.0.3"
 equivalent = "1.0.1"
+serde = { version = "1.0.216", optional = true, default-features = false }
 
 [dev-dependencies]
 rand = "0.9.0-beta.1"
 
 [features]
 default = ["std"]
-std = []
+std = ["serde/std"]
+serde = ["dep:serde"]
 
 [lints]
 workspace = true

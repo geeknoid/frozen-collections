@@ -12,6 +12,15 @@ use core::hash::{BuildHasher, Hash};
 use core::ops::Index;
 use equivalent::Equivalent;
 
+#[cfg(feature = "serde")]
+use {
+    crate::maps::decl_macros::serialize_fn,
+    core::marker::PhantomData,
+    serde::de::{MapAccess, Visitor},
+    serde::ser::SerializeMap,
+    serde::{Deserialize, Deserializer, Serialize, Serializer},
+};
+
 #[derive(Clone)]
 enum MapTypes<K, V, BH> {
     LeftRange(HashMap<K, V, LargeCollection, LeftRangeHasher<BH>>),
@@ -318,5 +327,59 @@ where
             MapTypes::RightRange(m) => m.fmt(f),
             MapTypes::Hash(m) => m.fmt(f),
         }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<K, V, BH> Serialize for FacadeStringMap<K, V, BH>
+where
+    K: Serialize,
+    V: Serialize,
+{
+    serialize_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<'de, V> Deserialize<'de> for FacadeStringMap<&'de str, V>
+where
+    V: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(MapVisitor {
+            marker: PhantomData,
+        })
+    }
+}
+
+#[cfg(feature = "serde")]
+struct MapVisitor<V, BH> {
+    marker: PhantomData<(V, BH)>,
+}
+
+#[cfg(feature = "serde")]
+impl<'de, V, BH> Visitor<'de> for MapVisitor<V, BH>
+where
+    V: Deserialize<'de>,
+    BH: BuildHasher + Default,
+{
+    type Value = FacadeStringMap<&'de str, V, BH>;
+
+    fn expecting(&self, formatter: &mut Formatter) -> Result {
+        formatter.write_str("A map with string keys")
+    }
+
+    fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
+    where
+        M: MapAccess<'de>,
+    {
+        let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
+        while let Some(x) = access.next_entry()? {
+            v.push(x);
+        }
+
+        Ok(FacadeStringMap::new(v, BH::default()))
     }
 }

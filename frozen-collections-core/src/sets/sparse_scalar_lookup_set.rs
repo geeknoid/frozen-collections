@@ -9,6 +9,13 @@ use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 
+#[cfg(feature = "serde")]
+use {
+    crate::sets::decl_macros::serialize_fn,
+    serde::ser::SerializeSeq,
+    serde::{Serialize, Serializer},
+};
+
 /// A set whose values are a sparse range of values from a scalar.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -106,10 +113,7 @@ impl<T> IntoIterator for SparseScalarLookupSet<T> {
     into_iter_fn!();
 }
 
-impl<'a, T> IntoIterator for &'a SparseScalarLookupSet<T>
-where
-    T: Scalar,
-{
+impl<'a, T> IntoIterator for &'a SparseScalarLookupSet<T> {
     into_iter_ref_fn!();
 }
 
@@ -128,4 +132,12 @@ where
     T: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<T> Serialize for SparseScalarLookupSet<T>
+where
+    T: Serialize,
+{
+    serialize_fn!();
 }

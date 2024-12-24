@@ -15,6 +15,13 @@ use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Equivalent;
 
+#[cfg(feature = "serde")]
+use {
+    crate::maps::decl_macros::serialize_fn,
+    serde::ser::SerializeMap,
+    serde::{Serialize, Serializer},
+};
+
 /// A general purpose map implemented using a hash table.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -199,6 +206,15 @@ where
         let pairs = self.table.entries.iter().map(|x| (&x.0, &x.1));
         f.debug_map().entries(pairs).finish()
     }
+}
+
+#[cfg(feature = "serde")]
+impl<K, V, CM, H> Serialize for HashMap<K, V, CM, H>
+where
+    K: Serialize,
+    V: Serialize,
+{
+    serialize_fn!();
 }
 
 #[cfg(test)]

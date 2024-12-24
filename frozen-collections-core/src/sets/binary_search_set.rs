@@ -10,6 +10,13 @@ use crate::sets::decl_macros::{
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
 
+#[cfg(feature = "serde")]
+use {
+    crate::sets::decl_macros::serialize_fn,
+    serde::ser::SerializeSeq,
+    serde::{Serialize, Serializer},
+};
+
 /// A general purpose set implemented using binary search.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -119,4 +126,12 @@ where
     T: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<T> Serialize for BinarySearchSet<T>
+where
+    T: Serialize,
+{
+    serialize_fn!();
 }
