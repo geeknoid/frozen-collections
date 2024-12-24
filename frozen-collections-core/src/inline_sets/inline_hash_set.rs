@@ -14,6 +14,13 @@ use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
 
+#[cfg(feature = "serde")]
+use {
+    crate::sets::decl_macros::serialize_fn,
+    serde::ser::SerializeSeq,
+    serde::{Serialize, Serializer},
+};
+
 /// A general purpose set implemented using a hash table.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -141,10 +148,6 @@ impl<T, const SZ: usize, const NHS: usize, CM, H> IntoIterator
 
 impl<'a, T, const SZ: usize, const NHS: usize, CM, H> IntoIterator
     for &'a InlineHashSet<T, SZ, NHS, CM, H>
-where
-    T: Eq,
-    CM: CollectionMagnitude,
-    H: Hasher<T>,
 {
     into_iter_ref_fn!();
 }
@@ -175,4 +178,12 @@ where
     H: Hasher<T>,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<T, const SZ: usize, const NHS: usize, CM, H> Serialize for InlineHashSet<T, SZ, NHS, CM, H>
+where
+    T: Serialize,
+{
+    serialize_fn!();
 }

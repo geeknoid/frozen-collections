@@ -9,6 +9,15 @@ use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Equivalent;
 
+#[cfg(feature = "serde")]
+use {
+    crate::maps::decl_macros::serialize_fn,
+    core::marker::PhantomData,
+    serde::de::{MapAccess, Visitor},
+    serde::ser::SerializeMap,
+    serde::{Deserialize, Deserializer, Serialize, Serializer},
+};
+
 #[derive(Clone)]
 enum MapTypes<K, V, H> {
     Hash(HashMap<K, V, LargeCollection, H>),
@@ -282,5 +291,62 @@ where
             MapTypes::Hash(m) => m.fmt(f),
             MapTypes::Scanning(m) => m.fmt(f),
         }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<K, V, H> Serialize for FacadeHashMap<K, V, H>
+where
+    K: Serialize,
+    V: Serialize,
+{
+    serialize_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<'de, K, V, H> Deserialize<'de> for FacadeHashMap<K, V, H>
+where
+    K: Deserialize<'de> + Eq,
+    V: Deserialize<'de>,
+    H: Hasher<K> + Default,
+{
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(MapVisitor {
+            marker: PhantomData,
+        })
+    }
+}
+
+#[cfg(feature = "serde")]
+struct MapVisitor<K, V, H> {
+    marker: PhantomData<(K, V, H)>,
+}
+
+#[cfg(feature = "serde")]
+impl<'de, K, V, H> Visitor<'de> for MapVisitor<K, V, H>
+where
+    K: Deserialize<'de> + Eq,
+    V: Deserialize<'de>,
+    H: Hasher<K> + Default,
+{
+    type Value = FacadeHashMap<K, V, H>;
+
+    fn expecting(&self, formatter: &mut Formatter) -> Result {
+        formatter.write_str("A map with hashable keys")
+    }
+
+    fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
+    where
+        M: MapAccess<'de>,
+    {
+        let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
+        while let Some(x) = access.next_entry()? {
+            v.push(x);
+        }
+
+        Ok(FacadeHashMap::new(v, H::default()))
     }
 }

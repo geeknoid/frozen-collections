@@ -9,6 +9,13 @@ use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 
+#[cfg(feature = "serde")]
+use {
+    crate::sets::decl_macros::serialize_fn,
+    serde::ser::SerializeSeq,
+    serde::{Serialize, Serializer},
+};
+
 /// A set whose values are a continuous range in a sequence of scalar values.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -125,4 +132,12 @@ where
     T: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<T> Serialize for DenseScalarLookupSet<T>
+where
+    T: Serialize,
+{
+    serialize_fn!();
 }

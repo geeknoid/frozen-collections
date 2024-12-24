@@ -10,6 +10,13 @@ use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 
+#[cfg(feature = "serde")]
+use {
+    crate::maps::decl_macros::serialize_fn,
+    serde::ser::SerializeMap,
+    serde::{Serialize, Serializer},
+};
+
 /// A map whose keys are a sparse range of integers.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -142,16 +149,12 @@ impl<K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator
 
 impl<'a, K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator
     for &'a InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
-where
-    CM: CollectionMagnitude,
 {
     into_iter_ref_fn!();
 }
 
 impl<'a, K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator
     for &'a mut InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
-where
-    CM: CollectionMagnitude,
 {
     into_iter_mut_ref_fn!();
 }
@@ -183,4 +186,14 @@ where
     V: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<K, V, const SZ: usize, const LTSZ: usize, CM> Serialize
+    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+where
+    K: Serialize,
+    V: Serialize,
+{
+    serialize_fn!();
 }

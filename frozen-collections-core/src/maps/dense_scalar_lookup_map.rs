@@ -1,9 +1,3 @@
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
-use core::fmt::{Debug, Formatter, Result};
-use core::ops::Index;
-
 use crate::maps::decl_macros::{
     debug_fn, dense_scalar_lookup_query_funcs, get_many_mut_body, get_many_mut_fn, index_fn,
     into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn, map_iteration_funcs, partial_eq_fn,
@@ -11,6 +5,18 @@ use crate::maps::decl_macros::{
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapIteration, MapQuery, Scalar};
 use crate::utils::dedup_by_keep_last;
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use core::fmt::{Debug, Formatter, Result};
+use core::ops::Index;
+
+#[cfg(feature = "serde")]
+use {
+    crate::maps::decl_macros::serialize_fn,
+    serde::ser::SerializeMap,
+    serde::{Serialize, Serializer},
+};
 
 /// A map whose keys are a continuous range in a sequence of scalar values.
 ///
@@ -171,6 +177,15 @@ where
     V: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<K, V> Serialize for DenseScalarLookupMap<K, V>
+where
+    K: Serialize,
+    V: Serialize,
+{
+    serialize_fn!();
 }
 
 #[cfg(test)]

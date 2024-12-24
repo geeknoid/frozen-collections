@@ -10,6 +10,7 @@ keywords.workspace = true
 repository.workspace = true
 license.workspace = true
 rust-version.workspace = true
+resolver = "2"
 
 [lib]
 name = "frozen_collections_macros"
@@ -18,11 +19,7 @@ proc-macro = true
 
 [dependencies]
 proc-macro-error = "1.0.4"
-
-[dependencies.frozen-collections-core]
-path = "../frozen-collections-core"
-version = "0.1.0"
-default-features = false
+frozen-collections-core = { path = "../frozen-collections-core", default-features = false }
 
 [lints]
 workspace = true

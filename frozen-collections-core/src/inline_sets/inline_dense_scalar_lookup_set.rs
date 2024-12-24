@@ -10,6 +10,13 @@ use crate::sets::decl_macros::{
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery};
 
+#[cfg(feature = "serde")]
+use {
+    crate::sets::decl_macros::serialize_fn,
+    serde::ser::SerializeSeq,
+    serde::{Serialize, Serializer},
+};
+
 /// A set whose values are a continuous range in a sequence of scalar values.
 ///
 #[doc = include_str!("../doc_snippets/type_compat_warning.md")]
@@ -114,4 +121,12 @@ where
     T: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<T, const SZ: usize> Serialize for InlineDenseScalarLookupSet<T, SZ>
+where
+    T: Serialize,
+{
+    serialize_fn!();
 }

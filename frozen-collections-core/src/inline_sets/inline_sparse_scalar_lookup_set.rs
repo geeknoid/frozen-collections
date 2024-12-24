@@ -1,7 +1,3 @@
-use core::fmt::Debug;
-use core::hash::Hash;
-use core::ops::{BitAnd, BitOr, BitXor, Sub};
-
 use crate::inline_maps::InlineSparseScalarLookupMap;
 use crate::sets::decl_macros::{
     bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn,
@@ -11,6 +7,16 @@ use crate::sets::{IntoIter, Iter};
 use crate::traits::{
     CollectionMagnitude, Len, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery,
     SmallCollection,
+};
+use core::fmt::Debug;
+use core::hash::Hash;
+use core::ops::{BitAnd, BitOr, BitXor, Sub};
+
+#[cfg(feature = "serde")]
+use {
+    crate::sets::decl_macros::serialize_fn,
+    serde::ser::SerializeSeq,
+    serde::{Serialize, Serializer},
 };
 
 /// A set whose values are scalars.
@@ -150,4 +156,13 @@ where
     T: Debug,
 {
     debug_fn!();
+}
+
+#[cfg(feature = "serde")]
+impl<T, const SZ: usize, const LTSZ: usize, CM> Serialize
+    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+where
+    T: Serialize,
+{
+    serialize_fn!();
 }
