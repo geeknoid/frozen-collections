@@ -4,7 +4,7 @@ use core::ops::Range;
 
 /// A hash table that stores its entries inline.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 ///
 /// # Type Parameters
 ///

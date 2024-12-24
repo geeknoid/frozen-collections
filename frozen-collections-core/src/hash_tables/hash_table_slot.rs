@@ -1,6 +1,6 @@
 /// An individual slot in a hash table.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 ///
 /// A slot contains the range of indices in the table's entry vector
 /// that contain entries that hash to this slot.

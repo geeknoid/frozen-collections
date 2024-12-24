@@ -24,7 +24,7 @@ use {
 
 /// A general purpose map implemented using a hash table.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
 #[doc = include_str!("../doc_snippets/hash_warning.md")]
 ///

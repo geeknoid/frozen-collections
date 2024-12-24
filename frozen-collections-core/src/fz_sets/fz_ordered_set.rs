@@ -1,12 +1,14 @@
-use crate::facade_maps::FacadeOrderedMap;
+use crate::fz_maps::FzOrderedMap;
 use crate::sets::decl_macros::{
     bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn,
     partial_eq_fn, set_iteration_funcs, sub_fn,
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
+use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::Hash;
+use core::iter::FromIterator;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Comparable;
 
@@ -22,49 +24,82 @@ use {
 
 /// A set optimized for fast read access with ordered values.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
 #[doc = include_str!("../doc_snippets/order_warning.md")]
 ///
 /// # Alternate Choices
 ///
-/// If your values are integers or enum variants, you should use the [`FacadeScalarSet`](crate::facade_sets::FacadeScalarSet) type instead.
-/// If your values are strings, you should use the [`FacadeStringSet`](crate::facade_sets::FacadeStringSet) type instead. Both of these will
+/// If your values are integers or enum variants, you should use the [`FzScalarSet`](crate::fz_sets::FzScalarSet) type instead.
+/// If your values are strings, you should use the [`FzStringSet`](crate::fz_sets::FzStringSet) type instead. Both of these will
 /// deliver better performance since they are specifically optimized for those value types.
+///
+/// If your values are known at compile time, consider using the various `fz_*_set` macros instead of
+/// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FacadeOrderedSet<T> {
-    map: FacadeOrderedMap<T, ()>,
+pub struct FzOrderedSet<T> {
+    map: FzOrderedMap<T, ()>,
 }
 
-impl<T> FacadeOrderedSet<T>
+impl<T> FzOrderedSet<T>
 where
     T: Ord + Eq,
 {
     /// Creates a new frozen ordered set.
     #[must_use]
-    pub const fn new(map: FacadeOrderedMap<T, ()>) -> Self {
-        Self { map }
-    }
-}
-
-impl<T> Default for FacadeOrderedSet<T> {
-    fn default() -> Self {
+    pub fn new(entries: Vec<T>) -> Self {
         Self {
-            map: FacadeOrderedMap::default(),
+            map: FzOrderedMap::new(entries.into_iter().map(|x| (x, ())).collect()),
         }
     }
 }
 
-impl<T, Q> Set<T, Q> for FacadeOrderedSet<T> where Q: ?Sized + Ord + Comparable<T> {}
+impl<T> Default for FzOrderedSet<T> {
+    fn default() -> Self {
+        Self {
+            map: FzOrderedMap::default(),
+        }
+    }
+}
 
-impl<T, Q> SetQuery<T, Q> for FacadeOrderedSet<T>
+impl<T> From<FzOrderedMap<T, ()>> for FzOrderedSet<T>
+where
+    T: Ord,
+{
+    fn from(map: FzOrderedMap<T, ()>) -> Self {
+        Self { map }
+    }
+}
+
+impl<T, const N: usize> From<[T; N]> for FzOrderedSet<T>
+where
+    T: Ord,
+{
+    fn from(entries: [T; N]) -> Self {
+        Self::from(FzOrderedMap::from_iter(
+            entries.into_iter().map(|x| (x, ())),
+        ))
+    }
+}
+
+impl<T> FromIterator<T> for FzOrderedSet<T>
+where
+    T: Ord,
+{
+    fn from_iter<IT: IntoIterator<Item = T>>(iter: IT) -> Self {
+        Self::from(FzOrderedMap::from_iter(iter.into_iter().map(|x| (x, ()))))
+    }
+}
+
+impl<T, Q> Set<T, Q> for FzOrderedSet<T> where Q: ?Sized + Ord + Comparable<T> {}
+
+impl<T, Q> SetQuery<T, Q> for FzOrderedSet<T>
 where
     Q: ?Sized + Ord + Comparable<T>,
 {
     get_fn!();
 }
 
-impl<T> SetIteration<T> for FacadeOrderedSet<T> {
+impl<T> SetIteration<T> for FzOrderedSet<T> {
     type Iterator<'a>
         = Iter<'a, T>
     where
@@ -73,13 +108,13 @@ impl<T> SetIteration<T> for FacadeOrderedSet<T> {
     set_iteration_funcs!();
 }
 
-impl<T> Len for FacadeOrderedSet<T> {
+impl<T> Len for FzOrderedSet<T> {
     fn len(&self) -> usize {
         self.map.len()
     }
 }
 
-impl<T, ST> BitOr<&ST> for &FacadeOrderedSet<T>
+impl<T, ST> BitOr<&ST> for &FzOrderedSet<T>
 where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
@@ -87,7 +122,7 @@ where
     bitor_fn!(RandomState);
 }
 
-impl<T, ST> BitAnd<&ST> for &FacadeOrderedSet<T>
+impl<T, ST> BitAnd<&ST> for &FzOrderedSet<T>
 where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
@@ -95,7 +130,7 @@ where
     bitand_fn!(RandomState);
 }
 
-impl<T, ST> BitXor<&ST> for &FacadeOrderedSet<T>
+impl<T, ST> BitXor<&ST> for &FzOrderedSet<T>
 where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
@@ -103,7 +138,7 @@ where
     bitxor_fn!(RandomState);
 }
 
-impl<T, ST> Sub<&ST> for &FacadeOrderedSet<T>
+impl<T, ST> Sub<&ST> for &FzOrderedSet<T>
 where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
@@ -111,15 +146,15 @@ where
     sub_fn!(RandomState);
 }
 
-impl<T> IntoIterator for FacadeOrderedSet<T> {
+impl<T> IntoIterator for FzOrderedSet<T> {
     into_iter_fn!();
 }
 
-impl<'a, T> IntoIterator for &'a FacadeOrderedSet<T> {
+impl<'a, T> IntoIterator for &'a FzOrderedSet<T> {
     into_iter_ref_fn!();
 }
 
-impl<T, ST> PartialEq<ST> for FacadeOrderedSet<T>
+impl<T, ST> PartialEq<ST> for FzOrderedSet<T>
 where
     T: Ord,
     ST: Set<T>,
@@ -127,9 +162,9 @@ where
     partial_eq_fn!();
 }
 
-impl<T> Eq for FacadeOrderedSet<T> where T: Ord {}
+impl<T> Eq for FzOrderedSet<T> where T: Ord {}
 
-impl<T> Debug for FacadeOrderedSet<T>
+impl<T> Debug for FzOrderedSet<T>
 where
     T: Debug,
 {
@@ -137,7 +172,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<T> Serialize for FacadeOrderedSet<T>
+impl<T> Serialize for FzOrderedSet<T>
 where
     T: Serialize,
 {
@@ -145,7 +180,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'de, T> Deserialize<'de> for FacadeOrderedSet<T>
+impl<'de, T> Deserialize<'de> for FzOrderedSet<T>
 where
     T: Deserialize<'de> + Ord,
 {
@@ -169,7 +204,7 @@ impl<'de, T> Visitor<'de> for SetVisitor<T>
 where
     T: Deserialize<'de> + Ord,
 {
-    type Value = FacadeOrderedSet<T>;
+    type Value = FzOrderedSet<T>;
 
     fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
         formatter.write_str("A set with ordered values")
@@ -184,6 +219,6 @@ where
             v.push((x, ()));
         }
 
-        Ok(FacadeOrderedSet::new(FacadeOrderedMap::new(v)))
+        Ok(FzOrderedSet::from(FzOrderedMap::new(v)))
     }
 }

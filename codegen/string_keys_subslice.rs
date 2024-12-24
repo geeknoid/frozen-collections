@@ -3,7 +3,6 @@ extern crate alloc;
 
 use core::hint::black_box;
 use frozen_collections::ahash::RandomState;
-use frozen_collections::facade_maps::FacadeStringMap;
 use frozen_collections::*;
 use hashbrown::HashMap as HashbrownMap;
 
@@ -24,7 +23,7 @@ fn main() {
         _ = black_box(call_hashbrown_map(&map, key));
     }
 
-    let map = FacadeStringMap::new(
+    let map = FzStringMap::new(
         input.iter().map(|x| (*x.0, *x.1)).collect(),
         RandomState::default(),
     );
@@ -46,7 +45,7 @@ fn call_hashbrown_map(map: &HashbrownMap<&str, i32, RandomState>, key: &str) -> 
 }
 
 #[inline(never)]
-fn call_facade_string_map(map: &FacadeStringMap<&str, i32>, key: &str) -> bool {
+fn call_facade_string_map(map: &FzStringMap<&str, i32>, key: &str) -> bool {
     map.contains_key(key)
 }
 

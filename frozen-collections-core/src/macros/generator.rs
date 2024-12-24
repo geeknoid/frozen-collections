@@ -794,8 +794,8 @@ impl Generator {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
 
-        let type_name = format_ident!("Facade{}Map", variety);
-        let ty = quote!(::frozen_collections::facade_maps::#type_name);
+        let type_name = format_ident!("Fz{}Map", variety);
+        let ty = quote!(::frozen_collections::#type_name);
 
         let mut type_sig = quote!(#ty::<#key_type, #value_type>);
 
@@ -814,11 +814,11 @@ impl Generator {
         };
 
         if self.as_set {
-            let type_name = format_ident!("Facade{}Set", variety);
-            let ty = quote!(::frozen_collections::facade_sets::#type_name);
+            let type_name = format_ident!("Fz{}Set", variety);
+            let ty = quote!(::frozen_collections::#type_name);
 
             type_sig = quote!(#ty);
-            ctor = quote!(#type_sig::new(#ctor));
+            ctor = quote!(#type_sig::from(#ctor));
         }
 
         Output::new(ctor, type_sig, false)
@@ -828,8 +828,8 @@ impl Generator {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
 
-        let mut type_name = format_ident!("Facade{}Map", variety);
-        let mut ty = quote!(::frozen_collections::facade_maps::#type_name);
+        let mut type_name = format_ident!("Fz{}Map", variety);
+        let mut ty = quote!(::frozen_collections::#type_name);
 
         let mut type_sig = quote!(#ty::<#key_type, #value_type>);
 
@@ -839,20 +839,18 @@ impl Generator {
             quote!(#expr)
         };
 
-        let mut ctor = if variety == "Hash" {
-            quote!(#type_sig::new(#converted_expr, ::frozen_collections::hashers::BridgeHasher::new(::frozen_collections::ahash::RandomState::new())))
-        } else if variety == "String" {
+        let mut ctor = if variety == "Hash" || variety == "String" {
             quote!(#type_sig::new(#converted_expr, ::frozen_collections::ahash::RandomState::new()))
         } else {
             quote!(#type_sig::new(#converted_expr))
         };
 
         if self.as_set {
-            type_name = format_ident!("Facade{}Set", variety);
-            ty = quote!(::frozen_collections::facade_sets::#type_name);
+            type_name = format_ident!("Fz{}Set", variety);
+            ty = quote!(::frozen_collections::#type_name);
 
             type_sig = quote!(#ty::<#key_type>);
-            ctor = quote!(#type_sig::new(#ctor));
+            ctor = quote!(#type_sig::from(#ctor));
         }
 
         Output::new(ctor, type_sig, false)

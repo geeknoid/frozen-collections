@@ -17,7 +17,7 @@ use {
 
 /// A map whose keys are a continuous range in a sequence of scalar values.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
 ///
 /// # Type Parameters

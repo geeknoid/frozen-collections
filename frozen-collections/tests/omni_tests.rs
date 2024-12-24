@@ -1,9 +1,8 @@
 mod common;
 
 use common::*;
+use frozen_collections::ahash::RandomState;
 use frozen_collections::*;
-use frozen_collections_core::facade_maps::*;
-use frozen_collections_core::facade_sets::*;
 use frozen_collections_core::hashers::BridgeHasher;
 use frozen_collections_core::macros::fz_scalar_map_macro;
 use frozen_collections_core::maps::*;
@@ -189,35 +188,35 @@ macro_rules! test_all {
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
 
-        let mut m = FacadeOrderedMap::new(map_input.clone());
+        let mut m = FzOrderedMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
 
-        let s = FacadeOrderedSet::new(m);
+        let s = FzOrderedSet::from(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
 
-        let mut m = FacadeScalarMap::new(map_input.clone());
+        let mut m = FzScalarMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
 
-        let s = FacadeScalarSet::new(m);
+        let s = FzScalarSet::from(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
 
-        let mut m = FacadeHashMap::<_, _>::new(map_input.clone(), BridgeHasher::default());
+        let mut m = FzHashMap::<_, _>::new(map_input.clone(), RandomState::new());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
 
-        let s = FacadeHashSet::new(m);
+        let s = FzHashSet::from(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
@@ -261,13 +260,13 @@ macro_rules! test_all {
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
 
-        let mut m = FacadeStringMap::new(map_input.clone(), ahash::RandomState::default());
+        let mut m = FzStringMap::new(map_input.clone(), ahash::RandomState::default());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
 
-        let s = FacadeStringSet::new(m);
+        let s = FzStringSet::from(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
@@ -345,10 +344,10 @@ fn test_set_defaults() {
     test_set_default::<SparseScalarLookupSet<i32>, i32>();
     test_set_default::<HashSet<i32>, i32>();
 
-    test_set_default::<FacadeHashSet<i32>, i32>();
-    test_set_default::<FacadeOrderedSet<i32>, i32>();
-    test_set_default::<FacadeScalarSet<i32>, i32>();
-    test_set_default::<FacadeStringSet<&str>, &str>();
+    test_set_default::<FzHashSet<i32>, i32>();
+    test_set_default::<FzOrderedSet<i32>, i32>();
+    test_set_default::<FzScalarSet<i32>, i32>();
+    test_set_default::<FzStringSet<&str>, &str>();
 }
 
 #[test]
@@ -360,10 +359,10 @@ fn test_map_defaults() {
     test_map_default::<SparseScalarLookupMap<i32, i32>, i32>();
     test_map_default::<HashMap<i32, i32>, i32>();
 
-    test_map_default::<FacadeHashMap<i32, i32>, i32>();
-    test_map_default::<FacadeOrderedMap<i32, i32>, i32>();
-    test_map_default::<FacadeScalarMap<i32, i32>, i32>();
-    test_map_default::<FacadeStringMap<&str, i32>, &str>();
+    test_map_default::<FzHashMap<i32, i32>, i32>();
+    test_map_default::<FzOrderedMap<i32, i32>, i32>();
+    test_map_default::<FzScalarMap<i32, i32>, i32>();
+    test_map_default::<FzStringMap<&str, i32>, &str>();
 }
 
 #[test]
@@ -406,20 +405,20 @@ fn test_set_empties() {
         HashMap::new(vec![], BridgeHasher::default()).unwrap(),
     ));
 
-    test_set_empty(&FacadeHashSet::<i32>::default());
-    test_set_empty(&FacadeHashSet::<i32>::new(FacadeHashMap::new(
+    test_set_empty(&FzHashSet::<i32>::default());
+    test_set_empty(&FzHashSet::<i32>::from(FzHashMap::new(
         vec![],
-        BridgeHasher::default(),
+        RandomState::new(),
     )));
 
-    test_set_empty(&FacadeOrderedSet::<i32>::default());
-    test_set_empty(&FacadeOrderedSet::<i32>::new(FacadeOrderedMap::new(vec![])));
+    test_set_empty(&FzOrderedSet::<i32>::default());
+    test_set_empty(&FzOrderedSet::<i32>::from(FzOrderedMap::new(vec![])));
 
-    test_set_empty(&FacadeScalarSet::<i32>::default());
-    test_set_empty(&FacadeScalarSet::<i32>::new(FacadeScalarMap::new(vec![])));
+    test_set_empty(&FzScalarSet::<i32>::default());
+    test_set_empty(&FzScalarSet::<i32>::from(FzScalarMap::new(vec![])));
 
-    test_set_empty(&FacadeStringSet::<&str, ahash::RandomState>::default());
-    test_set_empty(&FacadeStringSet::new(FacadeStringMap::new(
+    test_set_empty(&FzStringSet::<&str, ahash::RandomState>::default());
+    test_set_empty(&FzStringSet::from(FzStringMap::new(
         vec![],
         ahash::RandomState::default(),
     )));
@@ -457,20 +456,17 @@ fn test_map_empties() {
     test_map_empty(&HashMap::<i32, i32>::default());
     test_map_empty(&HashMap::<i32, i32>::new(vec![], BridgeHasher::default()).unwrap());
 
-    test_map_empty(&FacadeHashMap::<i32, i32>::default());
-    test_map_empty(&FacadeHashMap::<i32, i32>::new(
-        vec![],
-        BridgeHasher::default(),
-    ));
+    test_map_empty(&FzHashMap::<i32, i32>::default());
+    test_map_empty(&FzHashMap::<i32, i32>::new(vec![], RandomState::new()));
 
-    test_map_empty(&FacadeOrderedMap::<i32, i32>::default());
-    test_map_empty(&FacadeOrderedMap::<i32, i32>::new(vec![]));
+    test_map_empty(&FzOrderedMap::<i32, i32>::default());
+    test_map_empty(&FzOrderedMap::<i32, i32>::new(vec![]));
 
-    test_map_empty(&FacadeScalarMap::<i32, i32>::default());
-    test_map_empty(&FacadeScalarMap::<i32, i32>::new(vec![]));
+    test_map_empty(&FzScalarMap::<i32, i32>::default());
+    test_map_empty(&FzScalarMap::<i32, i32>::new(vec![]));
 
-    test_map_empty(&FacadeStringMap::<&str, i32, ahash::RandomState>::default());
-    test_map_empty(&FacadeStringMap::<&str, i32, ahash::RandomState>::new(
+    test_map_empty(&FzStringMap::<&str, i32, ahash::RandomState>::default());
+    test_map_empty(&FzStringMap::<&str, i32, ahash::RandomState>::new(
         vec![],
         ahash::RandomState::default(),
     ));

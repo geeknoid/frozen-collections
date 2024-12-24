@@ -13,12 +13,12 @@ rust-version.workspace = true
 resolver = "2"
 
 [dependencies]
-ahash = "0.8.11"
-hashbrown = "0.15.1"
+ahash = { version = "0.8.11", default-features = false, features = [] }
+hashbrown = { version = "0.15.1", default-features = false, features = ["default-hasher"] }
 const-random = "0.1.18"
-syn = { version = "2.0.90", features = ["extra-traits", "full"] }
-quote = { version = "1.0.37" }
-proc-macro2 = { version = "1.0.92" }
+syn = { version = "2.0.91", optional = true, features = ["printing", "parsing", "clone-impls", "derive", "extra-traits"], default-features = false }
+quote = { version = "1.0.37", optional = true }
+proc-macro2 = { version = "1.0.92", optional = true }
 mutants = "0.0.3"
 equivalent = "1.0.1"
 serde = { version = "1.0.216", optional = true, default-features = false }
@@ -27,9 +27,10 @@ serde = { version = "1.0.216", optional = true, default-features = false }
 rand = "0.9.0-beta.1"
 
 [features]
-default = ["std"]
+default = ["std", "macros", "serde"]
 std = ["serde/std"]
 serde = ["dep:serde"]
+macros = ["dep:syn", "dep:quote", "dep:proc-macro2"]
 
 [lints]
 workspace = true

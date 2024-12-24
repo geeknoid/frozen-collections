@@ -6,6 +6,7 @@ use crate::traits::{Len, Map, MapIteration, MapQuery};
 use crate::utils::{dedup_by_keep_last, eytzinger_sort};
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
+use core::iter::FromIterator;
 use core::ops::Index;
 use equivalent::Comparable;
 
@@ -27,21 +28,23 @@ enum MapTypes<K, V> {
 
 /// A map optimized for fast read access with ordered keys.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
 #[doc = include_str!("../doc_snippets/order_warning.md")]
 ///
 /// # Alternate Choices
 ///
-/// If your keys are integers or enum variants, you should use the [`FacadeScalarMap`](crate::facade_maps::FacadeScalarMap) type instead.
-/// If your keys are strings, you should use the [`FacadeStringMap`](crate::facade_maps::FacadeStringMap) type instead. Both of these will
+/// If your keys are integers or enum variants, you should use the [`FzScalarMap`](crate::fz_maps::FzScalarMap) type instead.
+/// If your keys are strings, you should use the [`FzStringMap`](crate::fz_maps::FzStringMap) type instead. Both of these will
 /// deliver better performance since they are specifically optimized for those key types.
+///
+/// If your keys are known at compile time, consider using the various `fz_*_map` macros instead of
+/// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FacadeOrderedMap<K, V> {
+pub struct FzOrderedMap<K, V> {
     map_impl: MapTypes<K, V>,
 }
 
-impl<K, V> FacadeOrderedMap<K, V>
+impl<K, V> FzOrderedMap<K, V>
 where
     K: Ord + Eq,
 {
@@ -64,7 +67,7 @@ where
     }
 }
 
-impl<K, V> Default for FacadeOrderedMap<K, V> {
+impl<K, V> Default for FzOrderedMap<K, V> {
     fn default() -> Self {
         Self {
             map_impl: MapTypes::Scanning(OrderedScanMap::default()),
@@ -72,7 +75,25 @@ impl<K, V> Default for FacadeOrderedMap<K, V> {
     }
 }
 
-impl<K, V, Q> Map<K, V, Q> for FacadeOrderedMap<K, V>
+impl<K, V, const N: usize> From<[(K, V); N]> for FzOrderedMap<K, V>
+where
+    K: Ord,
+{
+    fn from(entries: [(K, V); N]) -> Self {
+        Self::new(Vec::from(entries))
+    }
+}
+
+impl<K, V> FromIterator<(K, V)> for FzOrderedMap<K, V>
+where
+    K: Ord,
+{
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
+        Self::new(iter.into_iter().collect())
+    }
+}
+
+impl<K, V, Q> Map<K, V, Q> for FzOrderedMap<K, V>
 where
     Q: ?Sized + Eq + Comparable<K>,
 {
@@ -86,7 +107,7 @@ where
     }
 }
 
-impl<K, V, Q> MapQuery<K, V, Q> for FacadeOrderedMap<K, V>
+impl<K, V, Q> MapQuery<K, V, Q> for FzOrderedMap<K, V>
 where
     Q: ?Sized + Eq + Comparable<K>,
 {
@@ -121,7 +142,7 @@ where
     }
 }
 
-impl<K, V> MapIteration<K, V> for FacadeOrderedMap<K, V> {
+impl<K, V> MapIteration<K, V> for FzOrderedMap<K, V> {
     type Iterator<'a>
         = Iter<'a, K, V>
     where
@@ -212,7 +233,7 @@ impl<K, V> MapIteration<K, V> for FacadeOrderedMap<K, V> {
     }
 }
 
-impl<K, V> Len for FacadeOrderedMap<K, V> {
+impl<K, V> Len for FzOrderedMap<K, V> {
     fn len(&self) -> usize {
         match &self.map_impl {
             MapTypes::BinarySearch(m) => m.len(),
@@ -222,7 +243,7 @@ impl<K, V> Len for FacadeOrderedMap<K, V> {
     }
 }
 
-impl<K, V, Q> Index<&Q> for FacadeOrderedMap<K, V>
+impl<K, V, Q> Index<&Q> for FzOrderedMap<K, V>
 where
     Q: ?Sized + Eq + Comparable<K>,
 {
@@ -233,7 +254,7 @@ where
     }
 }
 
-impl<'a, K, V> IntoIterator for &'a FacadeOrderedMap<K, V> {
+impl<'a, K, V> IntoIterator for &'a FzOrderedMap<K, V> {
     type Item = (&'a K, &'a V);
     type IntoIter = Iter<'a, K, V>;
 
@@ -242,7 +263,7 @@ impl<'a, K, V> IntoIterator for &'a FacadeOrderedMap<K, V> {
     }
 }
 
-impl<'a, K, V> IntoIterator for &'a mut FacadeOrderedMap<K, V> {
+impl<'a, K, V> IntoIterator for &'a mut FzOrderedMap<K, V> {
     type Item = (&'a K, &'a mut V);
     type IntoIter = IterMut<'a, K, V>;
 
@@ -251,7 +272,7 @@ impl<'a, K, V> IntoIterator for &'a mut FacadeOrderedMap<K, V> {
     }
 }
 
-impl<K, V> IntoIterator for FacadeOrderedMap<K, V> {
+impl<K, V> IntoIterator for FzOrderedMap<K, V> {
     type Item = (K, V);
     type IntoIter = IntoIter<K, V>;
 
@@ -264,7 +285,7 @@ impl<K, V> IntoIterator for FacadeOrderedMap<K, V> {
     }
 }
 
-impl<K, V, MT> PartialEq<MT> for FacadeOrderedMap<K, V>
+impl<K, V, MT> PartialEq<MT> for FzOrderedMap<K, V>
 where
     K: Ord + Eq,
     V: PartialEq,
@@ -280,14 +301,14 @@ where
     }
 }
 
-impl<K, V> Eq for FacadeOrderedMap<K, V>
+impl<K, V> Eq for FzOrderedMap<K, V>
 where
     K: Ord + Eq,
     V: Eq,
 {
 }
 
-impl<K, V> Debug for FacadeOrderedMap<K, V>
+impl<K, V> Debug for FzOrderedMap<K, V>
 where
     K: Debug,
     V: Debug,
@@ -302,7 +323,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<K, V> Serialize for FacadeOrderedMap<K, V>
+impl<K, V> Serialize for FzOrderedMap<K, V>
 where
     K: Serialize,
     V: Serialize,
@@ -311,7 +332,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'de, K, V> Deserialize<'de> for FacadeOrderedMap<K, V>
+impl<'de, K, V> Deserialize<'de> for FzOrderedMap<K, V>
 where
     K: Deserialize<'de> + Ord,
     V: Deserialize<'de>,
@@ -337,7 +358,7 @@ where
     K: Deserialize<'de> + Ord,
     V: Deserialize<'de>,
 {
-    type Value = FacadeOrderedMap<K, V>;
+    type Value = FzOrderedMap<K, V>;
 
     fn expecting(&self, formatter: &mut Formatter) -> Result {
         formatter.write_str("A map with ordered keys")
@@ -352,6 +373,6 @@ where
             v.push(x);
         }
 
-        Ok(FacadeOrderedMap::new(v))
+        Ok(FzOrderedMap::new(v))
     }
 }

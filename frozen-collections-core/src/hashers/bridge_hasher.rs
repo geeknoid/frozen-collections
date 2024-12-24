@@ -4,7 +4,7 @@ use core::hash::{BuildHasher, Hash};
 
 /// Wraps a normal [`BuildHasher`].
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone)]
 pub struct BridgeHasher<BH = RandomState> {
     bh: BH,

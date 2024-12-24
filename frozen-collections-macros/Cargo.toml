@@ -19,7 +19,7 @@ proc-macro = true
 
 [dependencies]
 proc-macro-error = "1.0.4"
-frozen-collections-core = { path = "../frozen-collections-core", default-features = false }
+frozen-collections-core = { path = "../frozen-collections-core", features = ["macros"], default-features = false }
 
 [lints]
 workspace = true

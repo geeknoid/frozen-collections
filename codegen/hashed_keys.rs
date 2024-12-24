@@ -4,7 +4,6 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use core::hint::black_box;
-use frozen_collections::facade_maps::FacadeHashMap;
 use frozen_collections::hashers::BridgeHasher;
 use frozen_collections::*;
 use hashbrown::HashMap as HashbrownMap;
@@ -61,7 +60,7 @@ fn main() {
         ),
     ];
 
-    let fm = FacadeHashMap::new(v.clone(), BridgeHasher::default());
+    let fm = FzHashMap::new(v.clone(), ahash::RandomState::new());
     let cm = maps::HashMap::new(v.clone(), BridgeHasher::new(ahash::RandomState::new())).unwrap();
     let mut hm = HashbrownMap::with_capacity_and_hasher(v.len(), ahash::RandomState::new());
     hm.extend(v.clone());
@@ -72,7 +71,7 @@ fn main() {
 }
 
 #[inline(never)]
-fn call_facade_hash_map_with_bridge_hasher(map: &FacadeHashMap<MyKey, i32>, key: &MyKey) -> bool {
+fn call_facade_hash_map_with_bridge_hasher(map: &FzHashMap<MyKey, i32>, key: &MyKey) -> bool {
     map.contains_key(key)
 }
 

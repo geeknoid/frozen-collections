@@ -6,7 +6,7 @@ use core::ops::Range;
 
 /// Hashes a portion of a left-aligned slice.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone)]
 pub struct LeftRangeHasher<BH = RandomState> {
     bh: BH,

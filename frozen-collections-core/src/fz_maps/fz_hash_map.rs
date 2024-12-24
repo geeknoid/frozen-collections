@@ -1,14 +1,14 @@
-use crate::analyzers::{analyze_slice_keys, SliceKeyAnalysisResult};
-use crate::hashers::{BridgeHasher, LeftRangeHasher, RightRangeHasher};
+use crate::hashers::BridgeHasher;
 use crate::maps::{
-    HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut,
+    HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, ScanMap, Values, ValuesMut,
 };
-use crate::traits::{Hasher, LargeCollection, Len, Map, MapIteration, MapQuery};
-use crate::utils::dedup_by_keep_last;
+use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery};
+use crate::utils::dedup_by_hash_keep_last;
 use ahash::RandomState;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};
+use core::iter::FromIterator;
 use core::ops::Index;
 use equivalent::Equivalent;
 
@@ -23,122 +23,126 @@ use {
 
 #[derive(Clone)]
 enum MapTypes<K, V, BH> {
-    LeftRange(HashMap<K, V, LargeCollection, LeftRangeHasher<BH>>),
-    RightRange(HashMap<K, V, LargeCollection, RightRangeHasher<BH>>),
     Hash(HashMap<K, V, LargeCollection, BridgeHasher<BH>>),
+    Scanning(ScanMap<K, V>),
 }
 
-/// A map optimized for fast read access with string keys.
+/// A map optimized for fast read access with hashable keys.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
 #[doc = include_str!("../doc_snippets/hash_warning.md")]
+///
+/// # Alternate Choices
+///
+/// If your keys are integers or enum variants, you should use the [`FzScalarMap`](crate::fz_maps::FzScalarMap) type instead.
+/// If your keys are strings, you should use the [`FzStringMap`](crate::fz_maps::FzStringMap) type instead. Both of these will
+/// deliver better performance since they are specifically optimized for those key types.
+///
+/// If your keys are known at compile time, consider using the various `fz_*_map` macros instead of
+/// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FacadeStringMap<K, V, BH = RandomState> {
+pub struct FzHashMap<K, V, BH = RandomState> {
     map_impl: MapTypes<K, V, BH>,
 }
 
-impl<'a, V, BH> FacadeStringMap<&'a str, V, BH>
+impl<K, V, BH> FzHashMap<K, V, BH>
 where
+    K: Eq + Hash,
     BH: BuildHasher,
 {
     /// Creates a frozen map which uses the given hash builder to hash keys.
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
-    pub fn new(mut entries: Vec<(&'a str, V)>, bh: BH) -> Self {
-        entries.sort_by(|x, y| x.0.cmp(y.0));
-        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(y.0));
+    pub fn new(mut entries: Vec<(K, V)>, bh: BH) -> Self {
+        let hasher = BridgeHasher::new(bh);
+        dedup_by_hash_keep_last(&mut entries, &hasher);
 
         Self {
-            map_impl: {
-                match analyze_slice_keys(entries.iter().map(|x| x.0.as_bytes()), &bh) {
-                    SliceKeyAnalysisResult::General | SliceKeyAnalysisResult::Length => {
-                        let h = BridgeHasher::new(bh);
-                        MapTypes::Hash(HashMap::new_half_baked(entries, h).unwrap())
-                    }
-
-                    SliceKeyAnalysisResult::LeftHandSubslice(range) => {
-                        let h = LeftRangeHasher::new(bh, range);
-                        MapTypes::LeftRange(HashMap::new_half_baked(entries, h).unwrap())
-                    }
-
-                    SliceKeyAnalysisResult::RightHandSubslice(range) => {
-                        let h = RightRangeHasher::new(bh, range);
-                        MapTypes::RightRange(HashMap::new_half_baked(entries, h).unwrap())
-                    }
-                }
+            map_impl: if entries.len() < 3 {
+                MapTypes::Scanning(ScanMap::new_raw(entries))
+            } else {
+                MapTypes::Hash(HashMap::new_half_baked(entries, hasher).unwrap())
             },
         }
     }
 }
 
-impl<K, V, BH> Default for FacadeStringMap<K, V, BH>
+impl<K, V, BH> Default for FzHashMap<K, V, BH>
 where
     BH: Default,
 {
     fn default() -> Self {
         Self {
-            map_impl: MapTypes::Hash(HashMap::<K, V, LargeCollection, BridgeHasher<BH>>::default()),
+            map_impl: MapTypes::Scanning(ScanMap::<K, V>::default()),
         }
     }
 }
 
-impl<K, V, Q, BH> Map<K, V, Q> for FacadeStringMap<K, V, BH>
+impl<K, V, const N: usize, BH> From<[(K, V); N]> for FzHashMap<K, V, BH>
 where
-    Q: ?Sized + Hash + Eq + Len + Equivalent<K>,
+    K: Eq + Hash,
+    BH: BuildHasher + Default,
+{
+    fn from(entries: [(K, V); N]) -> Self {
+        Self::new(Vec::from(entries), BH::default())
+    }
+}
+
+impl<K, V, BH> FromIterator<(K, V)> for FzHashMap<K, V, BH>
+where
+    K: Eq + Hash,
+    BH: BuildHasher + Default,
+{
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
+        Self::new(iter.into_iter().collect(), BH::default())
+    }
+}
+
+impl<K, V, Q, BH> Map<K, V, Q> for FzHashMap<K, V, BH>
+where
+    Q: ?Sized + Hash + Eq + Equivalent<K>,
     BH: BuildHasher,
-    LeftRangeHasher<BH>: Hasher<Q>,
-    RightRangeHasher<BH>: Hasher<Q>,
 {
     #[must_use]
     fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
         match &mut self.map_impl {
-            MapTypes::LeftRange(m) => m.get_many_mut(keys),
-            MapTypes::RightRange(m) => m.get_many_mut(keys),
             MapTypes::Hash(m) => m.get_many_mut(keys),
+            MapTypes::Scanning(m) => m.get_many_mut(keys),
         }
     }
 }
 
-impl<K, V, Q, BH> MapQuery<K, V, Q> for FacadeStringMap<K, V, BH>
+impl<K, V, Q, BH> MapQuery<K, V, Q> for FzHashMap<K, V, BH>
 where
-    Q: ?Sized + Hash + Eq + Len + Equivalent<K>,
+    Q: ?Sized + Hash + Eq + Equivalent<K>,
     BH: BuildHasher,
-    LeftRangeHasher<BH>: Hasher<Q>,
-    RightRangeHasher<BH>: Hasher<Q>,
 {
     #[inline]
-    #[must_use]
     fn get(&self, key: &Q) -> Option<&V> {
         match &self.map_impl {
-            MapTypes::LeftRange(m) => m.get(key),
-            MapTypes::RightRange(m) => m.get(key),
             MapTypes::Hash(m) => m.get(key),
+            MapTypes::Scanning(m) => m.get(key),
         }
     }
 
     #[inline]
-    #[must_use]
     fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
         match &self.map_impl {
-            MapTypes::LeftRange(m) => m.get_key_value(key),
-            MapTypes::RightRange(m) => m.get_key_value(key),
             MapTypes::Hash(m) => m.get_key_value(key),
+            MapTypes::Scanning(m) => m.get_key_value(key),
         }
     }
 
     #[inline]
-    #[must_use]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
         match &mut self.map_impl {
-            MapTypes::LeftRange(m) => m.get_mut(key),
-            MapTypes::RightRange(m) => m.get_mut(key),
             MapTypes::Hash(m) => m.get_mut(key),
+            MapTypes::Scanning(m) => m.get_mut(key),
         }
     }
 }
 
-impl<K, V, BH> MapIteration<K, V> for FacadeStringMap<K, V, BH> {
+impl<K, V, BH> MapIteration<K, V> for FzHashMap<K, V, BH> {
     type Iterator<'a>
         = Iter<'a, K, V>
     where
@@ -179,77 +183,67 @@ impl<K, V, BH> MapIteration<K, V> for FacadeStringMap<K, V, BH> {
 
     fn iter(&self) -> Self::Iterator<'_> {
         match &self.map_impl {
-            MapTypes::LeftRange(m) => m.iter(),
-            MapTypes::RightRange(m) => m.iter(),
             MapTypes::Hash(m) => m.iter(),
+            MapTypes::Scanning(m) => m.iter(),
         }
     }
 
     fn keys(&self) -> Self::KeyIterator<'_> {
         match &self.map_impl {
-            MapTypes::LeftRange(m) => m.keys(),
-            MapTypes::RightRange(m) => m.keys(),
             MapTypes::Hash(m) => m.keys(),
+            MapTypes::Scanning(m) => m.keys(),
         }
     }
 
     fn values(&self) -> Self::ValueIterator<'_> {
         match &self.map_impl {
-            MapTypes::LeftRange(m) => m.values(),
-            MapTypes::RightRange(m) => m.values(),
             MapTypes::Hash(m) => m.values(),
+            MapTypes::Scanning(m) => m.values(),
         }
     }
 
     fn into_keys(self) -> Self::IntoKeyIterator {
         match self.map_impl {
-            MapTypes::LeftRange(m) => m.into_keys(),
-            MapTypes::RightRange(m) => m.into_keys(),
             MapTypes::Hash(m) => m.into_keys(),
+            MapTypes::Scanning(m) => m.into_keys(),
         }
     }
 
     fn into_values(self) -> Self::IntoValueIterator {
         match self.map_impl {
-            MapTypes::LeftRange(m) => m.into_values(),
-            MapTypes::RightRange(m) => m.into_values(),
             MapTypes::Hash(m) => m.into_values(),
+            MapTypes::Scanning(m) => m.into_values(),
         }
     }
 
     fn iter_mut(&mut self) -> Self::MutIterator<'_> {
         match &mut self.map_impl {
-            MapTypes::LeftRange(m) => m.iter_mut(),
-            MapTypes::RightRange(m) => m.iter_mut(),
             MapTypes::Hash(m) => m.iter_mut(),
+            MapTypes::Scanning(m) => m.iter_mut(),
         }
     }
 
     fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
         match &mut self.map_impl {
-            MapTypes::LeftRange(m) => m.values_mut(),
-            MapTypes::RightRange(m) => m.values_mut(),
             MapTypes::Hash(m) => m.values_mut(),
+            MapTypes::Scanning(m) => m.values_mut(),
         }
     }
 }
 
-impl<K, V, BH> Len for FacadeStringMap<K, V, BH> {
+impl<K, V, BH> Len for FzHashMap<K, V, BH> {
     fn len(&self) -> usize {
         match &self.map_impl {
-            MapTypes::LeftRange(m) => m.len(),
-            MapTypes::RightRange(m) => m.len(),
             MapTypes::Hash(m) => m.len(),
+            MapTypes::Scanning(m) => m.len(),
         }
     }
 }
 
-impl<K, V, Q, BH> Index<&Q> for FacadeStringMap<K, V, BH>
+impl<K, V, Q, BH> Index<&Q> for FzHashMap<K, V, BH>
 where
-    Q: ?Sized + Hash + Eq + Len + Equivalent<K>,
+    Q: ?Sized + Hash + Eq + Equivalent<K>,
     BH: BuildHasher,
-    LeftRangeHasher<BH>: Hasher<Q>,
-    RightRangeHasher<BH>: Hasher<Q>,
 {
     type Output = V;
 
@@ -258,7 +252,7 @@ where
     }
 }
 
-impl<'a, K, V, BH> IntoIterator for &'a FacadeStringMap<K, V, BH> {
+impl<'a, K, V, BH> IntoIterator for &'a FzHashMap<K, V, BH> {
     type Item = (&'a K, &'a V);
     type IntoIter = Iter<'a, K, V>;
 
@@ -267,7 +261,7 @@ impl<'a, K, V, BH> IntoIterator for &'a FacadeStringMap<K, V, BH> {
     }
 }
 
-impl<'a, K, V, BH> IntoIterator for &'a mut FacadeStringMap<K, V, BH> {
+impl<'a, K, V, BH> IntoIterator for &'a mut FzHashMap<K, V, BH> {
     type Item = (&'a K, &'a mut V);
     type IntoIter = IterMut<'a, K, V>;
 
@@ -276,22 +270,21 @@ impl<'a, K, V, BH> IntoIterator for &'a mut FacadeStringMap<K, V, BH> {
     }
 }
 
-impl<K, V, BH> IntoIterator for FacadeStringMap<K, V, BH> {
+impl<K, V, BH> IntoIterator for FzHashMap<K, V, BH> {
     type Item = (K, V);
     type IntoIter = IntoIter<K, V>;
 
     fn into_iter(self) -> Self::IntoIter {
         match self.map_impl {
-            MapTypes::LeftRange(m) => m.into_iter(),
-            MapTypes::RightRange(m) => m.into_iter(),
             MapTypes::Hash(m) => m.into_iter(),
+            MapTypes::Scanning(m) => m.into_iter(),
         }
     }
 }
 
-impl<K, V, MT, BH> PartialEq<MT> for FacadeStringMap<K, V, BH>
+impl<K, V, MT, BH> PartialEq<MT> for FzHashMap<K, V, BH>
 where
-    K: Hash + Eq + Len + Equivalent<K>,
+    K: Hash + Eq,
     V: PartialEq,
     MT: Map<K, V>,
     BH: BuildHasher,
@@ -306,32 +299,29 @@ where
     }
 }
 
-impl<K, V, BH> Eq for FacadeStringMap<K, V, BH>
+impl<K, V, BH> Eq for FzHashMap<K, V, BH>
 where
-    K: Hash + Eq + Len + Equivalent<K>,
+    K: Hash + Eq,
     V: Eq,
     BH: BuildHasher,
-    LeftRangeHasher<BH>: Hasher<K>,
-    RightRangeHasher<BH>: Hasher<K>,
 {
 }
 
-impl<K, V, BH> Debug for FacadeStringMap<K, V, BH>
+impl<K, V, BH> Debug for FzHashMap<K, V, BH>
 where
     K: Debug,
     V: Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match &self.map_impl {
-            MapTypes::LeftRange(m) => m.fmt(f),
-            MapTypes::RightRange(m) => m.fmt(f),
             MapTypes::Hash(m) => m.fmt(f),
+            MapTypes::Scanning(m) => m.fmt(f),
         }
     }
 }
 
 #[cfg(feature = "serde")]
-impl<K, V, BH> Serialize for FacadeStringMap<K, V, BH>
+impl<K, V, BH> Serialize for FzHashMap<K, V, BH>
 where
     K: Serialize,
     V: Serialize,
@@ -340,9 +330,11 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'de, V> Deserialize<'de> for FacadeStringMap<&'de str, V>
+impl<'de, K, V, BH> Deserialize<'de> for FzHashMap<K, V, BH>
 where
+    K: Deserialize<'de> + Hash + Eq,
     V: Deserialize<'de>,
+    BH: BuildHasher + Default,
 {
     fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
     where
@@ -355,20 +347,21 @@ where
 }
 
 #[cfg(feature = "serde")]
-struct MapVisitor<V, BH> {
-    marker: PhantomData<(V, BH)>,
+struct MapVisitor<K, V, BH> {
+    marker: PhantomData<(K, V, BH)>,
 }
 
 #[cfg(feature = "serde")]
-impl<'de, V, BH> Visitor<'de> for MapVisitor<V, BH>
+impl<'de, K, V, BH> Visitor<'de> for MapVisitor<K, V, BH>
 where
+    K: Deserialize<'de> + Hash + Eq,
     V: Deserialize<'de>,
     BH: BuildHasher + Default,
 {
-    type Value = FacadeStringMap<&'de str, V, BH>;
+    type Value = FzHashMap<K, V, BH>;
 
     fn expecting(&self, formatter: &mut Formatter) -> Result {
-        formatter.write_str("A map with string keys")
+        formatter.write_str("A map with hashable keys")
     }
 
     fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
@@ -380,6 +373,6 @@ where
             v.push(x);
         }
 
-        Ok(FacadeStringMap::new(v, BH::default()))
+        Ok(FzHashMap::new(v, BH::default()))
     }
 }

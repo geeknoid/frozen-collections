@@ -244,14 +244,14 @@ mod tests {
         );
 
         check_impl(":: ScanSet", quote!({ x, "2", "3", }));
-        check_impl(":: FacadeStringSet", quote!({ x, "2", "3", "4" }));
-        check_impl(":: FacadeStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", "4" }));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
         check_impl(
-            ":: FacadeStringSet",
+            ":: FzStringSet",
             quote!({ x, "2", "3", "4", "5", "6", "7" }),
         );
 
-        check_impl(":: FacadeStringSet", quote!({ x, y, z, a, b, c, d }));
+        check_impl(":: FzStringSet", quote!({ x, y, z, a, b, c, d }));
     }
 
     #[test]
@@ -268,9 +268,9 @@ mod tests {
         check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 6, 10000 }));
 
         check_impl(":: ScanSet", quote!({ x, 2, 3, }));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4 }));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4 }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
     }
 
     #[test]
@@ -324,15 +324,15 @@ mod tests {
         );
 
         check_impl(":: ScanSet", quote!({ x, 2, 3, }));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4 }));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4 }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
 
         check_impl(":: ScanSet", quote!({ x, "2", "3", }));
-        check_impl(":: FacadeStringSet", quote!({ x, "2", "3", "4" }));
-        check_impl(":: FacadeStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", "4" }));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
         check_impl(
-            ":: FacadeStringSet",
+            ":: FzStringSet",
             quote!({ x, "2", "3", "4", "5", "6", "7" }),
         );
     }
@@ -368,15 +368,15 @@ mod tests {
         );
 
         check_impl(":: ScanSet", quote!({ x, 2, 3, }));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4 }));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
-        check_impl(":: FacadeScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4 }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
 
         check_impl(":: ScanSet", quote!({ x, "2", "3", }));
-        check_impl(":: FacadeStringSet", quote!({ x, "2", "3", "4" }));
-        check_impl(":: FacadeStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", "4" }));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
         check_impl(
-            ":: FacadeStringSet",
+            ":: FzStringSet",
             quote!({ x, "2", "3", "4", "5", "6", "7" }),
         );
     }

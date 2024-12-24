@@ -10,7 +10,7 @@ use crate::traits::{CollectionMagnitude, Len, SmallCollection};
 
 /// A general purpose hash table.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 ///
 /// The `CM` type parameter is the collection magnitude, which
 /// determines the maximum number of entries that can be stored in the hash table.
