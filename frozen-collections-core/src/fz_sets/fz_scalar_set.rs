@@ -1,12 +1,14 @@
-use crate::facade_maps::FacadeScalarMap;
+use crate::fz_maps::FzScalarMap;
 use crate::sets::decl_macros::{
     bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
     set_iteration_funcs, sub_fn,
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery};
+use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::Hash;
+use core::iter::FromIterator;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 
 #[cfg(feature = "serde")]
@@ -21,35 +23,68 @@ use {
 
 /// A set optimized for fast read access with integer or enum values.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
+///
+/// # Alternate Choices
+///
+/// If your values are known at compile time, consider using the various `fz_*_set` macros instead of
+/// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FacadeScalarSet<T> {
-    map: FacadeScalarMap<T, ()>,
+pub struct FzScalarSet<T> {
+    map: FzScalarMap<T, ()>,
 }
 
-impl<T> FacadeScalarSet<T>
+impl<T> FzScalarSet<T>
 where
     T: Scalar,
 {
     /// Creates a new frozen set.
     #[must_use]
-    pub const fn new(map: FacadeScalarMap<T, ()>) -> Self {
-        Self { map }
-    }
-}
-
-impl<T> Default for FacadeScalarSet<T> {
-    fn default() -> Self {
+    pub fn new(entries: Vec<T>) -> Self {
         Self {
-            map: FacadeScalarMap::default(),
+            map: FzScalarMap::new(entries.into_iter().map(|x| (x, ())).collect()),
         }
     }
 }
 
-impl<T> Set<T, T> for FacadeScalarSet<T> where T: Scalar {}
+impl<T> Default for FzScalarSet<T> {
+    fn default() -> Self {
+        Self {
+            map: FzScalarMap::default(),
+        }
+    }
+}
 
-impl<T> SetQuery<T, T> for FacadeScalarSet<T>
+impl<T> From<FzScalarMap<T, ()>> for FzScalarSet<T>
+where
+    T: Scalar,
+{
+    fn from(map: FzScalarMap<T, ()>) -> Self {
+        Self { map }
+    }
+}
+
+impl<T, const N: usize> From<[T; N]> for FzScalarSet<T>
+where
+    T: Scalar,
+{
+    fn from(entries: [T; N]) -> Self {
+        Self::from(FzScalarMap::from_iter(entries.into_iter().map(|x| (x, ()))))
+    }
+}
+
+impl<T> FromIterator<T> for FzScalarSet<T>
+where
+    T: Scalar,
+{
+    fn from_iter<IT: IntoIterator<Item = T>>(iter: IT) -> Self {
+        Self::from(FzScalarMap::from_iter(iter.into_iter().map(|x| (x, ()))))
+    }
+}
+
+impl<T> Set<T, T> for FzScalarSet<T> where T: Scalar {}
+
+impl<T> SetQuery<T, T> for FzScalarSet<T>
 where
     T: Scalar,
 {
@@ -59,7 +94,7 @@ where
     }
 }
 
-impl<T> SetIteration<T> for FacadeScalarSet<T> {
+impl<T> SetIteration<T> for FzScalarSet<T> {
     type Iterator<'a>
         = Iter<'a, T>
     where
@@ -68,13 +103,13 @@ impl<T> SetIteration<T> for FacadeScalarSet<T> {
     set_iteration_funcs!();
 }
 
-impl<T> Len for FacadeScalarSet<T> {
+impl<T> Len for FzScalarSet<T> {
     fn len(&self) -> usize {
         self.map.len()
     }
 }
 
-impl<T, ST> BitOr<&ST> for &FacadeScalarSet<T>
+impl<T, ST> BitOr<&ST> for &FzScalarSet<T>
 where
     T: Hash + Eq + Scalar + Clone,
     ST: Set<T>,
@@ -82,7 +117,7 @@ where
     bitor_fn!(RandomState);
 }
 
-impl<T, ST> BitAnd<&ST> for &FacadeScalarSet<T>
+impl<T, ST> BitAnd<&ST> for &FzScalarSet<T>
 where
     T: Hash + Eq + Scalar + Clone,
     ST: Set<T>,
@@ -90,7 +125,7 @@ where
     bitand_fn!(RandomState);
 }
 
-impl<T, ST> BitXor<&ST> for &FacadeScalarSet<T>
+impl<T, ST> BitXor<&ST> for &FzScalarSet<T>
 where
     T: Hash + Eq + Scalar + Clone,
     ST: Set<T>,
@@ -98,7 +133,7 @@ where
     bitxor_fn!(RandomState);
 }
 
-impl<T, ST> Sub<&ST> for &FacadeScalarSet<T>
+impl<T, ST> Sub<&ST> for &FzScalarSet<T>
 where
     T: Hash + Eq + Scalar + Clone,
     ST: Set<T>,
@@ -106,15 +141,15 @@ where
     sub_fn!(RandomState);
 }
 
-impl<T> IntoIterator for FacadeScalarSet<T> {
+impl<T> IntoIterator for FzScalarSet<T> {
     into_iter_fn!();
 }
 
-impl<'a, T> IntoIterator for &'a FacadeScalarSet<T> {
+impl<'a, T> IntoIterator for &'a FzScalarSet<T> {
     into_iter_ref_fn!();
 }
 
-impl<T, ST> PartialEq<ST> for FacadeScalarSet<T>
+impl<T, ST> PartialEq<ST> for FzScalarSet<T>
 where
     T: Scalar,
     ST: Set<T>,
@@ -122,9 +157,9 @@ where
     partial_eq_fn!();
 }
 
-impl<T> Eq for FacadeScalarSet<T> where T: Scalar {}
+impl<T> Eq for FzScalarSet<T> where T: Scalar {}
 
-impl<T> Debug for FacadeScalarSet<T>
+impl<T> Debug for FzScalarSet<T>
 where
     T: Debug,
 {
@@ -132,7 +167,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<T> Serialize for FacadeScalarSet<T>
+impl<T> Serialize for FzScalarSet<T>
 where
     T: Serialize,
 {
@@ -140,7 +175,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'de, T> Deserialize<'de> for FacadeScalarSet<T>
+impl<'de, T> Deserialize<'de> for FzScalarSet<T>
 where
     T: Deserialize<'de> + Scalar,
 {
@@ -164,7 +199,7 @@ impl<'de, T> Visitor<'de> for SetVisitor<T>
 where
     T: Deserialize<'de> + Scalar,
 {
-    type Value = FacadeScalarSet<T>;
+    type Value = FzScalarSet<T>;
 
     fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
         formatter.write_str("A set with scalar values")
@@ -179,6 +214,6 @@ where
             v.push((x, ()));
         }
 
-        Ok(FacadeScalarSet::new(FacadeScalarMap::new(v)))
+        Ok(FzScalarSet::from(FzScalarMap::new(v)))
     }
 }

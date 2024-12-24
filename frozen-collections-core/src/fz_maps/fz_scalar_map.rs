@@ -8,6 +8,7 @@ use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery, Scalar};
 use crate::utils::dedup_by_keep_last;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
+use core::iter::FromIterator;
 use core::ops::Index;
 use equivalent::Equivalent;
 
@@ -29,14 +30,18 @@ enum MapTypes<K, V> {
 
 /// A map optimized for fast read access using scalar keys.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
+///
+/// # Alternate Choices
+///
+/// If your keys are known at compile time, consider using the various `fz_*_map` macros instead of
+/// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FacadeScalarMap<K, V> {
+pub struct FzScalarMap<K, V> {
     map_impl: MapTypes<K, V>,
 }
 
-impl<K, V> FacadeScalarMap<K, V>
+impl<K, V> FzScalarMap<K, V>
 where
     K: Scalar,
 {
@@ -64,7 +69,7 @@ where
     }
 }
 
-impl<K, V> Default for FacadeScalarMap<K, V> {
+impl<K, V> Default for FzScalarMap<K, V> {
     fn default() -> Self {
         Self {
             map_impl: MapTypes::Dense(DenseScalarLookupMap::default()),
@@ -72,7 +77,25 @@ impl<K, V> Default for FacadeScalarMap<K, V> {
     }
 }
 
-impl<K, V> Map<K, V, K> for FacadeScalarMap<K, V>
+impl<K, V, const N: usize> From<[(K, V); N]> for FzScalarMap<K, V>
+where
+    K: Scalar,
+{
+    fn from(entries: [(K, V); N]) -> Self {
+        Self::new(Vec::from(entries))
+    }
+}
+
+impl<K, V> FromIterator<(K, V)> for FzScalarMap<K, V>
+where
+    K: Scalar,
+{
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
+        Self::new(iter.into_iter().collect())
+    }
+}
+
+impl<K, V> Map<K, V, K> for FzScalarMap<K, V>
 where
     K: Scalar + Eq + Equivalent<K>,
 {
@@ -86,7 +109,7 @@ where
     }
 }
 
-impl<K, V> MapQuery<K, V, K> for FacadeScalarMap<K, V>
+impl<K, V> MapQuery<K, V, K> for FzScalarMap<K, V>
 where
     K: Scalar + Eq + Equivalent<K>,
 {
@@ -121,7 +144,7 @@ where
     }
 }
 
-impl<K, V> MapIteration<K, V> for FacadeScalarMap<K, V> {
+impl<K, V> MapIteration<K, V> for FzScalarMap<K, V> {
     type Iterator<'a>
         = Iter<'a, K, V>
     where
@@ -212,7 +235,7 @@ impl<K, V> MapIteration<K, V> for FacadeScalarMap<K, V> {
     }
 }
 
-impl<K, V> Len for FacadeScalarMap<K, V> {
+impl<K, V> Len for FzScalarMap<K, V> {
     fn len(&self) -> usize {
         match &self.map_impl {
             MapTypes::Hash(m) => m.len(),
@@ -222,7 +245,7 @@ impl<K, V> Len for FacadeScalarMap<K, V> {
     }
 }
 
-impl<Q, V> Index<&Q> for FacadeScalarMap<Q, V>
+impl<Q, V> Index<&Q> for FzScalarMap<Q, V>
 where
     Q: Scalar + Eq + Equivalent<Q>,
 {
@@ -233,7 +256,7 @@ where
     }
 }
 
-impl<'a, K, V> IntoIterator for &'a FacadeScalarMap<K, V> {
+impl<'a, K, V> IntoIterator for &'a FzScalarMap<K, V> {
     type Item = (&'a K, &'a V);
     type IntoIter = Iter<'a, K, V>;
 
@@ -242,7 +265,7 @@ impl<'a, K, V> IntoIterator for &'a FacadeScalarMap<K, V> {
     }
 }
 
-impl<'a, K, V> IntoIterator for &'a mut FacadeScalarMap<K, V> {
+impl<'a, K, V> IntoIterator for &'a mut FzScalarMap<K, V> {
     type Item = (&'a K, &'a mut V);
     type IntoIter = IterMut<'a, K, V>;
 
@@ -251,7 +274,7 @@ impl<'a, K, V> IntoIterator for &'a mut FacadeScalarMap<K, V> {
     }
 }
 
-impl<K, V> IntoIterator for FacadeScalarMap<K, V> {
+impl<K, V> IntoIterator for FzScalarMap<K, V> {
     type Item = (K, V);
     type IntoIter = IntoIter<K, V>;
 
@@ -264,7 +287,7 @@ impl<K, V> IntoIterator for FacadeScalarMap<K, V> {
     }
 }
 
-impl<K, V, MT> PartialEq<MT> for FacadeScalarMap<K, V>
+impl<K, V, MT> PartialEq<MT> for FzScalarMap<K, V>
 where
     K: Scalar,
     V: PartialEq,
@@ -280,14 +303,14 @@ where
     }
 }
 
-impl<K, V> Eq for FacadeScalarMap<K, V>
+impl<K, V> Eq for FzScalarMap<K, V>
 where
     K: Scalar,
     V: Eq,
 {
 }
 
-impl<K, V> Debug for FacadeScalarMap<K, V>
+impl<K, V> Debug for FzScalarMap<K, V>
 where
     K: Debug,
     V: Debug,
@@ -302,7 +325,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<K, V> Serialize for FacadeScalarMap<K, V>
+impl<K, V> Serialize for FzScalarMap<K, V>
 where
     K: Serialize,
     V: Serialize,
@@ -311,7 +334,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'de, K, V> Deserialize<'de> for FacadeScalarMap<K, V>
+impl<'de, K, V> Deserialize<'de> for FzScalarMap<K, V>
 where
     K: Deserialize<'de> + Scalar,
     V: Deserialize<'de>,
@@ -337,7 +360,7 @@ where
     K: Deserialize<'de> + Scalar,
     V: Deserialize<'de>,
 {
-    type Value = FacadeScalarMap<K, V>;
+    type Value = FzScalarMap<K, V>;
 
     fn expecting(&self, formatter: &mut Formatter) -> Result {
         formatter.write_str("A map with scalar keys")
@@ -352,6 +375,6 @@ where
             v.push(x);
         }
 
-        Ok(FacadeScalarMap::new(v))
+        Ok(FzScalarMap::new(v))
     }
 }

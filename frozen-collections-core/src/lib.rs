@@ -13,14 +13,16 @@ extern crate alloc;
 extern crate core;
 
 mod analyzers;
-pub mod facade_maps;
-pub mod facade_sets;
+pub mod fz_maps;
+pub mod fz_sets;
 pub mod hash_tables;
 pub mod hashers;
 pub mod inline_maps;
 pub mod inline_sets;
-pub mod macros;
 pub mod maps;
 pub mod sets;
 pub mod traits;
 mod utils;
+
+#[cfg(feature = "macros")]
+pub mod macros;

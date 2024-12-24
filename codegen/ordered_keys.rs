@@ -4,7 +4,6 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use core::hint::black_box;
-use frozen_collections::facade_maps::FacadeOrderedMap;
 use frozen_collections::maps::EytzingerSearchMap;
 use frozen_collections::*;
 
@@ -60,7 +59,7 @@ fn main() {
         ),
     ];
 
-    let fm = FacadeOrderedMap::new(v.clone());
+    let fm = FzOrderedMap::new(v.clone());
     let esm = EytzingerSearchMap::new(v.clone());
 
     _ = black_box(call_facade_ordered_map(&fm, &v[0].0));
@@ -68,7 +67,7 @@ fn main() {
 }
 
 #[inline(never)]
-fn call_facade_ordered_map(map: &FacadeOrderedMap<MyKey, i32>, key: &MyKey) -> bool {
+fn call_facade_ordered_map(map: &FzOrderedMap<MyKey, i32>, key: &MyKey) -> bool {
     map.contains_key(key)
 }
 

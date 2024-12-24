@@ -8,9 +8,10 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 * [Summary](#summary)
-* [Creation](#creation)
+* [Handling Compile-Time Data](#handling-compile-time-data)
   * [Short Form](#short-form)
   * [Long Form](#long-form)
+* [Handling Runtime Data](#handling-runtime-data)
 * [Traits](#traits)
 * [Performance Considerations](#performance-considerations)
 * [Analysis and Optimizations](#analysis-and-optimizations)
@@ -39,9 +40,10 @@ change after creation.
 
 See [BENCHMARKS.md](./BENCHMARKS.md) for current benchmark numbers.
 
-## Creation
+## Handling Compile-Time Data
 
-Frozen collections are created with one of eight macros:
+If you know the keys and values that will be in your collection at compile time, you can use
+one of eight macros to create frozen collections:
 [`fz_hash_map!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_hash_map.html),
 [`fz_ordered_map!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_ordered_map.html),
 [`fz_scalar_map!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_scalar_map.html),
@@ -167,7 +169,21 @@ fn more(m: MyMapType) {
 }
 ```
 
-And like in the short form, you can also supply the collection's data via a vector:
+## Handling Runtime Data
+
+If you don't know the exact keys and values that will be in your collection at compile time,
+you use the dedicated map and collection types to hold your data:
+[`FzHashMap`](https://docs.rs/frozen-collections/latest/frozen_collections/struct.FzHashMap.html),
+[`FzOrderedMap`](https://docs.rs/frozen-collections/latest/frozen_collections/struct.FzOrderedMap.html),
+[`FzScalarMap`](https://docs.rs/frozen-collections/latest/frozen_collections/struct.FzScalarMap.html),
+[`FzStringMap`](https://docs.rs/frozen-collections/latest/frozen_collections/struct.FzStringMap.html),
+[`FzHashSet`](https://docs.rs/frozen-collections/latest/frozen_collections/struct.FzHashSet.html),
+[`FzOrderedSet`](https://docs.rs/frozen-collections/latest/frozen_collections/struct.FzOrderedSet.html),
+[`FzScalarSet`](https://docs.rs/frozen-collections/latest/frozen_collections/struct.FzScalarSet.html), or
+[`FzStringSet`](https://docs.rs/frozen-collections/latest/frozen_collections/struct.FzStringSet.html).
+These
+types analyze the data you provide at runtime and determine the best strategy to handle your
+data dynamically.
 
 ```rust
 use frozen_collections::*;
@@ -179,19 +195,22 @@ let v = vec![
     ("Tom", 4),
 ];
 
-fz_string_map!(let m: MyMapType<&str, i32>, v);
+let m = FzStringMap::new(v, ahash::RandomState::default());
 ```
+
+Note that in general, if possible, it's more efficient to use the macros to create your frozen
+collection instances.
 
 ## Traits
 
-The maps created by the frozen collections macros implement the following traits:
+The maps produced by this crate implement the following traits:
 
 - [`Map`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). The primary representation of a map. This trait has [`MapQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapQuery.html) and
   [`MapIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapIteration.html) as super-traits.
 - [`MapQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapQuery.html). A trait for querying maps. This is an object-safe trait.
 - [`MapIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapIteration.html). A trait for iterating over maps.
 
-The sets created by the frozen collection macros implement the following traits:
+The sets produced by this crate implement the following traits:
 
 - [`Set`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Set.html). The primary representation of a set. This trait has [`SetQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html),
   [`SetIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) and [`SetOps`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) as super-traits.
@@ -202,13 +221,13 @@ The sets created by the frozen collection macros implement the following traits:
 ## Performance Considerations
 
 The analysis performed when creating maps tries to find the best concrete implementation type
-given the data at hand. If all the data is visible to the macro at compile time, then you get
-the best possible performance. If you supply a vector instead, then the analysis can only be
-done at runtime and the resulting collection types are slightly slower.
+given the data at hand. The macros perform analysis at build time and generally produce slightly
+faster results. The collection types meanwhile perform analysis at runtime and the resulting
+collections are slightly slower.
 
-When creating static collections, the collections produced can often be embedded directly as constant data
+When creating static collections using the macros, the collections produced can often be embedded directly as constant data
 into the binary of the application, thus requiring no initialization time and no heap space. at
-This also happens to be the fastest form for these collections. If possible, this happens
+This also happens to be the fastest form for these collections. When possible, this happens
 automatically, you don't need to do anything special to enable this behavior.
 
 ## Analysis and Optimizations
@@ -260,7 +279,8 @@ a cache-friendly Eytzinger search is used.
 You can specify the following features when you include the `frozen_collections` crate in your
 `Cargo.toml` file:
 
+- **`macros`**. Enables the macros for creating frozen collections.
 - **`serde`**. Enables serialization and deserialization support for the frozen collections.
 - **`std`**. Enables small features only available when building with the standard library.
 
-The `std` feature is enabled by default.
+All features are enabled by default.

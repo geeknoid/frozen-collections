@@ -1,4 +1,4 @@
-use crate::facade_maps::FacadeStringMap;
+use crate::fz_maps::FzStringMap;
 use crate::hashers::{LeftRangeHasher, RightRangeHasher};
 use crate::sets::decl_macros::{
     bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
@@ -7,9 +7,11 @@ use crate::sets::decl_macros::{
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Hasher, Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
 use ahash::RandomState;
+use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::BuildHasher;
 use core::hash::Hash;
+use core::iter::FromIterator;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
 
@@ -25,34 +27,67 @@ use {
 
 /// A set optimized for fast read access with string values.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
 #[doc = include_str!("../doc_snippets/hash_warning.md")]
+///
+/// # Alternate Choices
+///
+/// If your values are known at compile time, consider using the various `fz_*_set` macros instead of
+/// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FacadeStringSet<T, BH = RandomState> {
-    map: FacadeStringMap<T, (), BH>,
+pub struct FzStringSet<T, BH = RandomState> {
+    map: FzStringMap<T, (), BH>,
 }
 
-impl<'a, BH> FacadeStringSet<&'a str, BH> {
+impl<'a, BH> FzStringSet<&'a str, BH>
+where
+    BH: BuildHasher,
+{
     /// Creates a new frozen set which uses the given hash builder to hash values.
     #[must_use]
-    pub const fn new(map: FacadeStringMap<&'a str, (), BH>) -> Self {
-        Self { map }
+    pub fn new(entries: Vec<&'a str>, bh: BH) -> Self {
+        Self {
+            map: FzStringMap::new(entries.into_iter().map(|x| (x, ())).collect(), bh),
+        }
     }
 }
 
-impl<T, BH> Default for FacadeStringSet<T, BH>
+impl<BH> Default for FzStringSet<&str, BH>
 where
     BH: Default,
 {
     fn default() -> Self {
         Self {
-            map: FacadeStringMap::default(),
+            map: FzStringMap::default(),
         }
     }
 }
 
-impl<T, Q, BH> Set<T, Q> for FacadeStringSet<T, BH>
+impl<'a, BH> From<FzStringMap<&'a str, (), BH>> for FzStringSet<&'a str, BH> {
+    fn from(map: FzStringMap<&'a str, (), BH>) -> Self {
+        Self { map }
+    }
+}
+
+impl<'a, const N: usize, BH> From<[&'a str; N]> for FzStringSet<&'a str, BH>
+where
+    BH: BuildHasher + Default,
+{
+    fn from(entries: [&'a str; N]) -> Self {
+        Self::from(FzStringMap::from_iter(entries.into_iter().map(|x| (x, ()))))
+    }
+}
+
+impl<'a, BH> FromIterator<&'a str> for FzStringSet<&'a str, BH>
+where
+    BH: BuildHasher + Default,
+{
+    fn from_iter<IT: IntoIterator<Item = &'a str>>(iter: IT) -> Self {
+        Self::from(FzStringMap::from_iter(iter.into_iter().map(|x| (x, ()))))
+    }
+}
+
+impl<T, Q, BH> Set<T, Q> for FzStringSet<T, BH>
 where
     Q: Hash + Eq + Len + Equivalent<T>,
     BH: BuildHasher,
@@ -61,7 +96,7 @@ where
 {
 }
 
-impl<T, Q, BH> SetQuery<T, Q> for FacadeStringSet<T, BH>
+impl<T, Q, BH> SetQuery<T, Q> for FzStringSet<T, BH>
 where
     Q: Hash + Eq + Len + Equivalent<T>,
     BH: BuildHasher,
@@ -74,7 +109,7 @@ where
     }
 }
 
-impl<T, BH> SetIteration<T> for FacadeStringSet<T, BH> {
+impl<T, BH> SetIteration<T> for FzStringSet<T, BH> {
     type Iterator<'a>
         = Iter<'a, T>
     where
@@ -84,13 +119,13 @@ impl<T, BH> SetIteration<T> for FacadeStringSet<T, BH> {
     set_iteration_funcs!();
 }
 
-impl<T, BH> Len for FacadeStringSet<T, BH> {
+impl<T, BH> Len for FzStringSet<T, BH> {
     fn len(&self) -> usize {
         self.map.len()
     }
 }
 
-impl<T, ST, BH> BitOr<&ST> for &FacadeStringSet<T, BH>
+impl<T, ST, BH> BitOr<&ST> for &FzStringSet<T, BH>
 where
     T: Hash + Eq + Len + Clone,
     ST: Set<T>,
@@ -101,7 +136,7 @@ where
     bitor_fn!(H);
 }
 
-impl<T, ST, BH> BitAnd<&ST> for &FacadeStringSet<T, BH>
+impl<T, ST, BH> BitAnd<&ST> for &FzStringSet<T, BH>
 where
     T: Hash + Eq + Len + Clone,
     ST: Set<T>,
@@ -112,7 +147,7 @@ where
     bitand_fn!(H);
 }
 
-impl<T, ST, BH> BitXor<&ST> for &FacadeStringSet<T, BH>
+impl<T, ST, BH> BitXor<&ST> for &FzStringSet<T, BH>
 where
     T: Hash + Eq + Len + Clone,
     ST: Set<T>,
@@ -123,7 +158,7 @@ where
     bitxor_fn!(H);
 }
 
-impl<T, ST, BH> Sub<&ST> for &FacadeStringSet<T, BH>
+impl<T, ST, BH> Sub<&ST> for &FzStringSet<T, BH>
 where
     T: Hash + Eq + Len + Clone,
     ST: Set<T>,
@@ -134,15 +169,15 @@ where
     sub_fn!(H);
 }
 
-impl<T, BH> IntoIterator for FacadeStringSet<T, BH> {
+impl<T, BH> IntoIterator for FzStringSet<T, BH> {
     into_iter_fn!();
 }
 
-impl<'a, T, BH> IntoIterator for &'a FacadeStringSet<T, BH> {
+impl<'a, T, BH> IntoIterator for &'a FzStringSet<T, BH> {
     into_iter_ref_fn!();
 }
 
-impl<T, ST, BH> PartialEq<ST> for FacadeStringSet<T, BH>
+impl<T, ST, BH> PartialEq<ST> for FzStringSet<T, BH>
 where
     T: Hash + Eq + Len,
     ST: Set<T>,
@@ -153,7 +188,7 @@ where
     partial_eq_fn!();
 }
 
-impl<T, BH> Eq for FacadeStringSet<T, BH>
+impl<T, BH> Eq for FzStringSet<T, BH>
 where
     T: Hash + Eq + Len,
     BH: BuildHasher + Default,
@@ -162,7 +197,7 @@ where
 {
 }
 
-impl<T, BH> Debug for FacadeStringSet<T, BH>
+impl<T, BH> Debug for FzStringSet<T, BH>
 where
     T: Debug,
 {
@@ -170,7 +205,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<T> Serialize for FacadeStringSet<T>
+impl<T> Serialize for FzStringSet<T>
 where
     T: Serialize,
 {
@@ -178,7 +213,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'de, BH> Deserialize<'de> for FacadeStringSet<&'de str, BH>
+impl<'de, BH> Deserialize<'de> for FzStringSet<&'de str, BH>
 where
     BH: BuildHasher + Default,
 {
@@ -202,7 +237,7 @@ impl<'de, BH> Visitor<'de> for SetVisitor<BH>
 where
     BH: BuildHasher + Default,
 {
-    type Value = FacadeStringSet<&'de str, BH>;
+    type Value = FzStringSet<&'de str, BH>;
 
     fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
         formatter.write_str("A set with string values")
@@ -217,6 +252,6 @@ where
             v.push((x, ()));
         }
 
-        Ok(FacadeStringSet::new(FacadeStringMap::new(v, BH::default())))
+        Ok(FzStringSet::from(FzStringMap::new(v, BH::default())))
     }
 }

@@ -13,22 +13,23 @@ rust-version.workspace = true
 resolver = "2"
 
 [dependencies]
-ahash = { version = "0.8.11" }
-rand = "0.9.0-beta.1"
-frozen-collections-macros = { path = "../frozen-collections-macros" }
+ahash = { version = "0.8.11", default-features = false, features = [] }
+frozen-collections-macros = { path = "../frozen-collections-macros", optional = true }
 frozen-collections-core = { path = "../frozen-collections-core", default-features = false }
 
 [dev-dependencies]
+rand = "0.9.0-beta.1"
 quote = "1.0.37"
 hashbrown = { version = "0.15.2", features = ["serde"] }
 criterion = "0.5.1"
 boomphf = "0.6.0"
 ph = "0.8.5"
-frozen-collections-core = { path = "../frozen-collections-core", features = ["std", "serde"], default-features = false }
+frozen-collections-core = { path = "../frozen-collections-core" }
 serde = "1.0.216"
 serde_json = "1.0.134"
 
 [build-dependencies]
+ahash = "0.8.11"
 rand = "0.9.0-beta.1"
 
 [[bench]]
@@ -55,6 +56,7 @@ harness = false
 workspace = true
 
 [features]
-default = ["std"]
+default = ["std", "macros", "serde"]
 serde = ["frozen-collections-core/serde"]
 std = ["frozen-collections-core/std"]
+macros = ["frozen-collections-macros", "frozen-collections-core/macros"]

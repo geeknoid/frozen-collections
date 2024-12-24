@@ -3,7 +3,7 @@ use alloc::string::String;
 
 /// A hasher that simply returns the value as the hash.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone)]
 pub struct PassthroughHasher {}
 

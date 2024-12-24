@@ -3,7 +3,6 @@ extern crate alloc;
 
 use alloc::vec;
 use core::hint::black_box;
-use frozen_collections::facade_maps::FacadeScalarMap;
 use frozen_collections::hashers::PassthroughHasher;
 use frozen_collections::maps::{
     BinarySearchMap, DenseScalarLookupMap, EytzingerSearchMap, HashMap, OrderedScanMap, ScanMap,
@@ -56,7 +55,7 @@ fn main() {
         _ = black_box(call_eytzinger_search_map(&map, key));
     }
 
-    let map = FacadeScalarMap::new(input);
+    let map = FzScalarMap::new(input);
     for key in probe {
         _ = black_box(call_facade_scalar_map(&map, key));
     }
@@ -86,7 +85,7 @@ fn call_sparse_scalar_lookup_map(map: &SparseScalarLookupMap<i32, i32>, key: i32
 }
 
 #[inline(never)]
-fn call_facade_scalar_map(map: &FacadeScalarMap<i32, i32>, key: i32) -> bool {
+fn call_facade_scalar_map(map: &FzScalarMap<i32, i32>, key: i32) -> bool {
     map.contains_key(&key)
 }
 

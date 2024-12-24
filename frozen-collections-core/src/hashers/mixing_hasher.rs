@@ -4,7 +4,7 @@ use crate::traits::{Hasher, Scalar};
 
 /// A hasher for scalar values which performs mixing on the values.
 ///
-#[doc = include_str!("../doc_snippets/type_compat_warning.md")]
+#[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone)]
 pub struct MixingHasher {}
 

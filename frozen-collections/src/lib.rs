@@ -24,9 +24,10 @@
 //! See [BENCHMARKS.md](https://github.com/geeknoid/frozen-collections/blob/main/BENCHMARKS.md) for
 //! current benchmark numbers.
 //!
-//! # Creation
+//! # Handling Compile-Time Data
 //!
-//! Frozen collections are created with one of eight macros: [`fz_hash_map!`], [`fz_ordered_map!`],
+//! If you know the keys and values that will be in your collection at compile time, you can use
+//! one of eight macros to create frozen collections: [`fz_hash_map!`], [`fz_ordered_map!`],
 //! [`fz_scalar_map!`], [`fz_string_map!`], [`fz_hash_set!`], [`fz_ordered_set!`],
 //! [`fz_scalar_set!`], or [`fz_string_set!`]. These macros analyze the data you provide
 //! and return a custom implementation type that's optimized for the data. All the
@@ -78,26 +79,6 @@
 //! }
 //! ```
 //!
-//! Rather than specifying all the data inline, you can also create a frozen collection by passing
-//! a vector as input:
-//!
-//! ```rust
-//! use frozen_collections::*;
-//!
-//! let v = vec![
-//!     ("Alice", 1),
-//!     ("Bob", 2),
-//!     ("Sandy", 3),
-//!     ("Tom", 4),
-//! ];
-//!
-//! let m = fz_string_map!(v);
-//! ```
-//!
-//! The inline form is preferred however since it results in faster code. However, whereas the inline form
-//! requires all the data to be provided at compile time, the vector form enables the content of the
-//! frozen collection to be determined at runtime.
-//!
 //! ## Long Form
 //!
 //! The long form lets you provide a type alias name which will be created to
@@ -143,7 +124,13 @@
 //! }
 //! ```
 //!
-//! And like in the short form, you can also supply the collection's data via a vector:
+//! # Handling Runtime Data
+//!
+//! If you don't know the exact keys and values that will be in your collection at compile time,
+//! you use the dedicated map and collection types to hold your data: [`FzHashMap`], [`FzOrderedMap`], [`FzScalarMap`],
+//! [`FzStringMap`], [`FzHashSet`], [`FzOrderedSet`], [`FzScalarSet`], or [`FzStringSet`]. These
+//! types analyze the data you provide at runtime and determine the best strategy to handle your
+//! data dynamically.
 //!
 //! ```rust
 //! use frozen_collections::*;
@@ -155,19 +142,22 @@
 //!     ("Tom", 4),
 //! ];
 //!
-//! fz_string_map!(let m: MyMapType<&str, i32>, v);
+//! let m = FzStringMap::new(v, ahash::RandomState::default());
 //! ```
+//!
+//! Note that in general, if possible, it's more efficient to use the macros to create your frozen
+//! collection instances.
 //!
 //! # Traits
 //!
-//! The maps created by the frozen collections macros implement the following traits:
+//! The maps produced by this crate implement the following traits:
 //!
 //! - [`Map`]. The primary representation of a map. This trait has [`MapQuery`] and
-//!   [`MapIterations`] as super-traits.
+//!   [`MapIteration`] as super-traits.
 //! - [`MapQuery`]. A trait for querying maps. This is an object-safe trait.
 //! - [`MapIteration`]. A trait for iterating over maps.
 //!
-//! The sets created by the frozen collection macros implement the following traits:
+//! The sets produced by this crate implement the following traits:
 //!
 //! - [`Set`]. The primary representation of a set. This trait has [`SetQuery`],
 //!   [`SetIteration`] and [`SetOps`] as super-traits.
@@ -178,13 +168,13 @@
 //! # Performance Considerations
 //!
 //! The analysis performed when creating maps tries to find the best concrete implementation type
-//! given the data at hand. If all the data is visible to the macro at compile time, then you get
-//! the best possible performance. If you supply a vector instead, then the analysis can only be
-//! done at runtime and the resulting collection types are slightly slower.
+//! given the data at hand. The macros perform analysis at build time and generally produce slightly
+//! faster results. The collection types meanwhile perform analysis at runtime and the resulting
+//! collections are slightly slower.
 //!
-//! When creating static collections, the collections produced can often be embedded directly as constant data
+//! When creating static collections using the macros, the collections produced can often be embedded directly as constant data
 //! into the binary of the application, thus requiring no initialization time and no heap space. at
-//! This also happens to be the fastest form for these collections. If possible, this happens
+//! This also happens to be the fastest form for these collections. When possible, this happens
 //! automatically, you don't need to do anything special to enable this behavior.
 //!
 //! # Analysis and Optimizations
@@ -235,10 +225,11 @@
 //! You can specify the following features when you include the `frozen_collections` crate in your
 //! `Cargo.toml` file:
 //!
+//! - **`macros`**. Enables the macros that create frozen collections at compile time.
 //! - **`serde`**. Enables serialization and deserialization support for the frozen collections.
 //! - **`std`**. Enables small features only available when building with the standard library.
 //!
-//! The `std` feature is enabled by default.
+//! All features are enabled by default.
 
 extern crate alloc;
 
@@ -414,6 +405,7 @@ pub use frozen_collections_core::traits::{
 ///     structs();
 /// }
 /// ```
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_hash_map;
 
 /// Creates an efficient set with a fixed set of hashable values.
@@ -516,6 +508,7 @@ pub use frozen_collections_macros::fz_hash_map;
 ///     variables();
 /// }
 /// ```
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_hash_set;
 
 /// Creates an efficient map with a fixed set of ordered keys.
@@ -681,6 +674,7 @@ pub use frozen_collections_macros::fz_hash_set;
 ///     structs();
 /// }
 /// ```
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_ordered_map;
 
 /// Creates an efficient set with a fixed set of ordered values.
@@ -783,6 +777,7 @@ pub use frozen_collections_macros::fz_ordered_map;
 ///     variables();
 /// }
 /// ```
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_ordered_set;
 
 /// Creates an efficient map with a fixed set of scalar keys.
@@ -919,6 +914,7 @@ pub use frozen_collections_macros::fz_ordered_set;
 ///     structs();
 /// }
 /// ```
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_scalar_map;
 
 /// Creates an efficient set with a fixed set of scalar values.
@@ -1007,6 +1003,7 @@ pub use frozen_collections_macros::fz_scalar_map;
 ///     variables();
 /// }
 /// ```
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_scalar_set;
 
 /// Creates an efficient map with a fixed set of string keys.
@@ -1141,6 +1138,7 @@ pub use frozen_collections_macros::fz_scalar_set;
 ///     structs();
 /// }
 /// ```
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_string_map;
 
 /// Creates an efficient set with a fixed set of string values.
@@ -1225,6 +1223,7 @@ pub use frozen_collections_macros::fz_string_map;
 ///     variables();
 /// }
 /// ```
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_string_set;
 
 /// Implements the `Scalar` trait for an enum.
@@ -1232,7 +1231,11 @@ pub use frozen_collections_macros::fz_string_set;
 /// Implementing the `Scalar` trait for an enum allows you to use the enum with the [`fz_scalar_map`]
 /// and [`fz_scalar_set`] macros. The `Scalar` macro can only be used with enums that only include
 /// unit variants without explicit discriminants.
+#[cfg(feature = "macros")]
 pub use frozen_collections_macros::Scalar;
+
+pub use frozen_collections_core::fz_maps::*;
+pub use frozen_collections_core::fz_sets::*;
 
 #[doc(hidden)]
 pub mod sets {
@@ -1252,16 +1255,6 @@ pub mod inline_maps {
 #[doc(hidden)]
 pub mod inline_sets {
     pub use frozen_collections_core::inline_sets::*;
-}
-
-#[doc(hidden)]
-pub mod facade_maps {
-    pub use frozen_collections_core::facade_maps::*;
-}
-
-#[doc(hidden)]
-pub mod facade_sets {
-    pub use frozen_collections_core::facade_sets::*;
 }
 
 #[doc(hidden)]
