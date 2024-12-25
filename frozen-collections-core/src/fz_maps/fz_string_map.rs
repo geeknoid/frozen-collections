@@ -393,7 +393,7 @@ where
     type Value = FzStringMap<&'de str, V, BH>;
 
     fn expecting(&self, formatter: &mut Formatter) -> Result {
-        formatter.write_str("A map with string keys")
+        formatter.write_str("a map with string keys")
     }
 
     fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>

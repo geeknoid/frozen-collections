@@ -236,7 +236,7 @@ where
     type Value = FzHashSet<T, BH>;
 
     fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
-        formatter.write_str("A set with hashable values")
+        formatter.write_str("a set with hashable values")
     }
 
     fn visit_seq<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
