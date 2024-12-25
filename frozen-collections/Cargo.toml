@@ -14,7 +14,7 @@ resolver = "2"
 
 [dependencies]
 ahash = { version = "0.8.11", default-features = false, features = ["default"] }
-frozen-collections-macros = { path = "../frozen-collections-macros", optional = true }
+frozen-collections-macros = { version = "0.2.0", path = "../frozen-collections-macros", optional = true }
 frozen-collections-core = { version = "0.2.0", path = "../frozen-collections-core", default-features = false }
 
 [dev-dependencies]
