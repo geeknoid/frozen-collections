@@ -36,6 +36,8 @@ jobs:
         run: cargo test --verbose
       - name: Doc Tests
         run: cargo test --doc --verbose
+      - name: Doc
+        run: cargo doc --all-features
 
   coverage:
     runs-on: ubuntu-latest
