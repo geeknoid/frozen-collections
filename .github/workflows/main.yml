@@ -38,6 +38,8 @@ jobs:
         run: cargo test --doc --verbose
       - name: Doc
         run: cargo doc --all-features
+      - name: Publish
+        run: cargo publish -p frozen-collections-core --dry-run
 
   coverage:
     runs-on: ubuntu-latest

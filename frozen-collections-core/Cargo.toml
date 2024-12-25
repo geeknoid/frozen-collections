@@ -13,7 +13,7 @@ rust-version.workspace = true
 resolver = "2"
 
 [dependencies]
-ahash = { version = "0.8.11", default-features = false, features = [] }
+ahash = { version = "0.8.11", default-features = false, features = ["default"] }
 hashbrown = { version = "0.15.1", default-features = false, features = ["default-hasher"] }
 const-random = "0.1.18"
 syn = { version = "2.0.91", optional = true, features = ["printing", "parsing", "clone-impls", "derive", "extra-traits"], default-features = false }
