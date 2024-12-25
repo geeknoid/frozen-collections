@@ -49,121 +49,143 @@ macro_rules! test_all {
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
 
         let s = fz_scalar_set!({ $($input,)* });
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzScalarSet<_>>(&s);
 
         let mut m = fz_scalar_map!(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
 
         let s = fz_scalar_set!(set_input.clone());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzScalarSet<_>>(&s);
 
         let mut m = fz_hash_map!({ $( $input: (), )* });
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzHashMap<_, _>>(&m);
 
         let s = fz_hash_set!({ $($input,)* });
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzHashSet<_>>(&s);
 
         let mut m = fz_hash_map!(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzHashMap<_, _>>(&m);
 
         let s = fz_hash_set!(set_input.clone());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzHashSet<_>>(&s);
 
         let mut m = fz_ordered_map!({ $( $input: (), )* });
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = fz_ordered_set!({ $($input,)* });
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
         let mut m = fz_ordered_map!(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = fz_ordered_set!(set_input.clone());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
         let mut m = EytzingerSearchMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = EytzingerSearchSet::new(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
         let mut m = BinarySearchMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = BinarySearchSet::new(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
         let mut m = OrderedScanMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = OrderedScanSet::new(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
         let mut m = ScanMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzHashMap<_, _>>(&m);
 
         let s = ScanSet::new(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzHashSet<_>>(&s);
 
         if let Ok(mut m) = DenseScalarLookupMap::new(map_input.clone()) {
             test_map(&m, &map_reference, &map_other);
             test_map_ops(&m, &map_reference);
             test_map_iter(&m, &map_reference);
             test_map_iter_mut(&mut m, &map_reference);
+            test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
 
             let s = DenseScalarLookupSet::new(m);
             test_set(&s, &set_reference, &set_other);
             test_set_ops(&s, &set_reference, &set_other);
             test_set_iter(&s, &set_reference);
+            test_set_serialization::<_, _, FzScalarSet<_>>(&s);
         }
 
         let mut m = SparseScalarLookupMap::<_, _>::new(map_input.clone());
@@ -171,55 +193,161 @@ macro_rules! test_all {
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
 
         let s = SparseScalarLookupSet::new(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzScalarSet<_>>(&s);
 
         let mut m = HashMap::<_, _>::new(map_input.clone(), BridgeHasher::default()).unwrap();
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzHashMap<_, _>>(&m);
 
         let s = HashSet::new(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzHashSet<_>>(&s);
 
         let mut m = FzOrderedMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
+
+        let mut m = FzOrderedMap::from_iter(map_input.clone().into_iter());
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
+
+        let mut m = FzOrderedMap::from([ $( ($input, ()), )* ]);
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = FzOrderedSet::from(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
+
+        let s = FzOrderedSet::new(set_input.clone());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
+
+        let s = FzOrderedSet::from_iter(set_input.clone().into_iter());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
+
+        let s = FzOrderedSet::from([ $( $input, )* ]);
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
         let mut m = FzScalarMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
+
+        let mut m = FzScalarMap::from_iter(map_input.clone().into_iter());
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
+
+        let mut m = FzScalarMap::from([ $( ($input, ()), )* ]);
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = FzScalarSet::from(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzScalarSet<_>>(&s);
+
+        let s = FzScalarSet::new(set_input.clone());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
+
+        let s = FzScalarSet::from_iter(set_input.clone().into_iter());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
+
+        let s = FzScalarSet::from([ $( $input, )* ]);
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
         let mut m = FzHashMap::<_, _>::new(map_input.clone(), RandomState::new());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzHashMap<_, _>>(&m);
+
+        let mut m = FzHashMap::<_, _>::from_iter(map_input.clone().into_iter());
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
+
+        let mut m = FzHashMap::<_, _>::from([ $( ($input, ()), )* ]);
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = FzHashSet::from(m);
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzHashSet<_>>(&s);
+
+        let s = FzHashSet::new(set_input.clone(), RandomState::new());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
+
+        let s = FzHashSet::<_>::from_iter(set_input.clone().into_iter());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
+
+        let s = FzHashSet::<_>::from([ $( $input, )* ]);
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
         let m = std::collections::HashMap::<_, _, ahash::RandomState>::from_iter(map_input.clone().into_iter());
         test_map(&m, &map_reference, &map_other);
@@ -266,7 +394,23 @@ macro_rules! test_all {
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
 
+        let mut m = FzStringMap::from_iter(map_input.clone().into_iter());
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+
         let s = FzStringSet::from(m);
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+
+        let s = FzStringSet::new(set_input.clone(), ahash::RandomState::default());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+
+        let s = FzStringSet::from_iter(set_input.clone().into_iter());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
@@ -275,7 +419,11 @@ macro_rules! test_all {
 
 #[test]
 #[allow(clippy::unreadable_literal)]
+#[allow(clippy::large_stack_frames)]
 fn test_common() {
+    let m = EytzingerSearchMap::new(vec![(1, 2)]);
+    test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
+
     test_all!(1, 2, 3 ; 3, 4, 5);
     test_all!(0, 1 ; 0, 1);
     test_all!(3, 1, 2, 3, 3 ; 3, 4, 5);
@@ -513,4 +661,23 @@ fn edge_cases() {
     test_map(&m, &map_reference, &map_other);
     test_map_ops(&m, &map_reference);
     test_map_iter(&m, &map_reference);
+}
+
+#[test]
+fn string_type_serialization() {
+    let m1 = FzStringMap::<_, _>::from([("A", 1), ("B", 2)]);
+    let json = serde_json::to_string(&m1).unwrap();
+    let m2: FzStringMap<&str, i32> = serde_json::from_str(&json).unwrap();
+    assert_eq_map(&m1, &m2);
+
+    let s1 = FzStringSet::<_>::from(["A", "B"]);
+    let json = serde_json::to_string(&s1).unwrap();
+    let s2: FzStringSet<&str> = serde_json::from_str(&json).unwrap();
+    assert_eq_set(&s1, &s2);
+
+    let m: serde_json::Result<FzStringMap<&str, i32>> = serde_json::from_str("[\"123\": 2]");
+    assert!(m.is_err());
+
+    let s: serde_json::Result<FzStringSet<&str>> = serde_json::from_str("{XXX: XXX,}");
+    assert!(s.is_err());
 }

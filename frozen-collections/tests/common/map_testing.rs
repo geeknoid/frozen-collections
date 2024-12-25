@@ -1,5 +1,6 @@
 use core::fmt::Debug;
 use frozen_collections_core::traits::Map;
+use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::collections::HashMap as StdHashMap;
 use std::collections::HashSet as StdHashSet;
@@ -15,7 +16,7 @@ pub fn test_map<MT, K, V>(
     V: Hash + Eq + Clone + Debug + Default,
     MT: Map<K, V> + Debug + Clone + Eq + Serialize,
 {
-    assert_same(map, reference);
+    assert_eq_map(map, reference);
 
     let formatted_map = format!("{map:?}");
     for key in map.keys() {
@@ -23,16 +24,9 @@ pub fn test_map<MT, K, V>(
         assert!(formatted_map.contains(&key_str));
     }
 
-    // for now, we just effectively test that this doesn't crash
-    let j = serde_json::to_string(&map).unwrap();
-    assert!(!j.is_empty());
-
-    //    let m2: StdHashMap<K, V, ahash::RandomState> = serde_json::from_str(&j).unwrap();
-    //    assert_same(map, &m2);
-
     let m2 = map.clone();
     let r2 = reference.clone();
-    assert_same(&m2, &r2);
+    assert_eq_map(&m2, &r2);
 
     let v1: StdHashMap<K, V> = map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
     let v2: StdHashMap<K, V> = reference
@@ -107,8 +101,8 @@ where
     MT: Map<K, i32> + Debug + Clone + Default + Eq,
 {
     let m = MT::default();
-    let r = StdHashMap::default();
-    assert_same(&m, &r);
+    let r = StdHashMap::<_, _, ahash::RandomState>::default();
+    assert_eq_map(&m, &r);
     assert!(!m.contains_key(&K::default()));
     assert_eq!(0, m.len());
     assert!(m.is_empty());
@@ -188,16 +182,32 @@ where
     assert!(!map.contains_key(&K::default()));
 }
 
-fn assert_same<K, V, MT>(map: &MT, reference: &StdHashMap<K, V, ahash::RandomState>)
+pub fn test_map_serialization<K, V, MT, MT2>(map: &MT)
+where
+    K: Hash + Eq + Clone + Debug + Default,
+    V: Hash + Eq + Clone + Debug + Default,
+    MT: Map<K, V> + Debug + Clone + Eq + Serialize,
+    MT2: Map<K, V> + Debug + Clone + Eq + DeserializeOwned,
+{
+    let json = serde_json::to_string(&map).unwrap();
+    let map2: MT2 = serde_json::from_str(&json).unwrap();
+    assert_eq_map(map, &map2);
+
+    let map2: serde_json::Result<MT2> = serde_json::from_str("[\"123\": 2]");
+    assert!(map2.is_err());
+}
+
+pub fn assert_eq_map<K, V, MT, MT2>(map: &MT, reference: &MT2)
 where
     K: Hash + Eq + Clone + Debug,
     V: Clone + Eq + Debug,
     MT: Map<K, V> + Clone + IntoIterator<Item = (K, V)>,
+    MT2: Map<K, V> + Clone + IntoIterator<Item = (K, V)>,
 {
     assert_eq!(map.len(), reference.len());
     assert_eq!(map.is_empty(), reference.is_empty());
 
-    for pair in reference {
+    for pair in reference.iter() {
         assert!(map.contains_key(pair.0));
     }
 

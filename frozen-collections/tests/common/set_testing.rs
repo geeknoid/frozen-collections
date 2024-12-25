@@ -1,9 +1,9 @@
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
-use frozen_collections::Set;
-use frozen_collections_core::traits::SetOps;
+use frozen_collections::{Set, SetOps};
 use hashbrown::HashSet as HashbrownSet;
+use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 pub fn test_set<ST, T>(set: &ST, reference: &HashbrownSet<T>, other: &HashbrownSet<T>)
@@ -11,23 +11,23 @@ where
     T: Hash + Eq + Clone + Debug + Default,
     ST: Set<T> + Debug + Clone + Serialize,
 {
-    assert_same(set, reference);
+    assert_eq_set(set, reference);
 
     let s2: HashbrownSet<&T> = set.symmetric_difference(other).collect();
     let r2: HashbrownSet<&T> = reference.symmetric_difference(other).collect();
-    assert_same(&s2, &r2);
+    assert_eq_set(&s2, &r2);
 
     let s2: HashbrownSet<&T> = set.difference(other).collect();
     let r2: HashbrownSet<&T> = reference.difference(other).collect();
-    assert_same(&s2, &r2);
+    assert_eq_set(&s2, &r2);
 
     let s2: HashbrownSet<&T> = set.union(other).collect();
     let r2: HashbrownSet<&T> = reference.union(other).collect();
-    assert_same(&s2, &r2);
+    assert_eq_set(&s2, &r2);
 
     let s2: HashbrownSet<&T> = set.intersection(other).collect();
     let r2: HashbrownSet<&T> = reference.intersection(other).collect();
-    assert_same(&s2, &r2);
+    assert_eq_set(&s2, &r2);
 
     assert_eq!(set.is_disjoint(other), reference.is_disjoint(other));
     assert_eq!(set.is_subset(other), reference.is_subset(other));
@@ -43,12 +43,12 @@ where
     let j = serde_json::to_string(&set).unwrap();
     assert!(!j.is_empty());
 
-    //    let s2: StdHashSet<T, ahash::RandomState> = serde_json::from_str(&j).unwrap();
+    //    let s2: HashbrownSet<T, ahash::RandomState> = serde_json::from_str(&j).unwrap();
     //    assert_same(set, &s2);
 
     let s2 = set.clone();
     let r2 = reference.clone();
-    assert_same(&s2, &r2);
+    assert_eq_set(&s2, &r2);
 
     let s2 = set.clone();
     let mut r2 = reference.clone();
@@ -65,8 +65,8 @@ where
     ST: Set<T> + Debug + Clone + Default,
 {
     let s = ST::default();
-    let r = HashbrownSet::default();
-    assert_same(&s, &r);
+    let r = HashbrownSet::<_, ahash::RandomState>::default();
+    assert_eq_set(&s, &r);
     assert!(!s.contains(&T::default()));
     assert_eq!(0, s.len());
     assert!(s.is_empty());
@@ -147,15 +147,30 @@ where
     assert!(!set.contains(&T::default()));
 }
 
-fn assert_same<T, ST>(set: &ST, reference: &HashbrownSet<T>)
+pub fn test_set_serialization<T, ST, ST2>(set: &ST)
+where
+    T: Hash + Eq + Clone + Debug + Default,
+    ST: Set<T> + Debug + Clone + Eq + Serialize,
+    ST2: Set<T> + Debug + Clone + Eq + DeserializeOwned,
+{
+    let json = serde_json::to_string(&set).unwrap();
+    let set2: ST2 = serde_json::from_str(&json).unwrap();
+    assert_eq_set(set, &set2);
+
+    let set2: serde_json::Result<ST2> = serde_json::from_str("{XXX: XXX,}");
+    assert!(set2.is_err());
+}
+
+pub fn assert_eq_set<T, ST, ST2>(set: &ST, reference: &ST2)
 where
     T: Hash + Eq + Clone,
     ST: Set<T> + Clone,
+    ST2: Set<T> + Clone,
 {
     assert_eq!(set.len(), reference.len());
     assert_eq!(set.is_empty(), reference.is_empty());
 
-    for value in reference {
+    for value in reference.iter() {
         assert!(set.contains(value));
     }
 

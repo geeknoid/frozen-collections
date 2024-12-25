@@ -361,7 +361,7 @@ where
     type Value = FzHashMap<K, V, BH>;
 
     fn expecting(&self, formatter: &mut Formatter) -> Result {
-        formatter.write_str("A map with hashable keys")
+        formatter.write_str("a map with hashable keys")
     }
 
     fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>

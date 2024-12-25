@@ -207,7 +207,7 @@ where
     type Value = FzOrderedSet<T>;
 
     fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
-        formatter.write_str("A set with ordered values")
+        formatter.write_str("a set with ordered values")
     }
 
     fn visit_seq<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>

@@ -363,7 +363,7 @@ where
     type Value = FzScalarMap<K, V>;
 
     fn expecting(&self, formatter: &mut Formatter) -> Result {
-        formatter.write_str("A map with scalar keys")
+        formatter.write_str("a map with scalar keys")
     }
 
     fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>

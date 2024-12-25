@@ -202,7 +202,7 @@ where
     type Value = FzScalarSet<T>;
 
     fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
-        formatter.write_str("A set with scalar values")
+        formatter.write_str("a set with scalar values")
     }
 
     fn visit_seq<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>

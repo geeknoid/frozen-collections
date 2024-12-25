@@ -240,7 +240,7 @@ where
     type Value = FzStringSet<&'de str, BH>;
 
     fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
-        formatter.write_str("A set with string values")
+        formatter.write_str("a set with string values")
     }
 
     fn visit_seq<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
