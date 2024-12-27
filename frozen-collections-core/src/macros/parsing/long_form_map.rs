@@ -1,14 +1,14 @@
 use crate::macros::parsing::payload::{parse_map_payload, Payload};
 use proc_macro2::Ident;
 use syn::parse::{Parse, ParseStream};
-use syn::{Path, Token, Visibility};
+use syn::{Token, Type, Visibility};
 
 pub struct LongFormMap {
     pub var_name: Ident,
     pub type_name: Ident,
-    pub key_type_amp: bool,
-    pub key_type: Path,
-    pub value_type: Path,
+
+    pub key_type: Type,
+    pub value_type: Type,
     pub payload: Payload,
 
     pub visibility: Visibility,
@@ -25,17 +25,15 @@ impl Parse for LongFormMap {
 
         // <key_type, value_type>
         input.parse::<Token![<]>()?;
-        let key_type_amp = input.parse::<Token![&]>().ok();
-        let key_type = input.parse::<Path>()?;
+        let key_type = input.parse()?;
         input.parse::<Token![,]>()?;
-        let value_type = input.parse::<Path>()?;
+        let value_type = input.parse()?;
         input.parse::<Token![>]>()?;
         input.parse::<Token![,]>()?;
 
         Ok(Self {
             var_name,
             type_name,
-            key_type_amp: key_type_amp.is_some(),
             key_type,
             value_type,
             payload: parse_map_payload(input)?,

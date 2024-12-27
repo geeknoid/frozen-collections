@@ -31,7 +31,7 @@
 //! [`fz_scalar_map!`], [`fz_string_map!`], [`fz_hash_set!`], [`fz_ordered_set!`],
 //! [`fz_scalar_set!`], or [`fz_string_set!`]. These macros analyze the data you provide
 //! and return a custom implementation type that's optimized for the data. All the
-//! possible implementations implement the [`Map`] or [`Set`] traits.
+//! possible types implement the [`Map`] or [`Set`] traits.
 //!
 //! The macros exist in a short form and a long form, described below.
 //!
@@ -88,7 +88,7 @@
 //! ```rust
 //! use frozen_collections::*;
 //!
-//! fz_string_map!(static MAP: MyMapType<&str, i32>, {
+//! fz_string_map!(static MAP: MyMapType<&'static str, i32>, {
 //!     "Alice": 1,
 //!     "Bob": 2,
 //!     "Sandy": 3,
@@ -106,7 +106,7 @@
 //! ```rust
 //! use frozen_collections::*;
 //!
-//! fz_string_map!(let m: MyMapType<&str, i32>, {
+//! fz_string_map!(let m: MyMapType<&'static str, i32>, {
 //!     "Alice": 1,
 //!     "Bob": 2,
 //!     "Sandy": 3,
@@ -123,6 +123,14 @@
 //!     assert!(m.contains_key("Alice"));
 //! }
 //! ```
+//!
+//! # Using in a Build Script
+//!
+//! You can use the [`CollectionEmitter`](crate::emit::CollectionEmitter) struct to initialize a frozen collections from a build
+//! script and output the results in a file that then gets compiled into your application. Due
+//! to the fact build scripts run in a richer environment than procedural macros, the resulting
+//! efficiency of collections generated from build scripts can be slightly faster than the ones
+//! generated with the macros.
 //!
 //! # Handling Runtime Data
 //!
@@ -142,7 +150,7 @@
 //!     ("Tom", 4),
 //! ];
 //!
-//! let m = FzStringMap::new(v, ahash::RandomState::default());
+//! let m = FzStringMap::new(v);
 //! ```
 //!
 //! Note that in general, if possible, it's more efficient to use the macros to create your frozen
@@ -226,6 +234,7 @@
 //! `Cargo.toml` file:
 //!
 //! - **`macros`**. Enables the macros that create frozen collections at compile time.
+//! - **`emit`**. Enables the [`CollectionEmitter`](crate::emit::CollectionEmitter) struct that lets you create frozen collections from a build script.
 //! - **`serde`**. Enables serialization and deserialization support for the frozen collections.
 //! - **`std`**. Enables small features only available when building with the standard library.
 //!
@@ -301,17 +310,6 @@ pub use frozen_collections_core::traits::{
 ///         (Key { name: "Alice", age: 30}, 1),
 ///         (Key { name: "Bob", age: 40}, 2),
 ///     ];
-///
-///     // Declare a local map. This results in a local variable called my_map_5 of type MyMapType4.
-///     fz_hash_map!(let my_map_5: MyMapType4<Key, i32>, v);
-///
-///     let v = vec![
-///         (Key { name: "Alice", age: 30}, 1),
-///         (Key { name: "Bob", age: 40}, 2),
-///     ];
-///
-///     // Declare a local map. This results in a local variable called my_map_6 of an unknown type.
-///     let my_map_6 = fz_hash_map!(v);
 ///
 ///     // no matter how the maps are declared, no matter the type selected to implement the map,
 ///     // they all work the same way and have the same API surface and implement the `Map` trait.
@@ -463,22 +461,6 @@ pub use frozen_collections_macros::fz_hash_map;
 ///         Key { name: "Bob", age: 40},
 ///     });
 ///
-///     let v = vec![
-///         Key { name: "Alice", age: 30},
-///         Key { name: "Bob", age: 40},
-///     ];
-///
-///     // Declare a local set. This results in a local variable called my_set_5 of type MySetType4.
-///     fz_hash_set!(let my_set_5: MySetType4<Key>, v);
-///
-///     let v = vec![
-///         Key { name: "Alice", age: 30},
-///         Key { name: "Bob", age: 40},
-///     ];
-///
-///     // Declare a local set. This results in a local variable called my_set_6 of an unknown type.
-///     let my_set_6 = fz_hash_set!(v);
-///
 ///     // no matter how the sets are declared, no matter the type selected to implement the set,
 ///     // they all work the same way and have the same API surface and implement the `Set` trait.
 ///
@@ -565,22 +547,6 @@ pub use frozen_collections_macros::fz_hash_set;
 ///         Key { name: "Alice", age: 30}: 1,
 ///         Key { name: "Bob", age: 40}: 2,
 ///     });
-///
-///     let v = vec![
-///         (Key { name: "Alice", age: 30}, 1),
-///         (Key { name: "Bob", age: 40}, 2),
-///     ];
-///
-///     // Declare a local map. This results in a local variable called my_map_5 of type MyMapType4.
-///     fz_ordered_map!(let my_map_5: MyMapType4<Key, i32>, v);
-///
-///     let v = vec![
-///         (Key { name: "Alice", age: 30}, 1),
-///         (Key { name: "Bob", age: 40}, 2),
-///     ];
-///
-///     // Declare a local map. This results in a local variable called my_map_6 of an unknown type.
-///     let my_map_6 = fz_ordered_map!(v);
 ///
 ///     // no matter how the maps are declared, no matter the type selected to implement the map,
 ///     // they all work the same way and have the same API surface and implement the `Map` trait.
@@ -732,22 +698,6 @@ pub use frozen_collections_macros::fz_ordered_map;
 ///         Key { name: "Bob", age: 40},
 ///     });
 ///
-///     let v = vec![
-///         Key { name: "Alice", age: 30},
-///         Key { name: "Bob", age: 40},
-///     ];
-///
-///     // Declare a local set. This results in a local variable called my_set_5 of type MySetType4.
-///     fz_ordered_set!(let my_set_5: MySetType4<Key>, v);
-///
-///     let v = vec![
-///         Key { name: "Alice", age: 30},
-///         Key { name: "Bob", age: 40},
-///     ];
-///
-///     // Declare a local set. This results in a local variable called my_set_6 of an unknown type.
-///     let my_set_6 = fz_ordered_set!(v);
-///
 ///     // no matter how the sets are declared, no matter the type selected to implement the set,
 ///     // they all work the same way and have the same API surface and implement the `Set` trait.
 ///
@@ -837,22 +787,6 @@ pub use frozen_collections_macros::fz_ordered_set;
 ///         Person::Alice: 1,
 ///         Person::Bob: 2,
 ///     });
-///
-///     let v = vec![
-///         (Person::Alice, 1),
-///         (Person::Bob, 2),
-///     ];
-///
-///     // Declare a local map. This results in a local variable called my_map_5 of type MyMapType4.
-///     fz_scalar_map!(let my_map_5: MyMapType4<Person, i32>, v);
-///
-///     let v = vec![
-///         (Person::Alice, 1),
-///         (Person::Bob, 2),
-///     ];
-///
-///     // Declare a local map. This results in a local variable called my_map_6 of an unknown type.
-///     let my_map_6 = fz_scalar_map!(v);
 ///
 ///     // no matter how the maps are declared, no matter the type selected to implement the map,
 ///     // they all work the same way and have the same API surface and implement the `Map` trait.
@@ -975,22 +909,6 @@ pub use frozen_collections_macros::fz_scalar_map;
 ///         Person::Bob,
 ///     });
 ///
-///     let v = vec![
-///         Person::Alice,
-///         Person::Bob,
-///     ];
-///
-///     // Declare a local set. This results in a local variable called my_set_5 of type MySetType4.
-///     fz_scalar_set!(let my_set_5: MySetType4<Person>, v);
-///
-///     let v = vec![
-///         Person::Alice,
-///         Person::Bob,
-///     ];
-///
-///     // Declare a local set. This results in a local variable called my_set_6 of an unknown type.
-///     let my_set_6 = fz_scalar_set!(v);
-///
 ///     // no matter how the sets are declared, no matter the type selected to implement the set,
 ///     // they all work the same way and have the same API surface and implement the `Set` trait.
 ///
@@ -1018,26 +936,26 @@ pub use frozen_collections_macros::fz_scalar_set;
 /// use frozen_collections::*;
 ///
 /// // Declare a global static map. This results in a static variable called MY_MAP_0 of type MyMapType0.
-/// fz_string_map!(static MY_MAP_0: MyMapType0<&str, i32>, {
+/// fz_string_map!(static MY_MAP_0: MyMapType0<&'static str, i32>, {
 ///     "Alice": 1,
 ///     "Bob": 2,
 /// });
 ///
 /// fn variables() {
 ///     // Declare a local static map. This results in a local variable called MY_MAP_1 of type MyMapType1.
-///     fz_string_map!(static MY_MAP_1: MyMapType1<&str, i32>, {
+///     fz_string_map!(static MY_MAP_1: MyMapType1<&'static str, i32>, {
 ///         "Alice": 1,
 ///         "Bob": 2,
 ///     });
 ///
 ///     // Declare a local map. This results in a local variable called my_map_2 of type MyMapType2.
-///     fz_string_map!(let my_map_2: MyMapType2<&str, i32>, {
+///     fz_string_map!(let my_map_2: MyMapType2<&'static str, i32>, {
 ///         "Alice": 1,
 ///         "Bob": 2,
 ///     });
 ///
 ///     // Declare a mutable local map. This results in a local variable called my_map_3 of type MyMapType3.
-///     fz_string_map!(let mut my_map_3: MyMapType3<&str, i32>, {
+///     fz_string_map!(let mut my_map_3: MyMapType3<&'static str, i32>, {
 ///         "Alice": 1,
 ///         "Bob": 2,
 ///     });
@@ -1047,25 +965,6 @@ pub use frozen_collections_macros::fz_scalar_set;
 ///         "Alice": 1,
 ///         "Bob": 2,
 ///     });
-///
-///     let v = vec![
-///         ("Alice", 1),
-///         ("Bob", 2),
-///     ];
-///
-///     // Declare a local map. This results in a local variable called my_map_5 of type MyMapType4.
-///     fz_string_map!(let my_map_5: MyMapType4<&str, i32>, v);
-///
-///     let v = vec![
-///         ("Alice", 1),
-///         ("Bob", 2),
-///     ];
-///
-///     // Declare a local map. This results in a local variable called my_map_6 of an unknown type.
-///     let my_map_6 = fz_string_map!(v);
-///
-///     let _ = my_map_5;
-///     let _ = my_map_6;
 ///
 ///     // no matter how the maps are declared, no matter the type selected to implement the map,
 ///     // they all work the same way and have the same API surface and implement the `Map` trait.
@@ -1155,26 +1054,26 @@ pub use frozen_collections_macros::fz_string_map;
 /// // This example shows the various uses of a frozen set whose values are strings.
 ///
 /// // Declare a global static set. This results in a static variable called MY_SET_0 of type MySetType0.
-/// fz_string_set!(static MY_SET_0: MySetType0<&str>, {
+/// fz_string_set!(static MY_SET_0: MySetType0<&'static str>, {
 ///     "Alice",
 ///     "Bob",
 /// });
 ///
 /// fn variables() {
 ///     // Declare a local static set. This results in a local variable called MY_SET_1 of type MySetType1.
-///     fz_string_set!(static MY_SET_1: MySetType1<&str>, {
+///     fz_string_set!(static MY_SET_1: MySetType1<&'static str>, {
 ///         "Alice",
 ///         "Bob",
 ///     });
 ///
 ///     // Declare a local set. This results in a local variable called my_set_2 of type MySetType2.
-///     fz_string_set!(let my_set_2: MySetType2<&str>, {
+///     fz_string_set!(let my_set_2: MySetType2<&'static str>, {
 ///         "Alice",
 ///         "Bob",
 ///     });
 ///
 ///     // Declare a mutable local set. This results in a local variable called my_set_3 of type MySetType3.
-///     fz_string_set!(let mut my_set_3: MySetType3<&str>, {
+///     fz_string_set!(let mut my_set_3: MySetType3<&'static str>, {
 ///         "Alice",
 ///         "Bob",
 ///     });
@@ -1184,25 +1083,6 @@ pub use frozen_collections_macros::fz_string_map;
 ///         "Alice",
 ///         "Bob",
 ///     });
-///
-///     let v = vec![
-///         "Alice",
-///         "Bob",
-///     ];
-///
-///     // Declare a local set. This results in a local variable called my_set_5 of type MySetType4.
-///     fz_string_set!(let my_set_5: MySetType4<&str>, v);
-///
-///     let v = vec![
-///         "Alice",
-///         "Bob",
-///     ];
-///
-///     // Declare a local set. This results in a local variable called my_set_6 of an unknown type.
-///     let my_set_6 = fz_string_set!(v);
-///
-///     let _ = my_set_5;
-///     let _ = my_set_6;
 ///
 ///     // no matter how the sets are declared, no matter the type selected to implement the set,
 ///     // they all work the same way and have the same API surface and implement the `Set` trait.
@@ -1233,6 +1113,12 @@ pub use frozen_collections_macros::fz_string_set;
 /// unit variants without explicit discriminants.
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::Scalar;
+
+/// Facilities to generate frozen collections within a Rust build script.
+#[cfg(feature = "emit")]
+pub mod emit {
+    pub use frozen_collections_core::emit::*;
+}
 
 pub use frozen_collections_core::fz_maps::*;
 pub use frozen_collections_core::fz_sets::*;
@@ -1271,3 +1157,5 @@ pub mod hash_tables {
 pub mod ahash {
     pub use ahash::RandomState;
 }
+
+pub use frozen_collections_core::DefaultHashBuilder;

@@ -5,7 +5,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use core::hint::black_box;
 use frozen_collections::maps::EytzingerSearchMap;
-use frozen_collections::*;
+use frozen_collections::{FzOrderedMap, MapQuery};
 
 #[derive(Ord, PartialOrd, PartialEq, Eq, Clone)]
 struct MyKey {
@@ -72,6 +72,6 @@ fn call_facade_ordered_map(map: &FzOrderedMap<MyKey, i32>, key: &MyKey) -> bool 
 }
 
 #[inline(never)]
-fn call_eytzinger_search_map(map: &maps::EytzingerSearchMap<MyKey, i32>, key: &MyKey) -> bool {
+fn call_eytzinger_search_map(map: &EytzingerSearchMap<MyKey, i32>, key: &MyKey) -> bool {
     map.contains_key(key)
 }

@@ -1,9 +1,11 @@
 mod common;
 
 use common::*;
-use frozen_collections::ahash::RandomState;
+use foldhash::fast::RandomState;
 use frozen_collections::*;
 use frozen_collections_core::hashers::BridgeHasher;
+use frozen_collections_core::inline_maps::{InlineBinarySearchMap, InlineEytzingerSearchMap};
+use frozen_collections_core::inline_sets::{InlineBinarySearchSet, InlineEytzingerSearchSet};
 use frozen_collections_core::macros::fz_scalar_map_macro;
 use frozen_collections_core::maps::*;
 use frozen_collections_core::sets::*;
@@ -18,8 +20,8 @@ macro_rules! test_str {
         let set_reference = HashbrownSet::<&str>::from_iter(vec![ $( $input, )* ].into_iter());
         let set_other = HashbrownSet::<&str>::from_iter(vec![ $( $other, )* ].into_iter());
 
-        let map_reference = StdHashMap::<_, _, ahash::RandomState>::from_iter(vec![ $( ($input, ()), )* ].into_iter());
-        let map_other = StdHashMap::<_, _, ahash::RandomState>::from_iter(vec![ $( ($other, ()), )* ].into_iter());
+        let map_reference = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( ($input, ()), )* ].into_iter());
+        let map_other = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( ($other, ()), )* ].into_iter());
 
         let mut m = fz_string_map!({ $( $input: (),)* });
         test_map(&m, &map_reference, &map_other);
@@ -40,8 +42,8 @@ macro_rules! test_all {
         let set_other = HashbrownSet::from_iter(vec![ $( $other, )* ].into_iter());
         let set_input = vec![ $($input,)* ];
 
-        let map_reference = StdHashMap::<_, _, ahash::RandomState>::from_iter(vec![ $( ($input, ()), )* ].into_iter());
-        let map_other = StdHashMap::<_, _, ahash::RandomState>::from_iter(vec![ $( ($other, ()), )* ].into_iter());
+        let map_reference = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( ($input, ()), )* ].into_iter());
+        let map_other = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( ($other, ()), )* ].into_iter());
         let map_input = vec![ $( ($input, ()), )* ];
 
         let mut m = fz_scalar_map!({ $( $input: (), )* });
@@ -52,19 +54,6 @@ macro_rules! test_all {
         test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
 
         let s = fz_scalar_set!({ $($input,)* });
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzScalarSet<_>>(&s);
-
-        let mut m = fz_scalar_map!(map_input.clone());
-        test_map(&m, &map_reference, &map_other);
-        test_map_ops(&m, &map_reference);
-        test_map_iter(&m, &map_reference);
-        test_map_iter_mut(&mut m, &map_reference);
-        test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
-
-        let s = fz_scalar_set!(set_input.clone());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
@@ -83,19 +72,6 @@ macro_rules! test_all {
         test_set_iter(&s, &set_reference);
         test_set_serialization::<_, _, FzHashSet<_>>(&s);
 
-        let mut m = fz_hash_map!(map_input.clone());
-        test_map(&m, &map_reference, &map_other);
-        test_map_ops(&m, &map_reference);
-        test_map_iter(&m, &map_reference);
-        test_map_iter_mut(&mut m, &map_reference);
-        test_map_serialization::<_, _, _, FzHashMap<_, _>>(&m);
-
-        let s = fz_hash_set!(set_input.clone());
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzHashSet<_>>(&s);
-
         let mut m = fz_ordered_map!({ $( $input: (), )* });
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
@@ -104,19 +80,6 @@ macro_rules! test_all {
         test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
         let s = fz_ordered_set!({ $($input,)* });
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
-
-        let mut m = fz_ordered_map!(map_input.clone());
-        test_map(&m, &map_reference, &map_other);
-        test_map_ops(&m, &map_reference);
-        test_map_iter(&m, &map_reference);
-        test_map_iter_mut(&mut m, &map_reference);
-        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
-
-        let s = fz_ordered_set!(set_input.clone());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
@@ -201,7 +164,7 @@ macro_rules! test_all {
         test_set_iter(&s, &set_reference);
         test_set_serialization::<_, _, FzScalarSet<_>>(&s);
 
-        let mut m = HashMap::<_, _>::new(map_input.clone(), BridgeHasher::default()).unwrap();
+        let mut m = HashMap::<_, _>::with_hasher(map_input.clone(), BridgeHasher::default()).unwrap();
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
@@ -304,7 +267,7 @@ macro_rules! test_all {
         test_set_iter(&s, &set_reference);
         test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
-        let mut m = FzHashMap::<_, _>::new(map_input.clone(), RandomState::new());
+        let mut m = FzHashMap::<_, _>::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
@@ -331,7 +294,7 @@ macro_rules! test_all {
         test_set_iter(&s, &set_reference);
         test_set_serialization::<_, _, FzHashSet<_>>(&s);
 
-        let s = FzHashSet::new(set_input.clone(), RandomState::new());
+        let s = FzHashSet::new(set_input.clone());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
@@ -349,10 +312,10 @@ macro_rules! test_all {
         test_set_iter(&s, &set_reference);
         test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
-        let m = std::collections::HashMap::<_, _, ahash::RandomState>::from_iter(map_input.clone().into_iter());
+        let m = std::collections::HashMap::<_, _, foldhash::fast::RandomState>::from_iter(map_input.clone().into_iter());
         test_map(&m, &map_reference, &map_other);
 
-        let s = std::collections::HashSet::<_, ahash::RandomState>::from_iter(set_input.clone().into_iter());
+        let s = std::collections::HashSet::<_, foldhash::fast::RandomState>::from_iter(set_input.clone().into_iter());
         test_set(&s, &set_reference, &set_other);
 
         let m = std::collections::BTreeMap::from_iter(map_input.clone().into_iter());
@@ -361,10 +324,10 @@ macro_rules! test_all {
         let s = std::collections::BTreeSet::from_iter(set_input.clone().into_iter());
         test_set(&s, &set_reference, &set_other);
 
-        let m = hashbrown::HashMap::<_, _, ahash::RandomState>::from_iter(map_input.clone().into_iter());
+        let m = hashbrown::HashMap::<_, _>::from_iter(map_input.clone().into_iter());
         test_map(&m, &map_reference, &map_other);
 
-        let s = hashbrown::HashSet::<_, ahash::RandomState>::from_iter(set_input.clone().into_iter());
+        let s = hashbrown::HashSet::<_>::from_iter(set_input.clone().into_iter());
         test_set(&s, &set_reference, &set_other);
 
         // handle String cases
@@ -373,22 +336,11 @@ macro_rules! test_all {
         let set_other = HashbrownSet::<&str>::from_iter(vec![ $( stringify!($other), )* ].into_iter());
         let set_input = vec![ $( stringify!($input), )* ];
 
-        let map_reference = StdHashMap::<_, _, ahash::RandomState>::from_iter(vec![ $( (stringify!($input), ()), )* ].into_iter());
-        let map_other = StdHashMap::<_, _, ahash::RandomState>::from_iter(vec![ $( (stringify!($other), ()), )* ].into_iter());
+        let map_reference = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( (stringify!($input), ()), )* ].into_iter());
+        let map_other = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( (stringify!($other), ()), )* ].into_iter());
         let map_input = vec![ $( (stringify!($input), ()), )* ];
 
-        let mut m = fz_string_map!(map_input.clone());
-        test_map(&m, &map_reference, &map_other);
-        test_map_ops(&m, &map_reference);
-        test_map_iter(&m, &map_reference);
-        test_map_iter_mut(&mut m, &map_reference);
-
-        let s = fz_string_set!(set_input.clone());
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-
-        let mut m = FzStringMap::new(map_input.clone(), ahash::RandomState::default());
+        let mut m = FzStringMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
@@ -405,7 +357,7 @@ macro_rules! test_all {
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
 
-        let s = FzStringSet::new(set_input.clone(), ahash::RandomState::default());
+        let s = FzStringSet::new(set_input.clone());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
@@ -550,14 +502,11 @@ fn test_set_empties() {
 
     test_set_empty(&HashSet::<i32>::default());
     test_set_empty(&HashSet::<i32>::new(
-        HashMap::new(vec![], BridgeHasher::default()).unwrap(),
+        HashMap::with_hasher(vec![], BridgeHasher::default()).unwrap(),
     ));
 
     test_set_empty(&FzHashSet::<i32>::default());
-    test_set_empty(&FzHashSet::<i32>::from(FzHashMap::new(
-        vec![],
-        RandomState::new(),
-    )));
+    test_set_empty(&FzHashSet::<i32>::from(FzHashMap::new(vec![])));
 
     test_set_empty(&FzOrderedSet::<i32>::default());
     test_set_empty(&FzOrderedSet::<i32>::from(FzOrderedMap::new(vec![])));
@@ -565,11 +514,8 @@ fn test_set_empties() {
     test_set_empty(&FzScalarSet::<i32>::default());
     test_set_empty(&FzScalarSet::<i32>::from(FzScalarMap::new(vec![])));
 
-    test_set_empty(&FzStringSet::<&str, ahash::RandomState>::default());
-    test_set_empty(&FzStringSet::from(FzStringMap::new(
-        vec![],
-        ahash::RandomState::default(),
-    )));
+    test_set_empty(&FzStringSet::<&str>::default());
+    test_set_empty(&FzStringSet::from(FzStringMap::new(vec![])));
 }
 
 #[test]
@@ -602,10 +548,10 @@ fn test_map_empties() {
     test_map_empty(&SparseScalarLookupMap::<i32, i32>::new(vec![]));
 
     test_map_empty(&HashMap::<i32, i32>::default());
-    test_map_empty(&HashMap::<i32, i32>::new(vec![], BridgeHasher::default()).unwrap());
+    test_map_empty(&HashMap::<i32, i32>::with_hasher(vec![], BridgeHasher::default()).unwrap());
 
     test_map_empty(&FzHashMap::<i32, i32>::default());
-    test_map_empty(&FzHashMap::<i32, i32>::new(vec![], RandomState::new()));
+    test_map_empty(&FzHashMap::<i32, i32>::new(vec![]));
 
     test_map_empty(&FzOrderedMap::<i32, i32>::default());
     test_map_empty(&FzOrderedMap::<i32, i32>::new(vec![]));
@@ -613,11 +559,8 @@ fn test_map_empties() {
     test_map_empty(&FzScalarMap::<i32, i32>::default());
     test_map_empty(&FzScalarMap::<i32, i32>::new(vec![]));
 
-    test_map_empty(&FzStringMap::<&str, i32, ahash::RandomState>::default());
-    test_map_empty(&FzStringMap::<&str, i32, ahash::RandomState>::new(
-        vec![],
-        ahash::RandomState::default(),
-    ));
+    test_map_empty(&FzStringMap::<&str, i32, foldhash::fast::RandomState>::default());
+    test_map_empty(&FzStringMap::<&str, i32>::new(vec![]));
 
     fz_hash_map!(let m: MyHashMap<i32, i32>, {});
     test_map_empty(&m);
@@ -625,7 +568,7 @@ fn test_map_empties() {
     fz_ordered_map!(let m: MyOrderedMap<i32, i32>, {});
     test_map_empty(&m);
 
-    fz_string_map!(let m: MyStringMap<&str, i32>, {});
+    fz_string_map!(let m: MyStringMap<&'static str, i32>, {});
     test_map_empty(&m);
 
     fz_scalar_map!(let m: MyScalarMap<i32, i32>, {});
@@ -680,4 +623,70 @@ fn string_type_serialization() {
 
     let s: serde_json::Result<FzStringSet<&str>> = serde_json::from_str("{XXX: XXX,}");
     assert!(s.is_err());
+}
+
+#[test]
+fn binary_search() {
+    let mut m = InlineBinarySearchMap::<i32, (), 10>::new_raw([
+        (1, ()),
+        (2, ()),
+        (3, ()),
+        (4, ()),
+        (5, ()),
+        (6, ()),
+        (7, ()),
+        (8, ()),
+        (9, ()),
+        (10, ()),
+    ]);
+    let map_reference = StdHashMap::<i32, (), RandomState>::from_iter(m.clone().into_iter());
+    let map_other = StdHashMap::<i32, (), RandomState>::from_iter(m.clone().into_iter());
+
+    test_map(&m, &map_reference, &map_other);
+    test_map_ops(&m, &map_reference);
+    test_map_iter(&m, &map_reference);
+    test_map_iter_mut(&mut m, &map_reference);
+    test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
+
+    let s = InlineBinarySearchSet::<i32, 10>::new(m);
+    let set_reference = HashbrownSet::<i32, RandomState>::from_iter(s.clone().into_iter());
+    let set_other = HashbrownSet::<i32, RandomState>::from_iter(s.clone().into_iter());
+
+    test_set(&s, &set_reference, &set_other);
+    test_set_iter(&s, &set_reference);
+    test_set_ops(&s, &set_reference, &set_other);
+    test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
+}
+
+#[test]
+fn eytzinger_search() {
+    let mut m = InlineEytzingerSearchMap::<i32, (), 10>::new_raw([
+        (7, ()),
+        (4, ()),
+        (9, ()),
+        (2, ()),
+        (6, ()),
+        (8, ()),
+        (10, ()),
+        (1, ()),
+        (3, ()),
+        (5, ()),
+    ]);
+    let map_reference = StdHashMap::<i32, (), RandomState>::from_iter(m.clone().into_iter());
+    let map_other = StdHashMap::<i32, (), RandomState>::from_iter(m.clone().into_iter());
+
+    test_map(&m, &map_reference, &map_other);
+    test_map_ops(&m, &map_reference);
+    test_map_iter(&m, &map_reference);
+    test_map_iter_mut(&mut m, &map_reference);
+    test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
+
+    let s = InlineEytzingerSearchSet::<i32, 10>::new(m);
+    let set_reference = HashbrownSet::<i32, RandomState>::from_iter(s.clone().into_iter());
+    let set_other = HashbrownSet::<i32, RandomState>::from_iter(s.clone().into_iter());
+
+    test_set(&s, &set_reference, &set_other);
+    test_set_iter(&s, &set_reference);
+    test_set_ops(&s, &set_reference, &set_other);
+    test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 }

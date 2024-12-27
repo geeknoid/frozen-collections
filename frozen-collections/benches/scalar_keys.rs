@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::hint::black_box;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use frozen_collections::{fz_scalar_set, SetQuery};
+use frozen_collections::{fz_scalar_set, FzScalarSet, SetQuery};
 
 include!(concat!(env!("OUT_DIR"), "/dense_scalar.rs"));
 include!(concat!(env!("OUT_DIR"), "/sparse_scalar.rs"));

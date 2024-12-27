@@ -12,9 +12,10 @@ use crate::utils::dedup_by_hash_keep_last;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
+use core::hash::Hash;
 use core::ops::Index;
 use equivalent::Equivalent;
-
+use foldhash::fast::RandomState;
 #[cfg(feature = "serde")]
 use {
     crate::maps::decl_macros::serialize_fn,
@@ -34,6 +35,22 @@ pub struct HashMap<K, V, CM = SmallCollection, H = BridgeHasher> {
     hasher: H,
 }
 
+impl<K, V, CM> HashMap<K, V, CM, BridgeHasher<RandomState>>
+where
+    K: Hash + Eq,
+    CM: CollectionMagnitude,
+{
+    /// Creates a frozen map.
+    ///
+    /// # Errors
+    ///
+    /// Fails if the number of entries in the vector, after deduplication, exceeds the
+    /// magnitude of the collection as specified by the `CM` generic argument.
+    pub fn new(entries: Vec<(K, V)>) -> core::result::Result<Self, String> {
+        Self::with_hasher(entries, BridgeHasher::default())
+    }
+}
+
 impl<K, V, CM, H> HashMap<K, V, CM, H>
 where
     K: Eq,
@@ -46,9 +63,10 @@ where
     ///
     /// Fails if the number of entries in the vector, after deduplication, exceeds the
     /// magnitude of the collection as specified by the `CM` generic argument.
-    pub fn new(mut entries: Vec<(K, V)>, hasher: H) -> core::result::Result<Self, String> {
-        dedup_by_hash_keep_last(&mut entries, &hasher);
-        Self::new_half_baked(entries, hasher)
+    pub fn with_hasher(mut entries: Vec<(K, V)>, hasher: H) -> core::result::Result<Self, String> {
+        dedup_by_hash_keep_last(&mut entries, |x| hasher.hash(&x.0), |x, y| x.0 == y.0);
+
+        Self::with_hasher_half_baked(entries, hasher)
     }
 
     /// Creates a frozen map.
@@ -57,7 +75,7 @@ where
     ///
     /// Fails if the number of entries in the vector, after deduplication, exceeds the
     /// magnitude of the collection as specified by the `CM` generic argument.
-    pub(crate) fn new_half_baked(
+    pub(crate) fn with_hasher_half_baked(
         processed_entries: Vec<(K, V)>,
         hasher: H,
     ) -> core::result::Result<Self, String> {
@@ -230,7 +248,7 @@ mod test {
             input.push((i, i));
         }
 
-        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::new(
+        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(
             input,
             BridgeHasher::default()
         )
@@ -241,7 +259,7 @@ mod test {
             input.push((i, i));
         }
 
-        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::new(
+        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(
             input,
             BridgeHasher::default()
         )

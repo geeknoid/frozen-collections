@@ -31,16 +31,6 @@ macro_rules! test_hash {
                 )*
             ];
 
-            _ = fz_hash_set_macro(quote!(v)).unwrap();
-
-            let s1 = fz_hash_set!(v);
-
-            let v = vec![
-                $(
-                    $arg,
-                )*
-            ];
-
             let mut s2 = StdHashSet::new();
             for x in v.into_iter() {
                 s2.insert(x);
@@ -70,7 +60,6 @@ macro_rules! test_hash {
                 )*
             });
 
-            assert_eq!(s0, s1);
             assert_eq!(s0, s2);
             // assert_eq!(s0, S3);
             assert_eq!(s0, s4);
@@ -88,16 +77,6 @@ macro_rules! test_hash {
                     $arg: 42,
                 )*
             });
-
-            let v = vec![
-                $(
-                    ($arg, 42),
-                )*
-            ];
-
-            _ = fz_hash_map_macro(quote!(v)).unwrap();
-
-            let m1 = fz_hash_map!(v);
 
             let v = vec![
                 $(
@@ -134,7 +113,6 @@ macro_rules! test_hash {
                 )*
             });
 
-            assert_eq!(m0, m1);
             assert_eq!(m0, m2);
             // assert_eq!(m0, M3);
             assert_eq!(m0, m4);
@@ -467,18 +445,88 @@ fn hash_usize() {
 
 #[test]
 fn hash_string() {
-    test_hash!(&str, "0");
-    test_hash!(&str, "0", "1");
-    test_hash!(&str, "0", "1", "2");
-    test_hash!(&str, "0", "1", "2", "3");
-    test_hash!(&str, "0", "1", "2", "3", "4");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5", "6");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5", "6", "7");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
-    test_hash!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13");
+    test_hash!(&'static str, "0");
+    test_hash!(&'static str, "0", "1");
+    test_hash!(&'static str, "0", "1", "2");
+    test_hash!(&'static str, "0", "1", "2", "3");
+    test_hash!(&'static str, "0", "1", "2", "3", "4");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
+    test_hash!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+    );
+    test_hash!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+    );
+    test_hash!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+    );
+    test_hash!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+    );
+    test_hash!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13"
+    );
 }

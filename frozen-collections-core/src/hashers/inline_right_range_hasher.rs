@@ -1,5 +1,5 @@
 use crate::traits::Hasher;
-use ahash::RandomState;
+use crate::DefaultHashBuilder;
 use alloc::string::String;
 use core::hash::{BuildHasher, Hash};
 
@@ -10,7 +10,7 @@ use core::hash::{BuildHasher, Hash};
 pub struct InlineRightRangeHasher<
     const RANGE_START: usize,
     const RANGE_END: usize,
-    BH = RandomState,
+    BH = DefaultHashBuilder,
 > {
     bh: BH,
 }
@@ -97,6 +97,7 @@ mod tests {
     use super::*;
     use alloc::string::ToString;
     use alloc::vec;
+    use foldhash::fast::RandomState;
 
     #[test]
     fn test_right_range_hasher_hash_slice() {

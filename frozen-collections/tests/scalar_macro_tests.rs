@@ -25,16 +25,6 @@ macro_rules! test_scalar {
                 )*
             ];
 
-            _ = fz_scalar_set_macro(quote!(v)).unwrap();
-
-            let s1 = fz_scalar_set!(v);
-
-            let v = vec![
-                $(
-                    $arg,
-                )*
-            ];
-
             let mut s2 = StdBTreeSet::new();
             for x in v.into_iter() {
                 s2.insert(x);
@@ -64,7 +54,6 @@ macro_rules! test_scalar {
                 )*
             });
 
-            assert_eq!(s0, s1);
             assert_eq!(s0, s2);
             // assert_eq!(s0, S3);
             assert_eq!(s0, s4);
@@ -82,16 +71,6 @@ macro_rules! test_scalar {
                     $arg: 42,
                 )*
             });
-
-            let v = vec![
-                $(
-                    ($arg, 42),
-                )*
-            ];
-
-            _ = fz_scalar_map_macro(quote!(v)).unwrap();
-
-            let m1 = fz_scalar_map!(v);
 
             let v = vec![
                 $(
@@ -128,7 +107,6 @@ macro_rules! test_scalar {
                 )*
             });
 
-            assert_eq!(m0, m1);
             assert_eq!(m0, m2);
             // assert_eq!(m0, M3);
             assert_eq!(m0, m4);

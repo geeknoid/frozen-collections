@@ -19,3 +19,15 @@ impl<CM> HashTableSlot<CM> {
         }
     }
 }
+
+#[cfg(any(feature = "macros", feature = "emit"))]
+impl quote::ToTokens for HashTableSlot<usize> {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let min_index = proc_macro2::Literal::usize_unsuffixed(self.min_index);
+        let max_index = proc_macro2::Literal::usize_unsuffixed(self.max_index);
+
+        tokens.extend(
+            quote::quote!(::frozen_collections::hash_tables::HashTableSlot::new(#min_index, #max_index)),
+        );
+    }
+}

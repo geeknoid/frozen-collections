@@ -1,5 +1,3 @@
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::{Expr, Token};
 
@@ -16,16 +14,5 @@ impl Parse for Entry {
         let value = Some(input.parse::<Expr>()?);
 
         Ok(Self { key, value })
-    }
-}
-
-impl ToTokens for Entry {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let key = &self.key;
-        if let Some(value) = &self.value {
-            tokens.extend(quote!((#key, #value)));
-        } else {
-            tokens.extend(quote!((#key, ())));
-        }
     }
 }

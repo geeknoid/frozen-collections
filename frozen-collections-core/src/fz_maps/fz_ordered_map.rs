@@ -29,7 +29,7 @@ enum MapTypes<K, V> {
 /// A map optimized for fast read access with ordered keys.
 ///
 #[doc = include_str!("../doc_snippets/about.md")]
-#[doc = include_str!("../doc_snippets/order_warning.md")]
+#[doc = include_str!("../doc_snippets/ord_warning.md")]
 ///
 /// # Alternate Choices
 ///
@@ -337,7 +337,7 @@ where
     K: Deserialize<'de> + Ord,
     V: Deserialize<'de>,
 {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {

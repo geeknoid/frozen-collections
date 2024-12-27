@@ -4,14 +4,14 @@ use crate::maps::{
 };
 use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_hash_keep_last;
-use ahash::RandomState;
+use crate::DefaultHashBuilder;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};
 use core::iter::FromIterator;
 use core::ops::Index;
 use equivalent::Equivalent;
-
+use foldhash::fast::RandomState;
 #[cfg(feature = "serde")]
 use {
     crate::maps::decl_macros::serialize_fn,
@@ -41,8 +41,19 @@ enum MapTypes<K, V, BH> {
 /// If your keys are known at compile time, consider using the various `fz_*_map` macros instead of
 /// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzHashMap<K, V, BH = RandomState> {
+pub struct FzHashMap<K, V, BH = DefaultHashBuilder> {
     map_impl: MapTypes<K, V, BH>,
+}
+
+impl<K, V> FzHashMap<K, V, DefaultHashBuilder>
+where
+    K: Eq + Hash,
+{
+    /// Creates a frozen map.
+    #[must_use]
+    pub fn new(entries: Vec<(K, V)>) -> Self {
+        Self::with_hasher(entries, RandomState::default())
+    }
 }
 
 impl<K, V, BH> FzHashMap<K, V, BH>
@@ -53,15 +64,16 @@ where
     /// Creates a frozen map which uses the given hash builder to hash keys.
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
-    pub fn new(mut entries: Vec<(K, V)>, bh: BH) -> Self {
-        let hasher = BridgeHasher::new(bh);
-        dedup_by_hash_keep_last(&mut entries, &hasher);
+    pub fn with_hasher(mut entries: Vec<(K, V)>, bh: BH) -> Self {
+        dedup_by_hash_keep_last(&mut entries, |x| bh.hash_one(&x.0), |x, y| x.0 == y.0);
 
         Self {
             map_impl: if entries.len() < 3 {
                 MapTypes::Scanning(ScanMap::new_raw(entries))
             } else {
-                MapTypes::Hash(HashMap::new_half_baked(entries, hasher).unwrap())
+                MapTypes::Hash(
+                    HashMap::with_hasher_half_baked(entries, BridgeHasher::new(bh)).unwrap(),
+                )
             },
         }
     }
@@ -84,7 +96,7 @@ where
     BH: BuildHasher + Default,
 {
     fn from(entries: [(K, V); N]) -> Self {
-        Self::new(Vec::from(entries), BH::default())
+        Self::with_hasher(Vec::from(entries), BH::default())
     }
 }
 
@@ -94,7 +106,7 @@ where
     BH: BuildHasher + Default,
 {
     fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
-        Self::new(iter.into_iter().collect(), BH::default())
+        Self::with_hasher(iter.into_iter().collect(), BH::default())
     }
 }
 
@@ -336,7 +348,7 @@ where
     V: Deserialize<'de>,
     BH: BuildHasher + Default,
 {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -373,6 +385,6 @@ where
             v.push(x);
         }
 
-        Ok(FzHashMap::new(v, BH::default()))
+        Ok(FzHashMap::with_hasher(v, BH::default()))
     }
 }

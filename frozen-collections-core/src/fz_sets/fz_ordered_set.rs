@@ -25,7 +25,7 @@ use {
 /// A set optimized for fast read access with ordered values.
 ///
 #[doc = include_str!("../doc_snippets/about.md")]
-#[doc = include_str!("../doc_snippets/order_warning.md")]
+#[doc = include_str!("../doc_snippets/ord_warning.md")]
 ///
 /// # Alternate Choices
 ///
@@ -184,7 +184,7 @@ impl<'de, T> Deserialize<'de> for FzOrderedSet<T>
 where
     T: Deserialize<'de> + Ord,
 {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {

@@ -2,11 +2,10 @@
 extern crate alloc;
 
 use core::hint::black_box;
-use frozen_collections::ahash::RandomState;
-use frozen_collections::*;
+use frozen_collections::{fz_string_map, FzStringMap, MapIteration, MapQuery};
 use hashbrown::HashMap as HashbrownMap;
 
-fz_string_map!(static MAP: MyMapType<&str, i32>, { "ALongPrefixRedd": 1, "ALongPrefixGree":2, "ALongPrefixBlue":3, "ALongPrefixCyan":4, "ALongPrefixPurple":5, "ALongPrefix:Yellow":6, "ALongPrefixMagenta":7 });
+fz_string_map!(static MAP: MyMapType<&'static str, i32>, { "ALongPrefixRedd": 1, "ALongPrefixGree":2, "ALongPrefixBlue":3, "ALongPrefixCyan":4, "ALongPrefixPurple":5, "ALongPrefix:Yellow":6, "ALongPrefixMagenta":7 });
 
 fn main() {
     let input = MAP.clone();
@@ -18,15 +17,12 @@ fn main() {
         "Carrot",
     ];
 
-    let map: HashbrownMap<_, _, RandomState> = input.iter().map(|x| (*x.0, *x.1)).collect();
+    let map: HashbrownMap<_, _> = input.iter().map(|x| (*x.0, *x.1)).collect();
     for key in probe {
         _ = black_box(call_hashbrown_map(&map, key));
     }
 
-    let map = FzStringMap::new(
-        input.iter().map(|x| (*x.0, *x.1)).collect(),
-        RandomState::default(),
-    );
+    let map = FzStringMap::new(input.iter().map(|x| (*x.0, *x.1)).collect());
     for key in probe {
         _ = black_box(call_facade_string_map(&map, key));
     }
@@ -40,7 +36,7 @@ fn main() {
 }
 
 #[inline(never)]
-fn call_hashbrown_map(map: &HashbrownMap<&str, i32, RandomState>, key: &str) -> bool {
+fn call_hashbrown_map(map: &HashbrownMap<&str, i32>, key: &str) -> bool {
     map.contains_key(key)
 }
 

@@ -6,7 +6,7 @@ use crate::sets::decl_macros::{
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Hasher, Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
-use ahash::RandomState;
+use crate::DefaultHashBuilder;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::BuildHasher;
@@ -14,7 +14,7 @@ use core::hash::Hash;
 use core::iter::FromIterator;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
-
+use foldhash::fast::RandomState;
 #[cfg(feature = "serde")]
 use {
     crate::sets::decl_macros::serialize_fn,
@@ -35,8 +35,16 @@ use {
 /// If your values are known at compile time, consider using the various `fz_*_set` macros instead of
 /// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzStringSet<T, BH = RandomState> {
+pub struct FzStringSet<T, BH = DefaultHashBuilder> {
     map: FzStringMap<T, (), BH>,
+}
+
+impl<'a> FzStringSet<&'a str, DefaultHashBuilder> {
+    /// Creates a new frozen set.
+    #[must_use]
+    pub fn new(entries: Vec<&'a str>) -> Self {
+        Self::with_hasher(entries, RandomState::default())
+    }
 }
 
 impl<'a, BH> FzStringSet<&'a str, BH>
@@ -45,9 +53,9 @@ where
 {
     /// Creates a new frozen set which uses the given hash builder to hash values.
     #[must_use]
-    pub fn new(entries: Vec<&'a str>, bh: BH) -> Self {
+    pub fn with_hasher(entries: Vec<&'a str>, bh: BH) -> Self {
         Self {
-            map: FzStringMap::new(entries.into_iter().map(|x| (x, ())).collect(), bh),
+            map: FzStringMap::with_hasher(entries.into_iter().map(|x| (x, ())).collect(), bh),
         }
     }
 }
@@ -217,7 +225,7 @@ impl<'de, BH> Deserialize<'de> for FzStringSet<&'de str, BH>
 where
     BH: BuildHasher + Default,
 {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -252,6 +260,9 @@ where
             v.push((x, ()));
         }
 
-        Ok(FzStringSet::from(FzStringMap::new(v, BH::default())))
+        Ok(FzStringSet::from(FzStringMap::with_hasher(
+            v,
+            BH::default(),
+        )))
     }
 }

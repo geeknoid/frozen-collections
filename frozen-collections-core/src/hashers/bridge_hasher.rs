@@ -1,12 +1,12 @@
 use crate::traits::Hasher;
-use ahash::RandomState;
+use crate::DefaultHashBuilder;
 use core::hash::{BuildHasher, Hash};
 
 /// Wraps a normal [`BuildHasher`].
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone)]
-pub struct BridgeHasher<BH = RandomState> {
+pub struct BridgeHasher<BH = DefaultHashBuilder> {
     bh: BH,
 }
 
