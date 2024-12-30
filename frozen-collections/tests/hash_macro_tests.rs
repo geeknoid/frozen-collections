@@ -1,8 +1,8 @@
 use frozen_collections::*;
 use frozen_collections_core::macros::{fz_hash_map_macro, fz_hash_set_macro};
+use hashbrown::HashMap as HashbrownMap;
+use hashbrown::HashSet as HashbrownSet;
 use quote::quote;
-use std::collections::HashMap as StdHashMap;
-use std::collections::HashSet as StdHashSet;
 
 #[derive(Hash, Clone, Copy, Debug, PartialEq, Eq, Ord, PartialOrd)]
 struct Person {
@@ -31,7 +31,7 @@ macro_rules! test_hash {
                 )*
             ];
 
-            let mut s2 = StdHashSet::new();
+            let mut s2 = HashbrownSet::new();
             for x in v.into_iter() {
                 s2.insert(x);
             }
@@ -84,7 +84,7 @@ macro_rules! test_hash {
                 )*
             ];
 
-            let mut m2 = StdHashMap::new();
+            let mut m2 = HashbrownMap::new();
             for x in v.into_iter() {
                 m2.insert(x.0, x.1);
             }

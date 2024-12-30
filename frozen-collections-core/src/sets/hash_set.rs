@@ -103,7 +103,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitor_fn!(H);
+    bitor_fn!();
 }
 
 impl<T, ST, CM, H> BitAnd<&ST> for &HashSet<T, CM, H>
@@ -113,7 +113,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitand_fn!(H);
+    bitand_fn!();
 }
 
 impl<T, ST, CM, H> BitXor<&ST> for &HashSet<T, CM, H>
@@ -123,7 +123,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitxor_fn!(H);
+    bitxor_fn!();
 }
 
 impl<T, ST, CM, H> Sub<&ST> for &HashSet<T, CM, H>
@@ -133,7 +133,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    sub_fn!(H);
+    sub_fn!();
 }
 
 impl<T, CM, H> IntoIterator for HashSet<T, CM, H> {

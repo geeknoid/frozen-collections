@@ -1,7 +1,6 @@
 mod common;
 
 use common::*;
-use foldhash::fast::RandomState;
 use frozen_collections::*;
 use frozen_collections_core::hashers::BridgeHasher;
 use frozen_collections_core::inline_maps::{InlineBinarySearchMap, InlineEytzingerSearchMap};
@@ -9,9 +8,9 @@ use frozen_collections_core::inline_sets::{InlineBinarySearchSet, InlineEytzinge
 use frozen_collections_core::macros::fz_scalar_map_macro;
 use frozen_collections_core::maps::*;
 use frozen_collections_core::sets::*;
+use hashbrown::HashMap as HashbrownMap;
 use hashbrown::HashSet as HashbrownSet;
 use quote::quote;
-use std::collections::HashMap as StdHashMap;
 
 macro_rules! test_str {
     ( $( $input:expr ),* ; $( $other:literal ),*) => {
@@ -20,8 +19,8 @@ macro_rules! test_str {
         let set_reference = HashbrownSet::<&str>::from_iter(vec![ $( $input, )* ].into_iter());
         let set_other = HashbrownSet::<&str>::from_iter(vec![ $( $other, )* ].into_iter());
 
-        let map_reference = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( ($input, ()), )* ].into_iter());
-        let map_other = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( ($other, ()), )* ].into_iter());
+        let map_reference = HashbrownMap::<_, _>::from_iter(vec![ $( ($input, ()), )* ].into_iter());
+        let map_other = HashbrownMap::<_, _>::from_iter(vec![ $( ($other, ()), )* ].into_iter());
 
         let mut m = fz_string_map!({ $( $input: (),)* });
         test_map(&m, &map_reference, &map_other);
@@ -42,8 +41,8 @@ macro_rules! test_all {
         let set_other = HashbrownSet::from_iter(vec![ $( $other, )* ].into_iter());
         let set_input = vec![ $($input,)* ];
 
-        let map_reference = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( ($input, ()), )* ].into_iter());
-        let map_other = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( ($other, ()), )* ].into_iter());
+        let map_reference = HashbrownMap::<_, _>::from_iter(vec![ $( ($input, ()), )* ].into_iter());
+        let map_other = HashbrownMap::<_, _>::from_iter(vec![ $( ($other, ()), )* ].into_iter());
         let map_input = vec![ $( ($input, ()), )* ];
 
         let mut m = fz_scalar_map!({ $( $input: (), )* });
@@ -312,10 +311,10 @@ macro_rules! test_all {
         test_set_iter(&s, &set_reference);
         test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
-        let m = std::collections::HashMap::<_, _, foldhash::fast::RandomState>::from_iter(map_input.clone().into_iter());
+        let m = std::collections::HashMap::<_, _>::from_iter(map_input.clone().into_iter());
         test_map(&m, &map_reference, &map_other);
 
-        let s = std::collections::HashSet::<_, foldhash::fast::RandomState>::from_iter(set_input.clone().into_iter());
+        let s = std::collections::HashSet::<_>::from_iter(set_input.clone().into_iter());
         test_set(&s, &set_reference, &set_other);
 
         let m = std::collections::BTreeMap::from_iter(map_input.clone().into_iter());
@@ -336,8 +335,8 @@ macro_rules! test_all {
         let set_other = HashbrownSet::<&str>::from_iter(vec![ $( stringify!($other), )* ].into_iter());
         let set_input = vec![ $( stringify!($input), )* ];
 
-        let map_reference = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( (stringify!($input), ()), )* ].into_iter());
-        let map_other = StdHashMap::<_, _, foldhash::fast::RandomState>::from_iter(vec![ $( (stringify!($other), ()), )* ].into_iter());
+        let map_reference = HashbrownMap::<_, _>::from_iter(vec![ $( (stringify!($input), ()), )* ].into_iter());
+        let map_other = HashbrownMap::<_, _>::from_iter(vec![ $( (stringify!($other), ()), )* ].into_iter());
         let map_input = vec![ $( (stringify!($input), ()), )* ];
 
         let mut m = FzStringMap::new(map_input.clone());
@@ -559,7 +558,7 @@ fn test_map_empties() {
     test_map_empty(&FzScalarMap::<i32, i32>::default());
     test_map_empty(&FzScalarMap::<i32, i32>::new(vec![]));
 
-    test_map_empty(&FzStringMap::<&str, i32, foldhash::fast::RandomState>::default());
+    test_map_empty(&FzStringMap::<&str, i32>::default());
     test_map_empty(&FzStringMap::<&str, i32>::new(vec![]));
 
     fz_hash_map!(let m: MyHashMap<i32, i32>, {});
@@ -596,8 +595,8 @@ fn edge_cases() {
     test_set_ops(&s, &set_reference, &set_other);
     test_set_iter(&s, &set_reference);
 
-    let map_reference = StdHashMap::from_iter(vec![(a, 1), (b, 2), (32, 3), (42, 4), (55, 5)]);
-    let map_other = StdHashMap::from_iter(vec![(a, 2), (b, 3)]);
+    let map_reference = HashbrownMap::from_iter(vec![(a, 1), (b, 2), (32, 3), (42, 4), (55, 5)]);
+    let map_other = HashbrownMap::from_iter(vec![(a, 2), (b, 3)]);
 
     _ = fz_scalar_map_macro(quote!({ a:1, b:2, 32: 3, 42: 4, 55: 5}));
     let m = fz_scalar_map!({ a:1, b:2, 32: 3, 42: 4, 55: 5});
@@ -639,8 +638,8 @@ fn binary_search() {
         (9, ()),
         (10, ()),
     ]);
-    let map_reference = StdHashMap::<i32, (), RandomState>::from_iter(m.clone().into_iter());
-    let map_other = StdHashMap::<i32, (), RandomState>::from_iter(m.clone().into_iter());
+    let map_reference = HashbrownMap::<i32, ()>::from_iter(m.clone().into_iter());
+    let map_other = HashbrownMap::<i32, ()>::from_iter(m.clone().into_iter());
 
     test_map(&m, &map_reference, &map_other);
     test_map_ops(&m, &map_reference);
@@ -649,8 +648,8 @@ fn binary_search() {
     test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
     let s = InlineBinarySearchSet::<i32, 10>::new(m);
-    let set_reference = HashbrownSet::<i32, RandomState>::from_iter(s.clone().into_iter());
-    let set_other = HashbrownSet::<i32, RandomState>::from_iter(s.clone().into_iter());
+    let set_reference = HashbrownSet::<i32>::from_iter(s.clone().into_iter());
+    let set_other = HashbrownSet::<i32>::from_iter(s.clone().into_iter());
 
     test_set(&s, &set_reference, &set_other);
     test_set_iter(&s, &set_reference);
@@ -672,8 +671,8 @@ fn eytzinger_search() {
         (3, ()),
         (5, ()),
     ]);
-    let map_reference = StdHashMap::<i32, (), RandomState>::from_iter(m.clone().into_iter());
-    let map_other = StdHashMap::<i32, (), RandomState>::from_iter(m.clone().into_iter());
+    let map_reference = HashbrownMap::<i32, ()>::from_iter(m.clone().into_iter());
+    let map_other = HashbrownMap::<i32, ()>::from_iter(m.clone().into_iter());
 
     test_map(&m, &map_reference, &map_other);
     test_map_ops(&m, &map_reference);
@@ -682,8 +681,8 @@ fn eytzinger_search() {
     test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
     let s = InlineEytzingerSearchSet::<i32, 10>::new(m);
-    let set_reference = HashbrownSet::<i32, RandomState>::from_iter(s.clone().into_iter());
-    let set_other = HashbrownSet::<i32, RandomState>::from_iter(s.clone().into_iter());
+    let set_reference = HashbrownSet::<i32>::from_iter(s.clone().into_iter());
+    let set_other = HashbrownSet::<i32>::from_iter(s.clone().into_iter());
 
     test_set(&s, &set_reference, &set_other);
     test_set_iter(&s, &set_reference);

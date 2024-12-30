@@ -82,7 +82,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitor_fn!(RandomState);
+    bitor_fn!();
 }
 
 impl<T, ST> BitAnd<&ST> for &SparseScalarLookupSet<T>
@@ -90,7 +90,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitand_fn!(RandomState);
+    bitand_fn!();
 }
 
 impl<T, ST> BitXor<&ST> for &SparseScalarLookupSet<T>
@@ -98,7 +98,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitxor_fn!(RandomState);
+    bitxor_fn!();
 }
 
 impl<T, ST> Sub<&ST> for &SparseScalarLookupSet<T>
@@ -106,7 +106,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    sub_fn!(RandomState);
+    sub_fn!();
 }
 
 impl<T> IntoIterator for SparseScalarLookupSet<T> {

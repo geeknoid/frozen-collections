@@ -119,7 +119,7 @@ where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
 {
-    bitor_fn!(RandomState);
+    bitor_fn!();
 }
 
 impl<T, ST> BitAnd<&ST> for &FzOrderedSet<T>
@@ -127,7 +127,7 @@ where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
 {
-    bitand_fn!(RandomState);
+    bitand_fn!();
 }
 
 impl<T, ST> BitXor<&ST> for &FzOrderedSet<T>
@@ -135,7 +135,7 @@ where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
 {
-    bitxor_fn!(RandomState);
+    bitxor_fn!();
 }
 
 impl<T, ST> Sub<&ST> for &FzOrderedSet<T>
@@ -143,7 +143,7 @@ where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
 {
-    sub_fn!(RandomState);
+    sub_fn!();
 }
 
 impl<T> IntoIterator for FzOrderedSet<T> {

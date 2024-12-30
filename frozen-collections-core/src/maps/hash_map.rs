@@ -15,7 +15,8 @@ use core::fmt::{Debug, Formatter, Result};
 use core::hash::Hash;
 use core::ops::Index;
 use equivalent::Equivalent;
-use foldhash::fast::RandomState;
+
+use crate::DefaultHashBuilder;
 #[cfg(feature = "serde")]
 use {
     crate::maps::decl_macros::serialize_fn,
@@ -35,7 +36,7 @@ pub struct HashMap<K, V, CM = SmallCollection, H = BridgeHasher> {
     hasher: H,
 }
 
-impl<K, V, CM> HashMap<K, V, CM, BridgeHasher<RandomState>>
+impl<K, V, CM> HashMap<K, V, CM, BridgeHasher<DefaultHashBuilder>>
 where
     K: Hash + Eq,
     CM: CollectionMagnitude,

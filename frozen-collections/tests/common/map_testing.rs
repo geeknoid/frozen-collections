@@ -1,18 +1,14 @@
 use core::fmt::Debug;
-use foldhash::fast::RandomState;
 use frozen_collections_core::traits::Map;
+use hashbrown::HashMap as HashbrownMap;
+use hashbrown::HashSet as HashbrownSet;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::collections::HashMap as StdHashMap;
-use std::collections::HashSet as StdHashSet;
 use std::hash::Hash;
 use std::ops::Index;
 
-pub fn test_map<MT, K, V>(
-    map: &MT,
-    reference: &StdHashMap<K, V, RandomState>,
-    other: &StdHashMap<K, V, RandomState>,
-) where
+pub fn test_map<MT, K, V>(map: &MT, reference: &HashbrownMap<K, V>, other: &HashbrownMap<K, V>)
+where
     K: Hash + Eq + Clone + Debug + Default,
     V: Hash + Eq + Clone + Debug + Default,
     MT: Map<K, V> + Debug + Clone + Eq + Serialize,
@@ -29,47 +25,47 @@ pub fn test_map<MT, K, V>(
     let r2 = reference.clone();
     assert_eq_map(&m2, &r2);
 
-    let v1: StdHashMap<K, V> = map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-    let v2: StdHashMap<K, V> = reference
+    let v1: HashbrownMap<K, V> = map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+    let v2: HashbrownMap<K, V> = reference
         .iter()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
     assert_eq!(v1, v2);
 
-    let v1: StdHashMap<K, V> = map
+    let v1: HashbrownMap<K, V> = map
         .clone()
         .iter_mut()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
-    let v2: StdHashMap<K, V> = reference
+    let v2: HashbrownMap<K, V> = reference
         .clone()
         .iter_mut()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
     assert_eq!(v1, v2);
 
-    let v1: StdHashMap<K, V> = map.clone().into_iter().collect();
-    let v2: StdHashMap<K, V> = reference.clone().into_iter().collect();
+    let v1: HashbrownMap<K, V> = map.clone().into_iter().collect();
+    let v2: HashbrownMap<K, V> = reference.clone().into_iter().collect();
     assert_eq!(v1, v2);
 
-    let v1: StdHashSet<&K> = map.keys().collect();
-    let v2: StdHashSet<&K> = reference.keys().collect();
+    let v1: HashbrownSet<&K> = map.keys().collect();
+    let v2: HashbrownSet<&K> = reference.keys().collect();
     assert_eq!(v1, v2);
 
-    let v1: StdHashSet<K> = map.clone().into_keys().collect();
-    let v2: StdHashSet<K> = reference.clone().into_keys().collect();
+    let v1: HashbrownSet<K> = map.clone().into_keys().collect();
+    let v2: HashbrownSet<K> = reference.clone().into_keys().collect();
     assert_eq!(v1, v2);
 
-    let v1: StdHashSet<&V> = map.values().collect();
-    let v2: StdHashSet<&V> = reference.values().collect();
+    let v1: HashbrownSet<&V> = map.values().collect();
+    let v2: HashbrownSet<&V> = reference.values().collect();
     assert_eq!(v1, v2);
 
-    let v1: StdHashSet<V> = map.clone().values_mut().map(|v| v.clone()).collect();
-    let v2: StdHashSet<V> = reference.clone().values_mut().map(|v| v.clone()).collect();
+    let v1: HashbrownSet<V> = map.clone().values_mut().map(|v| v.clone()).collect();
+    let v2: HashbrownSet<V> = reference.clone().values_mut().map(|v| v.clone()).collect();
     assert_eq!(v1, v2);
 
-    let v1: StdHashSet<V> = map.clone().into_values().collect();
-    let v2: StdHashSet<V> = reference.clone().into_values().collect();
+    let v1: HashbrownSet<V> = map.clone().into_values().collect();
+    let v2: HashbrownSet<V> = reference.clone().into_values().collect();
     assert_eq!(v1, v2);
 
     for pair in other {
@@ -102,28 +98,23 @@ where
     MT: Map<K, i32> + Debug + Clone + Default + Eq,
 {
     let m = MT::default();
-    let r = StdHashMap::<_, _, RandomState>::default();
+    let r = HashbrownMap::<_, _>::default();
     assert_eq_map(&m, &r);
     assert!(!m.contains_key(&K::default()));
     assert_eq!(0, m.len());
     assert!(m.is_empty());
 }
 
-pub fn test_map_ops<'a, MT, K, V>(map: &'a MT, reference: &'a StdHashMap<K, V, RandomState>)
+pub fn test_map_ops<'a, MT, K, V>(map: &'a MT, reference: &'a HashbrownMap<K, V>)
 where
     K: 'a + Hash + Eq,
     V: 'a + Hash + Eq + Debug,
-    MT: 'a
-        + Map<K, V>
-        + Debug
-        + Clone
-        + PartialEq<StdHashMap<K, V, RandomState>>
-        + Index<&'a K, Output = V>,
+    MT: 'a + Map<K, V> + Debug + Clone + PartialEq<HashbrownMap<K, V>> + Index<&'a K, Output = V>,
 {
     assert!(map.eq(reference));
 
     if !map.is_empty() {
-        assert!(!map.eq(&StdHashMap::default()));
+        assert!(!map.eq(&HashbrownMap::default()));
 
         for pair in reference {
             assert_eq!(&map[pair.0], pair.1);
@@ -131,7 +122,7 @@ where
     }
 }
 
-pub fn test_map_iter<'a, MT, K, V>(map: &'a MT, reference: &'a StdHashMap<K, V, RandomState>)
+pub fn test_map_iter<'a, MT, K, V>(map: &'a MT, reference: &'a HashbrownMap<K, V>)
 where
     K: 'a + Hash + Eq + Clone + Debug,
     V: Eq,
@@ -157,10 +148,8 @@ where
     }
 }
 
-pub fn test_map_iter_mut<'a, MT, K, V>(
-    map: &'a mut MT,
-    reference: &'a StdHashMap<K, V, RandomState>,
-) where
+pub fn test_map_iter_mut<'a, MT, K, V>(map: &'a mut MT, reference: &'a HashbrownMap<K, V>)
+where
     K: 'a + Hash + Eq + Clone + Debug,
     V: Eq,
     MT: 'a + Map<K, V> + Debug + Clone,

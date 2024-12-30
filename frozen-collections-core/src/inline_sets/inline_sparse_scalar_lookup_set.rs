@@ -88,7 +88,7 @@ where
     ST: Set<T>,
     CM: CollectionMagnitude,
 {
-    bitor_fn!(RandomState);
+    bitor_fn!();
 }
 
 impl<T, ST, const SZ: usize, const LTSZ: usize, CM> BitAnd<&ST>
@@ -98,7 +98,7 @@ where
     ST: Set<T>,
     CM: CollectionMagnitude,
 {
-    bitand_fn!(RandomState);
+    bitand_fn!();
 }
 
 impl<T, ST, const SZ: usize, const LTSZ: usize, CM> BitXor<&ST>
@@ -108,7 +108,7 @@ where
     ST: Set<T>,
     CM: CollectionMagnitude,
 {
-    bitxor_fn!(RandomState);
+    bitxor_fn!();
 }
 
 impl<T, ST, const SZ: usize, const LTSZ: usize, CM> Sub<&ST>
@@ -118,7 +118,7 @@ where
     ST: Set<T>,
     CM: CollectionMagnitude,
 {
-    sub_fn!(RandomState);
+    sub_fn!();
 }
 
 impl<T, const SZ: usize, const LTSZ: usize, CM> IntoIterator

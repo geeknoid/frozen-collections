@@ -105,7 +105,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitor_fn!(H);
+    bitor_fn!();
 }
 
 impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitAnd<&ST>
@@ -116,7 +116,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitand_fn!(H);
+    bitand_fn!();
 }
 
 impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitXor<&ST>
@@ -127,7 +127,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitxor_fn!(H);
+    bitxor_fn!();
 }
 
 impl<T, ST, const SZ: usize, const NHS: usize, CM, H> Sub<&ST> for &InlineHashSet<T, SZ, NHS, CM, H>
@@ -137,7 +137,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    sub_fn!(H);
+    sub_fn!();
 }
 
 impl<T, const SZ: usize, const NHS: usize, CM, H> IntoIterator
