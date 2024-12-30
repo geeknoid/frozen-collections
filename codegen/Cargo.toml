@@ -7,7 +7,6 @@ rust-version.workspace = true
 
 [dev-dependencies]
 frozen-collections = { path = "../frozen-collections", features = ["macros"], default-features = false }
-foldhash = "0.1.4"
 hashbrown = "0.15.2"
 
 [lints]

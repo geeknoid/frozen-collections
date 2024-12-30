@@ -350,8 +350,7 @@ impl CollectionEmitter {
         } else {
             let iter = entries.iter().map(|x| x.key.as_bytes());
 
-            let bh =
-                ahash::RandomState::with_seeds(gen.seeds.0, gen.seeds.1, gen.seeds.2, gen.seeds.3);
+            let bh = foldhash::fast::FixedState::with_seed(gen.seed);
             let analysis = analyze_slice_keys(iter, &bh);
 
             match analysis {
