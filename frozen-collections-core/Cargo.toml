@@ -13,7 +13,6 @@ rust-version.workspace = true
 resolver = "2"
 
 [dependencies]
-ahash = { version = "0.8.11", default-features = false, features = ["default"] }
 const-random = "0.1.18"
 equivalent = "1.0.1"
 foldhash = { version = "0.1.4", default-features = false }
@@ -32,7 +31,7 @@ default = ["std", "macros", "serde", "emit"]
 macros = ["dep:syn", "dep:quote", "dep:proc-macro2"]
 emit = ["dep:syn", "dep:quote", "dep:proc-macro2"]
 serde = ["dep:serde"]
-std = ["serde/std", "foldhash/std"]
+std = []
 
 [lints]
 workspace = true

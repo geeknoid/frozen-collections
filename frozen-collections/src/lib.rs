@@ -1154,8 +1154,8 @@ pub mod hash_tables {
 }
 
 #[doc(hidden)]
-pub mod ahash {
-    pub use ahash::RandomState;
+pub mod foldhash {
+    pub use foldhash::fast::FixedState;
 }
 
 pub use frozen_collections_core::DefaultHashBuilder;

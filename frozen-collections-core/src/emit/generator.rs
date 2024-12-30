@@ -7,11 +7,12 @@ use crate::hashers::BridgeHasher;
 use crate::traits::{
     CollectionMagnitude, Hasher, LargeCollection, MediumCollection, Scalar, SmallCollection,
 };
-use crate::utils::pick_compile_time_random_seeds;
 use alloc::vec;
 use alloc::vec::Vec;
+use const_random::const_random;
 use core::hash::Hash;
 use core::ops::Range;
+use foldhash::fast::FixedState;
 use proc_macro2::{Literal, TokenStream};
 use quote::quote;
 use syn::{parse_quote, Type};
@@ -20,7 +21,7 @@ use syn::{parse_quote, Type};
 pub(crate) struct Generator {
     key_type: Type,
     value_type: Type,
-    pub seeds: (u64, u64, u64, u64),
+    pub seed: u64,
     len: Literal,
     gen_set: bool,
 }
@@ -40,7 +41,7 @@ impl Generator {
             } else {
                 parse_quote!(())
             },
-            seeds: pick_compile_time_random_seeds(),
+            seed: const_random!(u64),
             len: Literal::usize_unsuffixed(len),
             gen_set: value_type.is_none(),
         }
@@ -228,23 +229,18 @@ impl Generator {
         let len = &self.len;
         let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(
             entries,
-            &BridgeHasher::new(ahash::RandomState::with_seeds(
-                self.seeds.0,
-                self.seeds.1,
-                self.seeds.2,
-                self.seeds.3,
-            )),
+            &BridgeHasher::new(FixedState::with_seed(self.seed)),
         );
-        let (s0, s1, s2, s3) = (self.seeds.0, self.seeds.1, self.seeds.2, self.seeds.3);
+        let seed = self.seed;
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
-        let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::BridgeHasher<::frozen_collections::ahash::RandomState>>);
+        let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::BridgeHasher<::frozen_collections::foldhash::FixedState>>);
         let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::BridgeHasher::new(::frozen_collections::ahash::RandomState::with_seeds(#s0, #s1, #s2, #s3))));
+        let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::BridgeHasher::new(::frozen_collections::foldhash::FixedState::with_seed(#seed))));
 
         if self.gen_set {
             ty = quote!(::frozen_collections::inline_sets::InlineHashSet);
-            generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::BridgeHasher<::frozen_collections::ahash::RandomState>>);
+            generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::BridgeHasher<::frozen_collections::foldhash::FixedState>>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::new(#ctor));
         }
@@ -294,18 +290,18 @@ impl Generator {
         let value_type = &self.value_type;
         let len = &self.len;
         let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(entries, hasher);
-        let (s0, s1, s2, s3) = self.seeds;
+        let seed = self.seed;
         let range_start = Literal::usize_unsuffixed(hash_range.start);
         let range_end = Literal::usize_unsuffixed(hash_range.end);
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
-        let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::#hasher_type<#range_start, #range_end, ::frozen_collections::ahash::RandomState>>);
+        let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::#hasher_type<#range_start, #range_end, ::frozen_collections::foldhash::FixedState>>);
         let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::#hasher_type::new(::frozen_collections::ahash::RandomState::with_seeds(#s0, #s1, #s2, #s3))));
+        let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::#hasher_type::new(::frozen_collections::foldhash::FixedState::with_seed(#seed))));
 
         if self.gen_set {
             ty = quote!(::frozen_collections::inline_sets::InlineHashSet);
-            generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::#hasher_type<#range_start, #range_end, ::frozen_collections::ahash::RandomState>>);
+            generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::#hasher_type<#range_start, #range_end, ::frozen_collections::foldhash::FixedState>>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::new(#ctor));
         }
