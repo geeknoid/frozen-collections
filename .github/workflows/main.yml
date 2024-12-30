@@ -24,8 +24,16 @@ jobs:
       - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       - run: rustup component add clippy
       - run: rustup component add rustfmt
-      - name: Build
-        run: cargo build --verbose --all-targets
+      - name: Build - no features
+        run: cargo build --verbose --all-targets --no-default-features
+      - name: Build - std
+        run: cargo build --verbose --all-targets --no-default-features --features std
+      - name: Build - serde
+        run: cargo build --verbose --all-targets --no-default-features --features serde
+      - name: Build - macros
+        run: cargo build --verbose --all-targets --no-default-features --features macros
+      - name: Build - emit
+        run: cargo build --verbose --all-targets --no-default-features --features emit
       - name: Check
         run: cargo check --verbose --all-targets
       - name: Clippy

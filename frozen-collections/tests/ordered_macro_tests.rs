@@ -31,16 +31,6 @@ macro_rules! test_ordered {
                 )*
             ];
 
-            _ = fz_ordered_set_macro(quote!(v)).unwrap();
-
-            let s1 = fz_ordered_set!(v);
-
-            let v = vec![
-                $(
-                    $arg,
-                )*
-            ];
-
             let mut s2 = StdBTreeSet::new();
             for x in v.into_iter() {
                 s2.insert(x);
@@ -70,7 +60,6 @@ macro_rules! test_ordered {
                 )*
             });
 
-            assert_eq!(s0, s1);
             assert_eq!(s0, s2);
             // assert_eq!(s0, S3);
             assert_eq!(s0, s4);
@@ -88,16 +77,6 @@ macro_rules! test_ordered {
                     $arg: 42,
                 )*
             });
-
-            let v = vec![
-                $(
-                    ($arg, 42),
-                )*
-            ];
-
-            _ = fz_ordered_map_macro(quote!(v)).unwrap();
-
-            let m1 = fz_ordered_map!(v);
 
             let v = vec![
                 $(
@@ -134,7 +113,6 @@ macro_rules! test_ordered {
                 )*
             });
 
-            assert_eq!(m0, m1);
             assert_eq!(m0, m2);
             // assert_eq!(m0, M3);
             assert_eq!(m0, m4);
@@ -416,6 +394,17 @@ fn ordered_i8() {
     test_ordered!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
     test_ordered!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 
+    test_ordered!(
+        i8, 0i8, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+        23, 24, 25, 26, 27, 28, 29,
+    );
+
+    test_ordered!(
+        i8, 0i8, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+        23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+        46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+    );
+
     // test duplicate logic
     test_ordered!(i8, 0i8, 1, 2, 1, 1);
 }
@@ -548,18 +537,88 @@ fn ordered_u64() {
 
 #[test]
 fn ordered_string() {
-    test_ordered!(&str, "0");
-    test_ordered!(&str, "0", "1");
-    test_ordered!(&str, "0", "1", "2");
-    test_ordered!(&str, "0", "1", "2", "3");
-    test_ordered!(&str, "0", "1", "2", "3", "4");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5", "6");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5", "6", "7");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
-    test_ordered!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13");
+    test_ordered!(&'static str, "0");
+    test_ordered!(&'static str, "0", "1");
+    test_ordered!(&'static str, "0", "1", "2");
+    test_ordered!(&'static str, "0", "1", "2", "3");
+    test_ordered!(&'static str, "0", "1", "2", "3", "4");
+    test_ordered!(&'static str, "0", "1", "2", "3", "4", "5");
+    test_ordered!(&'static str, "0", "1", "2", "3", "4", "5", "6");
+    test_ordered!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7");
+    test_ordered!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
+    test_ordered!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+    );
+    test_ordered!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+    );
+    test_ordered!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+    );
+    test_ordered!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+    );
+    test_ordered!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13"
+    );
 }

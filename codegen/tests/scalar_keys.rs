@@ -8,19 +8,19 @@ use frozen_collections::maps::{
     BinarySearchMap, DenseScalarLookupMap, EytzingerSearchMap, HashMap, OrderedScanMap, ScanMap,
     SparseScalarLookupMap,
 };
-use frozen_collections::*;
+use frozen_collections::{FzScalarMap, MapQuery, SmallCollection};
 use hashbrown::HashMap as HashbrownMap;
 
 fn main() {
     let input = vec![(0, 0), (1, 0), (2, 0), (3, 0)];
     let probe = vec![0, 1, 2];
 
-    let map: HashbrownMap<_, _, ahash::RandomState> = input.clone().into_iter().collect();
+    let map: HashbrownMap<_, _> = input.clone().into_iter().collect();
     for key in probe.clone() {
         _ = black_box(call_hashbrown_map(&map, key));
     }
 
-    let map = HashMap::new(input.clone(), PassthroughHasher::default()).unwrap();
+    let map = HashMap::with_hasher(input.clone(), PassthroughHasher::default()).unwrap();
     for key in probe.clone() {
         _ = black_box(call_hash_map_with_passthrough_hasher(&map, key));
     }
@@ -62,7 +62,7 @@ fn main() {
 }
 
 #[inline(never)]
-fn call_hashbrown_map(map: &HashbrownMap<i32, i32, ahash::RandomState>, key: i32) -> bool {
+fn call_hashbrown_map(map: &HashbrownMap<i32, i32>, key: i32) -> bool {
     map.contains_key(&key)
 }
 

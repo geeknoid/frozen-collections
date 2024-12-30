@@ -1,6 +1,6 @@
 use core::hint::black_box;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use frozen_collections::{fz_ordered_set, SetQuery};
+use frozen_collections::{fz_ordered_set, FzOrderedSet, SetQuery};
 
 include!(concat!(env!("OUT_DIR"), "/ordered.rs"));
 

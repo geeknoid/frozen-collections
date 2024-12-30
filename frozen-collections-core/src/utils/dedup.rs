@@ -4,6 +4,7 @@ use crate::traits::Hasher;
 use alloc::vec::Vec;
 use core::hash::Hash;
 use hashbrown::HashSet as HashbrownSet;
+use hashbrown::HashTable as HashbrownTable;
 
 /// Remove duplicates from a vector, keeping the last occurrence of each duplicate.
 ///
@@ -73,59 +74,30 @@ where
     });
 }
 
-struct Entry<'a, K> {
-    pub hash: u64,
-    pub index: usize,
-    pub key: &'a K,
-}
-
-impl<K> Hash for Entry<'_, K>
-where
-    K: Eq,
-{
-    #[mutants::skip]
-    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        state.write_u64(self.hash);
-    }
-}
-
-impl<K: Eq> PartialEq<Self> for Entry<'_, K> {
-    fn eq(&self, other: &Self) -> bool {
-        self.key.eq(other.key)
-    }
-}
-
-impl<K: Eq> Eq for Entry<'_, K> {}
-
 /// Remove duplicates from a vector, keeping the last occurrence of each duplicate.
 #[allow(clippy::module_name_repetitions)]
 #[mutants::skip]
-pub fn dedup_by_hash_keep_last<K, V, H>(unsorted_entries: &mut Vec<(K, V)>, hasher: &H)
+pub fn dedup_by_hash_keep_last<T, F, G>(unsorted_entries: &mut Vec<T>, hasher: F, mut eq: G)
 where
-    K: Eq,
-    H: Hasher<K>,
+    F: Fn(&T) -> u64,
+    G: FnMut(&T, &T) -> bool,
 {
     if unsorted_entries.len() < 2 {
         return;
     }
 
     let mut dupes = Vec::new();
-    {
-        let mut keep = HashbrownSet::with_capacity(unsorted_entries.len());
-        for (i, pair) in unsorted_entries.iter().enumerate() {
-            let hash = hasher.hash(&pair.0);
+    let mut keep = HashbrownTable::with_capacity(unsorted_entries.len());
+    for (index, value) in unsorted_entries.iter().enumerate() {
+        let hash = hasher(value);
 
-            let entry = Entry {
-                hash,
-                index: i,
-                key: &pair.0,
-            };
-
-            let old = keep.replace(entry);
-            if let Some(old) = old {
-                dupes.push(old.index);
-            }
+        let r = keep.find_entry(hash, |other| eq(value, &unsorted_entries[*other]));
+        if let Ok(entry) = r {
+            dupes.push(*entry.get());
+            entry.remove();
         }
+
+        _ = keep.insert_unique(hash, index, |x| hasher(&unsorted_entries[*x]));
     }
 
     if dupes.is_empty() {
@@ -134,6 +106,7 @@ where
     }
 
     // remove the duplicates from the input vector
+
     let mut index = 0;
     unsorted_entries.retain(|_| {
         let result = !dupes.contains(&index);

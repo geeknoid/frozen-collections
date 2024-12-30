@@ -25,16 +25,6 @@ macro_rules! test_string {
                 )*
             ];
 
-            _ = fz_string_set_macro(quote!(v)).unwrap();
-
-            let _s1 = fz_string_set!(v);
-
-            let v = vec![
-                $(
-                    $arg,
-                )*
-            ];
-
             let mut s2 = StdBTreeSet::new();
             for x in v.into_iter() {
                 s2.insert(x);
@@ -76,7 +66,6 @@ macro_rules! test_string {
                 )*
             });
 
-            // assert_eq!(s0, s1);
             assert_eq!(s0, s2);
             // assert_eq!(s0, S3);
             assert_eq!(s0, s4);
@@ -95,16 +84,6 @@ macro_rules! test_string {
                     $arg: 42,
                 )*
             });
-
-            let v = vec![
-                $(
-                    ($arg, 42),
-                )*
-            ];
-
-            _ = fz_string_map_macro(quote!(v)).unwrap();
-
-            let _m1 = fz_string_map!(v);
 
             let v = vec![
                 $(
@@ -153,7 +132,6 @@ macro_rules! test_string {
                 )*
             });
 
-            // assert_eq!(m0, m1);
             assert_eq!(m0, m2);
             // assert_eq!(m0, M3);
             assert_eq!(m0, m4);
@@ -164,26 +142,96 @@ macro_rules! test_string {
 
 #[test]
 fn string() {
-    test_string!(&str, "0");
-    test_string!(&str, "0", "1");
-    test_string!(&str, "0", "1", "2");
-    test_string!(&str, "0", "1", "2", "3");
-    test_string!(&str, "0", "1", "2", "3", "4");
-    test_string!(&str, "0", "1", "2", "3", "4", "5");
-    test_string!(&str, "0", "1", "2", "3", "4", "5", "6");
-    test_string!(&str, "0", "1", "2", "3", "4", "5", "6", "7");
-    test_string!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
-    test_string!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
-    test_string!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
-    test_string!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
-    test_string!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
-    test_string!(&str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13");
+    test_string!(&'static str, "0");
+    test_string!(&'static str, "0", "1");
+    test_string!(&'static str, "0", "1", "2");
+    test_string!(&'static str, "0", "1", "2", "3");
+    test_string!(&'static str, "0", "1", "2", "3", "4");
+    test_string!(&'static str, "0", "1", "2", "3", "4", "5");
+    test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6");
+    test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7");
+    test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
+    test_string!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+    );
+    test_string!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+    );
+    test_string!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+    );
+    test_string!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+    );
+    test_string!(
+        &'static str,
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13"
+    );
 
     // test duplicate logic
-    test_string!(&str, "0", "1", "0", "0");
+    test_string!(&'static str, "0", "1", "0", "0");
 
     test_string!(
-        &str,
+        &'static str,
         "ColorRed",
         "ColorGreen",
         "ColorBlue",
@@ -193,7 +241,7 @@ fn string() {
     );
 
     test_string!(
-        &str,
+        &'static str,
         "RedColor",
         "GreenColor",
         "BlueColor",
@@ -203,7 +251,7 @@ fn string() {
     );
 
     test_string!(
-        &str,
+        &'static str,
         "ColorRed1111",
         "ColorGreen22",
         "ColorBlue333",
@@ -212,5 +260,31 @@ fn string() {
         "ColorMagenta"
     );
 
-    test_string!(&str, "XXA", "XXB", "XXC", "XXD", "XXE", "XXF", "XXG", "XXH", "XXHI");
+    test_string!(
+        &'static str,
+        "XXA",
+        "XXB",
+        "XXC",
+        "XXD",
+        "XXE",
+        "XXF",
+        "XXG",
+        "XXH",
+        "XXHI"
+    );
+}
+
+#[test]
+fn non_literal_key_string_map() {
+    let s0 = "Zero";
+    let s1 = "One";
+    let s2 = "Two";
+    let s3 = "Three";
+    let m = fz_string_map!({s0: 2, s1: 3, s2: 4, s3: 3});
+    assert_eq!(4, m.len());
+    assert!(m.contains_key(s0));
+    assert!(m.contains_key(s1));
+    assert!(!m.contains_key("Foo"));
+
+    assert!(fz_string_map_macro(quote!({s0: 2, s1: 3, s2: 4, s3: 3})).is_ok());
 }

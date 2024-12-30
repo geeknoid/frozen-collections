@@ -62,7 +62,7 @@ where
                 }
                 ScalarKeyAnalysisResult::General => {
                     let h = PassthroughHasher::new();
-                    MapTypes::Hash(HashMap::new_half_baked(entries, h).unwrap())
+                    MapTypes::Hash(HashMap::with_hasher_half_baked(entries, h).unwrap())
                 }
             },
         }
@@ -339,7 +339,7 @@ where
     K: Deserialize<'de> + Scalar,
     V: Deserialize<'de>,
 {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {

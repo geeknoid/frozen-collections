@@ -5,7 +5,6 @@ use crate::maps::{
 };
 use crate::traits::{Hasher, LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_keep_last;
-use ahash::RandomState;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};
@@ -13,6 +12,7 @@ use core::iter::FromIterator;
 use core::ops::Index;
 use equivalent::Equivalent;
 
+use crate::DefaultHashBuilder;
 #[cfg(feature = "serde")]
 use {
     crate::maps::decl_macros::serialize_fn,
@@ -39,8 +39,16 @@ enum MapTypes<K, V, BH> {
 /// If your keys are known at compile time, consider using the various `fz_*_map` macros instead of
 /// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzStringMap<K, V, BH = RandomState> {
+pub struct FzStringMap<K, V, BH = DefaultHashBuilder> {
     map_impl: MapTypes<K, V, BH>,
+}
+
+impl<'a, V> FzStringMap<&'a str, V, DefaultHashBuilder> {
+    /// Creates a frozen map.
+    #[must_use]
+    pub fn new(entries: Vec<(&'a str, V)>) -> Self {
+        Self::with_hasher(entries, foldhash::fast::RandomState::default())
+    }
 }
 
 impl<'a, V, BH> FzStringMap<&'a str, V, BH>
@@ -50,7 +58,7 @@ where
     /// Creates a frozen map which uses the given hash builder to hash keys.
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
-    pub fn new(mut entries: Vec<(&'a str, V)>, bh: BH) -> Self {
+    pub fn with_hasher(mut entries: Vec<(&'a str, V)>, bh: BH) -> Self {
         entries.sort_by(|x, y| x.0.cmp(y.0));
         dedup_by_keep_last(&mut entries, |x, y| x.0.eq(y.0));
 
@@ -59,17 +67,17 @@ where
                 match analyze_slice_keys(entries.iter().map(|x| x.0.as_bytes()), &bh) {
                     SliceKeyAnalysisResult::General | SliceKeyAnalysisResult::Length => {
                         let h = BridgeHasher::new(bh);
-                        MapTypes::Hash(HashMap::new_half_baked(entries, h).unwrap())
+                        MapTypes::Hash(HashMap::with_hasher_half_baked(entries, h).unwrap())
                     }
 
                     SliceKeyAnalysisResult::LeftHandSubslice(range) => {
                         let h = LeftRangeHasher::new(bh, range);
-                        MapTypes::LeftRange(HashMap::new_half_baked(entries, h).unwrap())
+                        MapTypes::LeftRange(HashMap::with_hasher_half_baked(entries, h).unwrap())
                     }
 
                     SliceKeyAnalysisResult::RightHandSubslice(range) => {
                         let h = RightRangeHasher::new(bh, range);
-                        MapTypes::RightRange(HashMap::new_half_baked(entries, h).unwrap())
+                        MapTypes::RightRange(HashMap::with_hasher_half_baked(entries, h).unwrap())
                     }
                 }
             },
@@ -95,7 +103,7 @@ where
     BH: BuildHasher + Default,
 {
     fn from(entries: [(&'a str, V); N]) -> Self {
-        Self::new(Vec::from(entries), BH::default())
+        Self::with_hasher(Vec::from(entries), BH::default())
     }
 }
 
@@ -104,7 +112,7 @@ where
     BH: BuildHasher + Default,
 {
     fn from_iter<T: IntoIterator<Item = (&'a str, V)>>(iter: T) -> Self {
-        Self::new(iter.into_iter().collect(), BH::default())
+        Self::with_hasher(iter.into_iter().collect(), BH::default())
     }
 }
 
@@ -369,7 +377,7 @@ impl<'de, V> Deserialize<'de> for FzStringMap<&'de str, V>
 where
     V: Deserialize<'de>,
 {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -405,6 +413,6 @@ where
             v.push(x);
         }
 
-        Ok(FzStringMap::new(v, BH::default()))
+        Ok(FzStringMap::with_hasher(v, BH::default()))
     }
 }

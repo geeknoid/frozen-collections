@@ -23,7 +23,7 @@ use {
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
-#[doc = include_str!("../doc_snippets/order_warning.md")]
+#[doc = include_str!("../doc_snippets/ord_warning.md")]
 ///
 #[derive(Clone)]
 pub struct EytzingerSearchMap<K, V> {

@@ -1,5 +1,6 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use frozen_collections::{fz_hash_set, fz_string_set, SetQuery};
+use frozen_collections::SetQuery;
+use frozen_collections_core::fz_sets::{FzHashSet, FzStringSet};
 use rand::Rng;
 use std::collections::HashSet;
 
@@ -52,20 +53,20 @@ fn creation(c: &mut Criterion) {
                     });
                 });
         */
-        group.bench_with_input(BenchmarkId::new("fzhashset", size), &size, |b, _| {
+        group.bench_with_input(BenchmarkId::new("FzHashSet", size), &size, |b, _| {
             b.iter(|| {
-                _ = fz_hash_set!(strings.clone());
+                _ = FzHashSet::new(strings.clone());
             });
         });
 
-        group.bench_with_input(BenchmarkId::new("fzstringset", size), &size, |b, _| {
+        group.bench_with_input(BenchmarkId::new("FzStringSet", size), &size, |b, _| {
             let mut tmp = Vec::with_capacity(strings.len());
             for s in &strings {
                 tmp.push(s.as_str());
             }
 
             b.iter(|| {
-                _ = fz_string_set!(tmp.clone());
+                _ = FzStringSet::new(tmp.clone());
             });
         });
     }
@@ -113,8 +114,8 @@ fn lookup(c: &mut Criterion) {
                 });
         */
 
-        let f = fz_hash_set!(strings.clone());
-        group.bench_with_input(BenchmarkId::new("fzhashset", size), &size, |b, _| {
+        let f = FzHashSet::new(strings.clone());
+        group.bench_with_input(BenchmarkId::new("FzHashSet", size), &size, |b, _| {
             b.iter(|| {
                 for s in &strings {
                     _ = f.contains(s);
@@ -127,8 +128,8 @@ fn lookup(c: &mut Criterion) {
             tmp.push(s.as_str());
         }
 
-        let f = fz_string_set!(tmp.clone());
-        group.bench_with_input(BenchmarkId::new("fzstringset", size), &size, |b, _| {
+        let f = FzStringSet::new(tmp.clone());
+        group.bench_with_input(BenchmarkId::new("FzStringSet", size), &size, |b, _| {
             b.iter(|| {
                 for s in &strings {
                     _ = f.contains(&s.as_str());

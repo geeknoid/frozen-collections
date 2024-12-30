@@ -5,7 +5,6 @@ use crate::sets::decl_macros::{
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
-use ahash::RandomState;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::BuildHasher;
@@ -14,6 +13,7 @@ use core::iter::FromIterator;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
 
+use crate::DefaultHashBuilder;
 #[cfg(feature = "serde")]
 use {
     crate::sets::decl_macros::serialize_fn,
@@ -38,8 +38,19 @@ use {
 /// If your values are known at compile time, consider using the various `fz_*_set` macros instead of
 /// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzHashSet<T, BH = RandomState> {
+pub struct FzHashSet<T, BH = DefaultHashBuilder> {
     map: FzHashMap<T, (), BH>,
+}
+
+impl<T> FzHashSet<T, DefaultHashBuilder>
+where
+    T: Hash + Eq,
+{
+    /// Creates a new frozen set.
+    #[must_use]
+    pub fn new(entries: Vec<T>) -> Self {
+        Self::with_hasher(entries, foldhash::fast::RandomState::default())
+    }
 }
 
 impl<T, BH> FzHashSet<T, BH>
@@ -49,9 +60,9 @@ where
 {
     /// Creates a new frozen set which uses the given hash builder to hash values.
     #[must_use]
-    pub fn new(entries: Vec<T>, bh: BH) -> Self {
+    pub fn with_hasher(entries: Vec<T>, bh: BH) -> Self {
         Self {
-            map: FzHashMap::new(entries.into_iter().map(|x| (x, ())).collect(), bh),
+            map: FzHashMap::with_hasher(entries.into_iter().map(|x| (x, ())).collect(), bh),
         }
     }
 }
@@ -212,7 +223,7 @@ where
     T: Deserialize<'de> + Hash + Eq,
     BH: BuildHasher + Default,
 {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -248,6 +259,6 @@ where
             v.push((x, ()));
         }
 
-        Ok(FzHashSet::from(FzHashMap::new(v, BH::default())))
+        Ok(FzHashSet::from(FzHashMap::with_hasher(v, BH::default())))
     }
 }

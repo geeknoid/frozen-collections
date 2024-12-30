@@ -1,12 +1,46 @@
-use crate::macros::generator;
-use crate::macros::generator::MacroKind;
-use crate::macros::parsing::long_form_set::LongFormSet;
+use crate::emit::CollectionEmitter;
+use crate::macros::parsing::map::Map;
 use crate::macros::parsing::set::Set;
-use crate::macros::parsing::short_form_set::ShortFormSet;
-use crate::utils::pick_compile_time_random_seeds;
+use crate::macros::processor::{process, MacroKind};
+use alloc::string::ToString;
 use proc_macro2::TokenStream;
-use quote::quote;
 use syn::parse2;
+
+/// Implementation logic for the `fz_hash_map!` macro.
+///
+/// # Errors
+///
+/// Bad things happen to bad input
+pub fn fz_hash_map_macro(args: TokenStream) -> syn::Result<TokenStream> {
+    fz_map_macro(args, MacroKind::Hashed)
+}
+
+/// Implementation logic for the `fz_ordered_map!` macro.
+///
+/// # Errors
+///
+/// Bad things happen to bad input
+pub fn fz_ordered_map_macro(args: TokenStream) -> syn::Result<TokenStream> {
+    fz_map_macro(args, MacroKind::Ordered)
+}
+
+/// Implementation logic for the `fz_string_map!` macro.
+///
+/// # Errors
+///
+/// Bad things happen to bad input
+pub fn fz_string_map_macro(args: TokenStream) -> syn::Result<TokenStream> {
+    fz_map_macro(args, MacroKind::String)
+}
+
+/// Implementation logic for the `fz_scalar_map!` macro.
+///
+/// # Errors
+///
+/// Bad things happen to bad input
+pub fn fz_scalar_map_macro(args: TokenStream) -> syn::Result<TokenStream> {
+    fz_map_macro(args, MacroKind::Scalar)
+}
 
 /// Implementation logic for the `fz_hash_set!` macro.
 ///
@@ -14,7 +48,7 @@ use syn::parse2;
 ///
 /// Bad things happen to bad input
 pub fn fz_hash_set_macro(args: TokenStream) -> syn::Result<TokenStream> {
-    fz_set_macro(args, pick_compile_time_random_seeds(), MacroKind::Hashed)
+    fz_set_macro(args, MacroKind::Hashed)
 }
 
 /// Implementation logic for the `fz_ordered_set!` macro.
@@ -23,7 +57,7 @@ pub fn fz_hash_set_macro(args: TokenStream) -> syn::Result<TokenStream> {
 ///
 /// Bad things happen to bad input
 pub fn fz_ordered_set_macro(args: TokenStream) -> syn::Result<TokenStream> {
-    fz_set_macro(args, pick_compile_time_random_seeds(), MacroKind::Ordered)
+    fz_set_macro(args, MacroKind::Ordered)
 }
 
 /// Implementation logic for the `fz_string_set!` macro.
@@ -32,7 +66,7 @@ pub fn fz_ordered_set_macro(args: TokenStream) -> syn::Result<TokenStream> {
 ///
 /// Bad things happen to bad input
 pub fn fz_string_set_macro(args: TokenStream) -> syn::Result<TokenStream> {
-    fz_set_macro(args, pick_compile_time_random_seeds(), MacroKind::String)
+    fz_set_macro(args, MacroKind::String)
 }
 
 /// Implementation logic for the `fz_scalar_set!` macro.
@@ -41,72 +75,49 @@ pub fn fz_string_set_macro(args: TokenStream) -> syn::Result<TokenStream> {
 ///
 /// Bad things happen to bad input
 pub fn fz_scalar_set_macro(args: TokenStream) -> syn::Result<TokenStream> {
-    fz_set_macro(args, pick_compile_time_random_seeds(), MacroKind::Scalar)
+    fz_set_macro(args, MacroKind::Scalar)
 }
 
-fn fz_set_macro(
-    args: TokenStream,
-    seeds: (u64, u64, u64, u64),
-    macro_kind: MacroKind,
-) -> syn::Result<TokenStream> {
-    let input = parse2::<Set>(args)?;
+fn fz_map_macro(args: TokenStream, macro_kind: MacroKind) -> syn::Result<TokenStream> {
+    let input = parse2::<Map>(args)?;
 
     match input {
-        Set::Short(set) => short_form_fz_set_macro(set, seeds, macro_kind),
-        Set::Long(set) => long_form_fz_set_macro(set, seeds, macro_kind),
+        Map::Short(map) => {
+            let emitter = CollectionEmitter::new_with_inferred_types();
+            process(map.payload, emitter, macro_kind)
+        }
+        Map::Long(map) => {
+            let emitter = CollectionEmitter::new(&map.key_type)
+                .value_type(&map.value_type)
+                .alias_name(map.type_name.to_string().as_str())
+                .symbol_name(map.var_name.to_string().as_str())
+                .mutable(map.is_mutable)
+                .static_instance(map.is_static)
+                .visibility(map.visibility);
+
+            process(map.payload, emitter, macro_kind)
+        }
     }
 }
 
-fn short_form_fz_set_macro(
-    set: ShortFormSet,
-    seeds: (u64, u64, u64, u64),
-    macro_kind: MacroKind,
-) -> syn::Result<TokenStream> {
-    Ok(generator::generate(set.payload, seeds, true, quote!(_), quote!(_), macro_kind)?.ctor)
-}
+fn fz_set_macro(args: TokenStream, macro_kind: MacroKind) -> syn::Result<TokenStream> {
+    let input = parse2::<Set>(args)?;
 
-fn long_form_fz_set_macro(
-    set: LongFormSet,
-    seeds: (u64, u64, u64, u64),
-    macro_kind: MacroKind,
-) -> syn::Result<TokenStream> {
-    let value_type = set.value_type;
+    match input {
+        Set::Short(set) => {
+            let emitter = CollectionEmitter::new_with_inferred_key_type();
+            process(set.payload, emitter, macro_kind)
+        }
+        Set::Long(set) => {
+            let emitter = CollectionEmitter::new(&set.value_type)
+                .alias_name(set.type_name.to_string().as_str())
+                .symbol_name(set.var_name.to_string().as_str())
+                .mutable(set.is_mutable)
+                .static_instance(set.is_static)
+                .visibility(set.visibility);
 
-    let value_type = if set.value_type_amp {
-        quote!(&'static #value_type)
-    } else {
-        quote!(#value_type)
-    };
-
-    let output = generator::generate(set.payload, seeds, true, value_type, quote!(_), macro_kind)?;
-
-    let type_sig = output.type_sig;
-    let ctor = output.ctor;
-    let var_name = &set.var_name;
-    let type_name = &set.type_name;
-    let visibility = &set.visibility;
-
-    if !set.is_static {
-        let mutable = if set.is_mutable {
-            quote!(mut)
-        } else {
-            quote!()
-        };
-
-        Ok(quote!(
-            type #type_name = #type_sig;
-            let #mutable #var_name: #type_name = #ctor;
-        ))
-    } else if output.constant {
-        Ok(quote!(
-            #visibility type #type_name = #type_sig;
-            #visibility static #var_name: #type_name = #ctor;
-        ))
-    } else {
-        Ok(quote!(
-            #visibility type #type_name = #type_sig;
-            #visibility static #var_name: std::sync::LazyLock<#type_name> = std::sync::LazyLock::new(|| { #ctor });
-        ))
+            process(set.payload, emitter, macro_kind)
+        }
     }
 }
 
@@ -117,6 +128,15 @@ mod tests {
     use proc_macro2::Delimiter::Brace;
     use proc_macro2::{Group, TokenTree};
     use quote::{quote, ToTokens, TokenStreamExt};
+
+    #[test]
+    fn missing_static_in_map() {
+        let r = fz_scalar_map_macro(quote!(
+            pub Bar<i32, i43>, { 1 : 2, 2 : 3 }
+        ));
+
+        assert_eq!("expected `static`", r.unwrap_err().to_string());
+    }
 
     #[test]
     fn no_entries() {
@@ -180,7 +200,7 @@ mod tests {
     }
 
     #[test]
-    fn missing_static() {
+    fn missing_static_in_set() {
         let r = fz_scalar_set_macro(quote!(
             pub Bar<i32>, { 1, 2 }
         ));

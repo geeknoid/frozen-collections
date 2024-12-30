@@ -11,6 +11,7 @@
 * [Handling Compile-Time Data](#handling-compile-time-data)
   * [Short Form](#short-form)
   * [Long Form](#long-form)
+* [Using in a Build Script](#using-in-a-build-script)
 * [Handling Runtime Data](#handling-runtime-data)
 * [Traits](#traits)
 * [Performance Considerations](#performance-considerations)
@@ -54,7 +55,7 @@ one of eight macros to create frozen collections:
 [`fz_string_set!`](https://docs.rs/frozen-collections/latest/frozen_collections/macro.fz_string_set.html).
 These macros analyze the data you provide
 and return a custom implementation type that's optimized for the data. All the
-possible implementations types implement the
+possible types implement the
 [`Map`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) or
 [`Set`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Set.html) traits.
 
@@ -104,26 +105,6 @@ where
 }
 ```
 
-Rather than specifying all the data inline, you can also create a frozen collection by passing
-a vector as input:
-
-```rust
-use frozen_collections::*;
-
-let v = vec![
-    ("Alice", 1),
-    ("Bob", 2),
-    ("Sandy", 3),
-    ("Tom", 4),
-];
-
-let m = fz_string_map!(v);
-```
-
-The inline form is preferred however since it results in faster code. However, whereas the inline form
-requires all the data to be provided at compile time, the vector form enables the content of the
-frozen collection to be determined at runtime.
-
 ### Long Form
 
 The long form lets you provide a type alias name which will be created to
@@ -133,7 +114,7 @@ Note that you must use the long form if you want to declare a static frozen coll
 ```rust
 use frozen_collections::*;
 
-fz_string_map!(static MAP: MyMapType<&str, i32>, {
+fz_string_map!(static MAP: MyMapType<&'static str, i32>, {
     "Alice": 1,
     "Bob": 2,
     "Sandy": 3,
@@ -151,7 +132,7 @@ To use the long form for non-static uses, replace `static` with `let`:
 ```rust
 use frozen_collections::*;
 
-fz_string_map!(let m: MyMapType<&str, i32>, {
+fz_string_map!(let m: MyMapType<&'static str, i32>, {
     "Alice": 1,
     "Bob": 2,
     "Sandy": 3,
@@ -168,6 +149,16 @@ fn more(m: MyMapType) {
     assert!(m.contains_key("Alice"));
 }
 ```
+
+## Using in a Build Script
+
+You can use the
+[`CollectionEmitter`](https://docs.rs/frozen-collections/latest/frozen_collections/emit/struct.CollectionEmitter.html),
+struct to initialize a frozen collections from a build
+script and output the results in a file that then gets compiled into your application. Due
+to the fact build scripts run in a richer environment than procedural macros, the resulting
+efficiency of collections generated from build scripts can be slightly faster than the ones
+generated with the macros.
 
 ## Handling Runtime Data
 
@@ -195,7 +186,7 @@ let v = vec![
     ("Tom", 4),
 ];
 
-let m = FzStringMap::new(v, ahash::RandomState::default());
+let m = FzStringMap::new(v);
 ```
 
 Note that in general, if possible, it's more efficient to use the macros to create your frozen
@@ -280,6 +271,7 @@ You can specify the following features when you include the `frozen_collections`
 `Cargo.toml` file:
 
 - **`macros`**. Enables the macros for creating frozen collections.
+- **`emit`**. Enables the [`CollectionEmitter`](https://docs.rs/frozen-collections/latest/frozen_collections/emit/struct.CollectionEmitter.html) struct that lets you create frozen collections from a build script.
 - **`serde`**. Enables serialization and deserialization support for the frozen collections.
 - **`std`**. Enables small features only available when building with the standard library.
 

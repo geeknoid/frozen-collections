@@ -26,3 +26,12 @@ mod utils;
 
 #[cfg(feature = "macros")]
 pub mod macros;
+
+#[cfg(feature = "emit")]
+pub mod emit;
+
+#[cfg(all(feature = "macros", not(feature = "emit")))]
+mod emit;
+
+/// The default hash builder used by the frozen collections.
+pub type DefaultHashBuilder = foldhash::fast::RandomState;

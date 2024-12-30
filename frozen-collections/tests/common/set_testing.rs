@@ -43,7 +43,7 @@ where
     let j = serde_json::to_string(&set).unwrap();
     assert!(!j.is_empty());
 
-    //    let s2: HashbrownSet<T, ahash::RandomState> = serde_json::from_str(&j).unwrap();
+    //    let s2: HashbrownSet<T> = serde_json::from_str(&j).unwrap();
     //    assert_same(set, &s2);
 
     let s2 = set.clone();
@@ -65,7 +65,7 @@ where
     ST: Set<T> + Debug + Clone + Default,
 {
     let s = ST::default();
-    let r = HashbrownSet::<_, ahash::RandomState>::default();
+    let r = HashbrownSet::<_>::default();
     assert_eq_set(&s, &r);
     assert!(!s.contains(&T::default()));
     assert_eq!(0, s.len());

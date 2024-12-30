@@ -1,13 +1,12 @@
 use crate::macros::parsing::payload::{parse_set_payload, Payload};
 use proc_macro2::Ident;
 use syn::parse::{Parse, ParseStream};
-use syn::{Expr, Path, Token, Visibility};
+use syn::{Expr, Token, Type, Visibility};
 
 pub struct LongFormSet {
     pub var_name: Ident,
     pub type_name: Ident,
-    pub value_type_amp: bool,
-    pub value_type: Path,
+    pub value_type: Type,
     pub payload: Payload,
 
     pub visibility: Visibility,
@@ -24,15 +23,13 @@ impl Parse for LongFormSet {
 
         // <value_type>
         input.parse::<Token![<]>()?;
-        let value_type_amp = input.parse::<Token![&]>().ok();
-        let value_type = input.parse::<Path>()?;
+        let value_type = input.parse()?;
         input.parse::<Token![>]>()?;
         input.parse::<Token![,]>()?;
 
         Ok(Self {
             var_name,
             type_name,
-            value_type_amp: value_type_amp.is_some(),
             value_type,
             payload: parse_set_payload(input)?,
 

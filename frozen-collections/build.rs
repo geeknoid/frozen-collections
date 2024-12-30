@@ -68,16 +68,16 @@ where
 
     writeln!(
         file,
-        "    let s = std::collections::HashSet::<_, ahash::RandomState>::from_iter(input.clone());"
+        "    let s = std::collections::HashSet::<_, foldhash::fast::RandomState>::from_iter(input.clone());"
     )
     .unwrap();
-    emit_loop(file, "HashSet(ahash)");
+    emit_loop(file, "HashSet(foldhash)");
 
-    writeln!(file, "    let s = fz_scalar_set!(input);").unwrap();
-    emit_loop(file, "fz_scalar_set(vector)");
+    writeln!(file, "    let s = FzScalarSet::new(input);").unwrap();
+    emit_loop(file, "FzScalarSet");
 
     writeln!(file, "    let s = frozen;").unwrap();
-    emit_loop(file, "fz_scalar_set(literals)");
+    emit_loop(file, "fz_scalar_set");
 }
 
 fn emit_string_suite<F>(file: &mut BufWriter<File>, size: usize, literal_producer: F)
@@ -117,16 +117,16 @@ where
 
     writeln!(
         file,
-        "    let s = std::collections::HashSet::<_, ahash::RandomState>::from_iter(input.clone());"
+        "    let s = std::collections::HashSet::<_, foldhash::fast::RandomState>::from_iter(input.clone());"
     )
     .unwrap();
-    emit_loop(file, "HashSet(ahash)");
+    emit_loop(file, "HashSet(foldhash)");
 
-    writeln!(file, "    let s = fz_string_set!(input);").unwrap();
-    emit_loop(file, "fz_string_set(vector)");
+    writeln!(file, "    let s = FzStringSet::new(input);").unwrap();
+    emit_loop(file, "FzStringSet");
 
     writeln!(file, "    let s = frozen;").unwrap();
-    emit_loop(file, "fz_string_set(literals)");
+    emit_loop(file, "fz_string_set");
 }
 
 fn emit_hashed_suite<F>(file: &mut BufWriter<File>, size: usize, literal_producer: F)
@@ -162,16 +162,16 @@ where
 
     writeln!(
         file,
-        "    let s = std::collections::HashSet::<_, ahash::RandomState>::from_iter(input.clone());"
+        "    let s = std::collections::HashSet::<_, foldhash::fast::RandomState>::from_iter(input.clone());"
     )
     .unwrap();
-    emit_loop(file, "HashSet(ahash)");
+    emit_loop(file, "HashSet(foldhash)");
 
-    writeln!(file, "    let s = fz_hash_set!(input);").unwrap();
-    emit_loop(file, "fz_hash_set(vector)");
+    writeln!(file, "    let s = FzHashSet::new(input);").unwrap();
+    emit_loop(file, "FzHashSet");
 
     writeln!(file, "    let s = frozen;").unwrap();
-    emit_loop(file, "fz_hash_set(literals)");
+    emit_loop(file, "fz_hash_set");
 }
 
 fn emit_ordered_suite<F>(file: &mut BufWriter<File>, size: usize, literal_producer: F)
@@ -209,11 +209,11 @@ where
     .unwrap();
     emit_loop(file, "BTreeSet");
 
-    writeln!(file, "    let s = fz_ordered_set!(input);").unwrap();
-    emit_loop(file, "fz_hash_set(vector)");
+    writeln!(file, "    let s = FzOrderedSet::new(input);").unwrap();
+    emit_loop(file, "FzOrderedSet");
 
     writeln!(file, "    let s = frozen;").unwrap();
-    emit_loop(file, "fz_ordered_set(literals)");
+    emit_loop(file, "fz_ordered_set");
 }
 
 fn emit_dense_scalar_benchmark() {

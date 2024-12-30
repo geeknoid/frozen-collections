@@ -198,11 +198,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use alloc::string::{String, ToString};
-
-    use ahash::RandomState;
-
     use super::*;
+    use alloc::string::{String, ToString};
+    use foldhash::fast::RandomState;
 
     struct AnalysisTestCase<'a> {
         slices: &'a [&'a str],
@@ -257,7 +255,10 @@ mod tests {
 
         for case in &ANALYSIS_TEST_CASES {
             let keys = case.slices.iter().map(|x| x.as_bytes());
-            assert_eq!(case.expected, analyze_slice_keys(keys, &RandomState::new()));
+            assert_eq!(
+                case.expected,
+                analyze_slice_keys(keys, &RandomState::default())
+            );
         }
     }
 
@@ -271,7 +272,7 @@ mod tests {
         }
 
         let x = v.iter().map(String::as_bytes);
-        let y = &RandomState::new();
+        let y = &RandomState::default();
         analyze_slice_keys(x, y);
     }
 
@@ -285,7 +286,7 @@ mod tests {
         }
 
         let x = v.iter().map(String::as_bytes);
-        let y = &RandomState::new();
+        let y = &RandomState::default();
 
         assert_eq!(analyze_slice_keys(x, y), SliceKeyAnalysisResult::General);
     }

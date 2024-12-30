@@ -1,5 +1,5 @@
 use crate::traits::Hasher;
-use ahash::RandomState;
+use crate::DefaultHashBuilder;
 use alloc::string::String;
 use core::hash::{BuildHasher, Hash};
 use core::ops::Range;
@@ -8,7 +8,7 @@ use core::ops::Range;
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone)]
-pub struct LeftRangeHasher<BH = RandomState> {
+pub struct LeftRangeHasher<BH = DefaultHashBuilder> {
     bh: BH,
     range: Range<usize>,
 }
@@ -94,6 +94,7 @@ mod tests {
     use super::*;
     use alloc::string::ToString;
     use alloc::vec;
+    use foldhash::fast::RandomState;
 
     #[test]
     fn test_left_range_hasher_hash_slice() {

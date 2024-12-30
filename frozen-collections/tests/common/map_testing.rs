@@ -1,4 +1,5 @@
 use core::fmt::Debug;
+use foldhash::fast::RandomState;
 use frozen_collections_core::traits::Map;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -9,8 +10,8 @@ use std::ops::Index;
 
 pub fn test_map<MT, K, V>(
     map: &MT,
-    reference: &StdHashMap<K, V, ahash::RandomState>,
-    other: &StdHashMap<K, V, ahash::RandomState>,
+    reference: &StdHashMap<K, V, RandomState>,
+    other: &StdHashMap<K, V, RandomState>,
 ) where
     K: Hash + Eq + Clone + Debug + Default,
     V: Hash + Eq + Clone + Debug + Default,
@@ -101,14 +102,14 @@ where
     MT: Map<K, i32> + Debug + Clone + Default + Eq,
 {
     let m = MT::default();
-    let r = StdHashMap::<_, _, ahash::RandomState>::default();
+    let r = StdHashMap::<_, _, RandomState>::default();
     assert_eq_map(&m, &r);
     assert!(!m.contains_key(&K::default()));
     assert_eq!(0, m.len());
     assert!(m.is_empty());
 }
 
-pub fn test_map_ops<'a, MT, K, V>(map: &'a MT, reference: &'a StdHashMap<K, V, ahash::RandomState>)
+pub fn test_map_ops<'a, MT, K, V>(map: &'a MT, reference: &'a StdHashMap<K, V, RandomState>)
 where
     K: 'a + Hash + Eq,
     V: 'a + Hash + Eq + Debug,
@@ -116,7 +117,7 @@ where
         + Map<K, V>
         + Debug
         + Clone
-        + PartialEq<StdHashMap<K, V, ahash::RandomState>>
+        + PartialEq<StdHashMap<K, V, RandomState>>
         + Index<&'a K, Output = V>,
 {
     assert!(map.eq(reference));
@@ -130,7 +131,7 @@ where
     }
 }
 
-pub fn test_map_iter<'a, MT, K, V>(map: &'a MT, reference: &'a StdHashMap<K, V, ahash::RandomState>)
+pub fn test_map_iter<'a, MT, K, V>(map: &'a MT, reference: &'a StdHashMap<K, V, RandomState>)
 where
     K: 'a + Hash + Eq + Clone + Debug,
     V: Eq,
@@ -158,7 +159,7 @@ where
 
 pub fn test_map_iter_mut<'a, MT, K, V>(
     map: &'a mut MT,
-    reference: &'a StdHashMap<K, V, ahash::RandomState>,
+    reference: &'a StdHashMap<K, V, RandomState>,
 ) where
     K: 'a + Hash + Eq + Clone + Debug,
     V: Eq,

@@ -14,23 +14,25 @@ resolver = "2"
 
 [dependencies]
 ahash = { version = "0.8.11", default-features = false, features = ["default"] }
-hashbrown = { version = "0.15.1", default-features = false, features = ["default-hasher"] }
 const-random = "0.1.18"
-syn = { version = "2.0.91", optional = true, features = ["printing", "parsing", "clone-impls", "derive", "extra-traits"], default-features = false }
-quote = { version = "1.0.37", optional = true }
-proc-macro2 = { version = "1.0.92", optional = true }
-mutants = "0.0.3"
 equivalent = "1.0.1"
-serde = { version = "1.0.216", optional = true, default-features = false }
+foldhash = { version = "0.1.4", default-features = false }
+hashbrown = { version = "0.15.2", default-features = false, features = ["default-hasher"] }
+mutants = "0.0.3"
+proc-macro2 = { version = "1.0.92", optional = true }
+quote = { version = "1.0.38", optional = true }
+serde = { version = "1.0.217", optional = true, default-features = false }
+syn = { version = "2.0.93", optional = true, features = ["printing", "parsing", "clone-impls", "derive", "extra-traits"], default-features = false }
 
 [dev-dependencies]
 rand = "0.9.0-beta.1"
 
 [features]
-default = ["std", "macros", "serde"]
-std = ["serde/std"]
-serde = ["dep:serde"]
+default = ["std", "macros", "serde", "emit"]
 macros = ["dep:syn", "dep:quote", "dep:proc-macro2"]
+emit = ["dep:syn", "dep:quote", "dep:proc-macro2"]
+serde = ["dep:serde"]
+std = ["serde/std", "foldhash/std"]
 
 [lints]
 workspace = true

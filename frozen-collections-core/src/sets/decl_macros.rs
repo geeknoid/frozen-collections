@@ -99,7 +99,7 @@ macro_rules! debug_fn {
 #[cfg(feature = "serde")]
 macro_rules! serialize_fn {
     () => {
-        fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+        fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
         where
             S: Serializer,
         {
