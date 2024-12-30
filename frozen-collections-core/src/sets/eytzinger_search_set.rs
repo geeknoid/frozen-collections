@@ -76,7 +76,7 @@ where
     T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitor_fn!(RandomState);
+    bitor_fn!();
 }
 
 impl<T, ST> BitAnd<&ST> for &EytzingerSearchSet<T>
@@ -84,7 +84,7 @@ where
     T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitand_fn!(RandomState);
+    bitand_fn!();
 }
 
 impl<T, ST> BitXor<&ST> for &EytzingerSearchSet<T>
@@ -92,7 +92,7 @@ where
     T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitxor_fn!(RandomState);
+    bitxor_fn!();
 }
 
 impl<T, ST> Sub<&ST> for &EytzingerSearchSet<T>
@@ -100,7 +100,7 @@ where
     T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    sub_fn!(RandomState);
+    sub_fn!();
 }
 
 impl<T> IntoIterator for EytzingerSearchSet<T> {

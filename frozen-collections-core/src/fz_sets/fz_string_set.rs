@@ -141,7 +141,7 @@ where
     LeftRangeHasher<BH>: Hasher<T>,
     RightRangeHasher<BH>: Hasher<T>,
 {
-    bitor_fn!(H);
+    bitor_fn!();
 }
 
 impl<T, ST, BH> BitAnd<&ST> for &FzStringSet<T, BH>
@@ -152,7 +152,7 @@ where
     LeftRangeHasher<BH>: Hasher<T>,
     RightRangeHasher<BH>: Hasher<T>,
 {
-    bitand_fn!(H);
+    bitand_fn!();
 }
 
 impl<T, ST, BH> BitXor<&ST> for &FzStringSet<T, BH>
@@ -163,7 +163,7 @@ where
     LeftRangeHasher<BH>: Hasher<T>,
     RightRangeHasher<BH>: Hasher<T>,
 {
-    bitxor_fn!(H);
+    bitxor_fn!();
 }
 
 impl<T, ST, BH> Sub<&ST> for &FzStringSet<T, BH>
@@ -174,7 +174,7 @@ where
     LeftRangeHasher<BH>: Hasher<T>,
     RightRangeHasher<BH>: Hasher<T>,
 {
-    sub_fn!(H);
+    sub_fn!();
 }
 
 impl<T, BH> IntoIterator for FzStringSet<T, BH> {

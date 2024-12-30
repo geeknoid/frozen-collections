@@ -71,7 +71,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitor_fn!(RandomState);
+    bitor_fn!();
 }
 
 impl<T, ST, const SZ: usize> BitAnd<&ST> for &InlineDenseScalarLookupSet<T, SZ>
@@ -79,7 +79,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitand_fn!(RandomState);
+    bitand_fn!();
 }
 
 impl<T, ST, const SZ: usize> BitXor<&ST> for &InlineDenseScalarLookupSet<T, SZ>
@@ -87,7 +87,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitxor_fn!(RandomState);
+    bitxor_fn!();
 }
 
 impl<T, ST, const SZ: usize> Sub<&ST> for &InlineDenseScalarLookupSet<T, SZ>
@@ -95,7 +95,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    sub_fn!(RandomState);
+    sub_fn!();
 }
 
 impl<T, const SZ: usize> IntoIterator for InlineDenseScalarLookupSet<T, SZ> {

@@ -5,14 +5,14 @@ use crate::maps::{
 };
 use crate::traits::{Hasher, LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_keep_last;
+use crate::DefaultHashBuilder;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};
 use core::iter::FromIterator;
 use core::ops::Index;
 use equivalent::Equivalent;
-
-use crate::DefaultHashBuilder;
+use foldhash::fast::RandomState;
 #[cfg(feature = "serde")]
 use {
     crate::maps::decl_macros::serialize_fn,
@@ -47,7 +47,7 @@ impl<'a, V> FzStringMap<&'a str, V, DefaultHashBuilder> {
     /// Creates a frozen map.
     #[must_use]
     pub fn new(entries: Vec<(&'a str, V)>) -> Self {
-        Self::with_hasher(entries, foldhash::fast::RandomState::default())
+        Self::with_hasher(entries, RandomState::default())
     }
 }
 

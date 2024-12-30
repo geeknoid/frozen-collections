@@ -72,7 +72,7 @@ where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
 {
-    bitor_fn!(RandomState);
+    bitor_fn!();
 }
 
 impl<T, ST, const SZ: usize> BitAnd<&ST> for &InlineOrderedScanSet<T, SZ>
@@ -80,7 +80,7 @@ where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
 {
-    bitand_fn!(RandomState);
+    bitand_fn!();
 }
 
 impl<T, ST, const SZ: usize> BitXor<&ST> for &InlineOrderedScanSet<T, SZ>
@@ -88,7 +88,7 @@ where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
 {
-    bitxor_fn!(RandomState);
+    bitxor_fn!();
 }
 
 impl<T, ST, const SZ: usize> Sub<&ST> for &InlineOrderedScanSet<T, SZ>
@@ -96,7 +96,7 @@ where
     T: Hash + Eq + Ord + Clone,
     ST: Set<T>,
 {
-    sub_fn!(RandomState);
+    sub_fn!();
 }
 
 impl<T, const SZ: usize> IntoIterator for InlineOrderedScanSet<T, SZ> {

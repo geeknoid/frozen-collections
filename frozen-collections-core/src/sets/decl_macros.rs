@@ -49,7 +49,7 @@ macro_rules! into_iter_ref_fn {
 }
 
 macro_rules! bitor_fn {
-    ($build_hasher:ident) => {
+    () => {
         type Output = hashbrown::HashSet<T>;
 
         fn bitor(self, rhs: &ST) -> Self::Output {
@@ -59,7 +59,7 @@ macro_rules! bitor_fn {
 }
 
 macro_rules! bitand_fn {
-    ($build_hasher:ident) => {
+    () => {
         type Output = hashbrown::HashSet<T>;
 
         fn bitand(self, rhs: &ST) -> Self::Output {
@@ -69,7 +69,7 @@ macro_rules! bitand_fn {
 }
 
 macro_rules! bitxor_fn {
-    ($build_hasher:ident) => {
+    () => {
         type Output = hashbrown::HashSet<T>;
 
         fn bitxor(self, rhs: &ST) -> Self::Output {
@@ -79,7 +79,7 @@ macro_rules! bitxor_fn {
 }
 
 macro_rules! sub_fn {
-    ($build_hasher:ident) => {
+    () => {
         type Output = hashbrown::HashSet<T>;
 
         fn sub(self, rhs: &ST) -> Self::Output {

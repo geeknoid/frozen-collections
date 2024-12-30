@@ -5,6 +5,7 @@ use crate::sets::decl_macros::{
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
+use crate::DefaultHashBuilder;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::BuildHasher;
@@ -12,8 +13,7 @@ use core::hash::Hash;
 use core::iter::FromIterator;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
-
-use crate::DefaultHashBuilder;
+use foldhash::fast::RandomState;
 #[cfg(feature = "serde")]
 use {
     crate::sets::decl_macros::serialize_fn,
@@ -49,7 +49,7 @@ where
     /// Creates a new frozen set.
     #[must_use]
     pub fn new(entries: Vec<T>) -> Self {
-        Self::with_hasher(entries, foldhash::fast::RandomState::default())
+        Self::with_hasher(entries, RandomState::default())
     }
 }
 
@@ -148,7 +148,7 @@ where
     ST: Set<T>,
     BH: BuildHasher,
 {
-    bitor_fn!(H);
+    bitor_fn!();
 }
 
 impl<T, ST, BH> BitAnd<&ST> for &FzHashSet<T, BH>
@@ -157,7 +157,7 @@ where
     ST: Set<T>,
     BH: BuildHasher,
 {
-    bitand_fn!(H);
+    bitand_fn!();
 }
 
 impl<T, ST, BH> BitXor<&ST> for &FzHashSet<T, BH>
@@ -166,7 +166,7 @@ where
     ST: Set<T>,
     BH: BuildHasher,
 {
-    bitxor_fn!(H);
+    bitxor_fn!();
 }
 
 impl<T, ST, BH> Sub<&ST> for &FzHashSet<T, BH>
@@ -175,7 +175,7 @@ where
     ST: Set<T>,
     BH: BuildHasher,
 {
-    sub_fn!(H);
+    sub_fn!();
 }
 
 impl<T, BH> IntoIterator for FzHashSet<T, BH> {
