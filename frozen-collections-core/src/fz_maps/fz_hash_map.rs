@@ -68,7 +68,7 @@ where
         dedup_by_hash_keep_last(&mut entries, |x| bh.hash_one(&x.0), |x, y| x.0 == y.0);
 
         Self {
-            map_impl: if entries.len() < 3 {
+            map_impl: if entries.len() < 4 {
                 MapTypes::Scanning(ScanMap::new_raw(entries))
             } else {
                 MapTypes::Hash(

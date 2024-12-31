@@ -5,6 +5,7 @@ use core::hash::{BuildHasher, Hash};
 pub trait SetQuery<T, Q: ?Sized = T> {
     /// Checks whether a particular value is present in the set.
     #[must_use]
+    #[inline]
     fn contains(&self, value: &Q) -> bool {
         self.get(value).is_some()
     }

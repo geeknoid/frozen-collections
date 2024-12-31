@@ -4,10 +4,12 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 use alloc::vec;
 use core::hint::black_box;
-use frozen_collections::maps::EytzingerSearchMap;
-use frozen_collections::{FzOrderedMap, MapQuery};
+use frozen_collections::hashers::BridgeHasher;
+use frozen_collections::maps::HashMap;
+use frozen_collections::{FzHashMap, MapQuery};
+use hashbrown::HashMap as HashbrownMap;
 
-#[derive(Ord, PartialOrd, PartialEq, Eq, Clone)]
+#[derive(Hash, PartialEq, Eq, Clone)]
 struct MyKey {
     name: String,
     city: String,
@@ -59,19 +61,27 @@ fn main() {
         ),
     ];
 
-    let fm = FzOrderedMap::new(v.clone());
-    let esm = EytzingerSearchMap::new(v.clone());
+    let fm = FzHashMap::new(v.clone());
+    let cm = HashMap::with_hasher(v.clone(), BridgeHasher::default()).unwrap();
+    let mut hm = HashbrownMap::with_capacity(v.len());
+    hm.extend(v.clone());
 
-    _ = black_box(call_facade_ordered_map(&fm, &v[0].0));
-    _ = black_box(call_eytzinger_search_map(&esm, &v[0].0));
+    _ = black_box(call_fz_hash_map_with_bridge_hasher(&fm, &v[0].0));
+    _ = black_box(call_hash_map_with_bridge_hasher(&cm, &v[0].0));
+    _ = black_box(call_hashbrown_map(&hm, &v[0].0));
 }
 
 #[inline(never)]
-fn call_facade_ordered_map(map: &FzOrderedMap<MyKey, i32>, key: &MyKey) -> bool {
+fn call_fz_hash_map_with_bridge_hasher(map: &FzHashMap<MyKey, i32>, key: &MyKey) -> bool {
     map.contains_key(key)
 }
 
 #[inline(never)]
-fn call_eytzinger_search_map(map: &EytzingerSearchMap<MyKey, i32>, key: &MyKey) -> bool {
+fn call_hash_map_with_bridge_hasher(map: &HashMap<MyKey, i32>, key: &MyKey) -> bool {
+    map.contains_key(key)
+}
+
+#[inline(never)]
+fn call_hashbrown_map(map: &HashbrownMap<MyKey, i32>, key: &MyKey) -> bool {
     map.contains_key(key)
 }

@@ -321,3 +321,21 @@ fn scalar_extra() {
     // test default to scan
     test_scalar!(u64, 0u64, 1500);
 }
+
+#[test]
+fn duplicates() {
+    let map = fz_scalar_map!({0: 1, 0: 2});
+    assert_eq!(&2, map.get(&0).unwrap());
+
+    let map = fz_scalar_map!({0: 1, 1: 2, 0: 2});
+    assert_eq!(&2, map.get(&0).unwrap());
+
+    let map = fz_scalar_map!({0: 1, 1: 2, 2: 3, 0: 2});
+    assert_eq!(&2, map.get(&0).unwrap());
+
+    let map = fz_scalar_map!({0: 1, 1: 2, 2: 3, 3: 4, 0: 2});
+    assert_eq!(&2, map.get(&0).unwrap());
+
+    let map = fz_scalar_map!({0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 0: 2});
+    assert_eq!(&2, map.get(&0).unwrap());
+}
