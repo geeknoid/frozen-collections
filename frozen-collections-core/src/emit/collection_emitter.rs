@@ -100,6 +100,7 @@ pub struct CollectionEmitter {
     pub(crate) inferred_value_type: bool,
 }
 
+const INLINE_SCAN_THRESHOLD: usize = 2;
 const SCAN_THRESHOLD: usize = 4;
 const ORDERED_SCAN_THRESHOLD: usize = 7;
 const BINARY_SEARCH_THRESHOLD: usize = 64;
@@ -391,7 +392,9 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < SCAN_THRESHOLD {
+        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+            gen.gen_inline_scan(entries)
+        } else if entries.len() < SCAN_THRESHOLD {
             gen.gen_scan(entries)
         } else {
             gen.gen_hash_with_bridge(entries)
@@ -406,7 +409,9 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < SCAN_THRESHOLD {
+        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+            gen.gen_inline_scan(entries)
+        } else if entries.len() < SCAN_THRESHOLD {
             gen.gen_scan(entries)
         } else if entries.len() < ORDERED_SCAN_THRESHOLD {
             gen.gen_ordered_scan(entries)
@@ -425,10 +430,12 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < SCAN_THRESHOLD {
+        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+            gen.gen_inline_scan(entries)
+        } else if entries.len() < SCAN_THRESHOLD {
             gen.gen_scan(entries)
         } else {
-            gen.gen_facade_scalar(entries)
+            gen.gen_fz_scalar(entries)
         };
 
         self.postflight(output)
@@ -440,10 +447,12 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < SCAN_THRESHOLD {
+        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+            gen.gen_inline_scan(entries)
+        } else if entries.len() < SCAN_THRESHOLD {
             gen.gen_scan(entries)
         } else {
-            gen.gen_facade_string(entries)
+            gen.gen_fz_string(entries)
         };
 
         self.postflight(output)
