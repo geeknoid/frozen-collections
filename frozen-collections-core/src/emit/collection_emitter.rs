@@ -392,7 +392,7 @@ impl CollectionEmitter {
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
         let output = if entries.len() < SCAN_THRESHOLD {
-            gen.gen_scan(entries)
+            gen.gen_inline_scan(entries)
         } else {
             gen.gen_hash_with_bridge(entries)
         };
@@ -407,7 +407,7 @@ impl CollectionEmitter {
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
         let output = if entries.len() < SCAN_THRESHOLD {
-            gen.gen_scan(entries)
+            gen.gen_inline_scan(entries)
         } else if entries.len() < ORDERED_SCAN_THRESHOLD {
             gen.gen_ordered_scan(entries)
         } else if entries.len() < BINARY_SEARCH_THRESHOLD {
@@ -426,9 +426,9 @@ impl CollectionEmitter {
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
         let output = if entries.len() < SCAN_THRESHOLD {
-            gen.gen_scan(entries)
+            gen.gen_inline_scan(entries)
         } else {
-            gen.gen_facade_scalar(entries)
+            gen.gen_fz_scalar(entries)
         };
 
         self.postflight(output)
@@ -441,9 +441,9 @@ impl CollectionEmitter {
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
         let output = if entries.len() < SCAN_THRESHOLD {
-            gen.gen_scan(entries)
+            gen.gen_inline_scan(entries)
         } else {
-            gen.gen_facade_string(entries)
+            gen.gen_fz_string(entries)
         };
 
         self.postflight(output)

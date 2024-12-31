@@ -29,7 +29,7 @@ fn main() {
 
     let map = FzStringMap::new(input.iter().map(|x| (*x.0, *x.1)).collect());
     for key in probe {
-        _ = black_box(call_facade_string_map(&map, key));
+        _ = black_box(call_fz_string_map(&map, key));
     }
 
     let map = input;
@@ -49,6 +49,6 @@ fn call_inline_hash_map_with_passthrough_hasher(map: &MyMapType, key: &str) -> b
 }
 
 #[inline(never)]
-fn call_facade_string_map(map: &FzStringMap<&str, i32>, key: &str) -> bool {
+fn call_fz_string_map(map: &FzStringMap<&str, i32>, key: &str) -> bool {
     map.contains_key(key)
 }

@@ -4,6 +4,7 @@ extern crate alloc;
 use alloc::vec;
 use core::hint::black_box;
 use frozen_collections::hashers::PassthroughHasher;
+use frozen_collections::inline_maps::InlineScanMap;
 use frozen_collections::maps::{
     BinarySearchMap, DenseScalarLookupMap, EytzingerSearchMap, HashMap, OrderedScanMap, ScanMap,
     SparseScalarLookupMap,
@@ -55,9 +56,29 @@ fn main() {
         _ = black_box(call_eytzinger_search_map(&map, key));
     }
 
-    let map = FzScalarMap::new(input);
+    let map = FzScalarMap::new(input.clone());
+    for key in probe.clone() {
+        _ = black_box(call_fz_scalar_map(&map, key));
+    }
+
+    let map = InlineScanMap::new_raw([]);
+    for key in probe.clone() {
+        _ = black_box(call_inline_scan_map_0_entries(&map, key));
+    }
+
+    let map = InlineScanMap::new_raw([input[0]]);
+    for key in probe.clone() {
+        _ = black_box(call_inline_scan_map_1_entries(&map, key));
+    }
+
+    let map = InlineScanMap::new_raw([input[0], input[1]]);
+    for key in probe.clone() {
+        _ = black_box(call_inline_scan_map_2_entries(&map, key));
+    }
+
+    let map = InlineScanMap::new_raw([input[0], input[1], input[2]]);
     for key in probe {
-        _ = black_box(call_facade_scalar_map(&map, key));
+        _ = black_box(call_inline_scan_map_3_entries(&map, key));
     }
 }
 
@@ -85,7 +106,7 @@ fn call_sparse_scalar_lookup_map(map: &SparseScalarLookupMap<i32, i32>, key: i32
 }
 
 #[inline(never)]
-fn call_facade_scalar_map(map: &FzScalarMap<i32, i32>, key: i32) -> bool {
+fn call_fz_scalar_map(map: &FzScalarMap<i32, i32>, key: i32) -> bool {
     map.contains_key(&key)
 }
 
@@ -106,5 +127,25 @@ fn call_scan_map(map: &ScanMap<i32, i32>, key: i32) -> bool {
 
 #[inline(never)]
 fn call_ordered_scan_map(map: &OrderedScanMap<i32, i32>, key: i32) -> bool {
+    map.contains_key(&key)
+}
+
+#[inline(never)]
+fn call_inline_scan_map_0_entries(map: &InlineScanMap<i32, i32, 0>, key: i32) -> bool {
+    map.contains_key(&key)
+}
+
+#[inline(never)]
+fn call_inline_scan_map_1_entries(map: &InlineScanMap<i32, i32, 1>, key: i32) -> bool {
+    map.contains_key(&key)
+}
+
+#[inline(never)]
+fn call_inline_scan_map_2_entries(map: &InlineScanMap<i32, i32, 2>, key: i32) -> bool {
+    map.contains_key(&key)
+}
+
+#[inline(never)]
+fn call_inline_scan_map_3_entries(map: &InlineScanMap<i32, i32, 3>, key: i32) -> bool {
     map.contains_key(&key)
 }

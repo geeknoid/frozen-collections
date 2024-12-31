@@ -48,7 +48,7 @@ impl Generator {
     }
 
     /*
-        pub fn gen_facade_hash<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+        pub fn gen_fz_hash<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
             let key_type = &self.key_type;
             let value_type = &self.value_type;
 
@@ -69,7 +69,7 @@ impl Generator {
             Output { ctor, type_sig }
         }
 
-        pub fn gen_facade_ordered<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+        pub fn gen_fz_ordered<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
             let key_type = &self.key_type;
             let value_type = &self.value_type;
 
@@ -92,7 +92,7 @@ impl Generator {
     */
 
     #[cfg(feature = "macros")]
-    pub fn gen_facade_scalar<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+    pub fn gen_fz_scalar<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
 
@@ -114,7 +114,7 @@ impl Generator {
     }
 
     #[cfg(feature = "macros")]
-    pub fn gen_facade_string<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+    pub fn gen_fz_string<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
 
@@ -497,30 +497,6 @@ impl Generator {
 
         if self.gen_set {
             ty = quote!(::frozen_collections::sets::OrderedScanSet);
-            generics = quote!(<#key_type>);
-            type_sig = quote!(#ty::#generics);
-            ctor = quote!(#type_sig::new(#ctor));
-        }
-
-        Output { ctor, type_sig }
-    }
-
-    #[cfg(feature = "macros")]
-    pub fn gen_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
-        let key_type = &self.key_type;
-        let value_type = &self.value_type;
-
-        let mut ty = quote!(::frozen_collections::maps::ScanMap);
-        let mut generics = quote!(<#key_type, #value_type>);
-        let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new(vec![
-            #(
-                #entries,
-            )*
-        ]));
-
-        if self.gen_set {
-            ty = quote!(::frozen_collections::sets::ScanSet);
             generics = quote!(<#key_type>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::new(#ctor));
