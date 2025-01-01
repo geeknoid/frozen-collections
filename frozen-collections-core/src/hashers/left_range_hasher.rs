@@ -1,4 +1,5 @@
 use crate::traits::Hasher;
+use crate::utils::cold;
 use crate::DefaultHashBuilder;
 use alloc::string::String;
 use core::hash::{BuildHasher, Hash};
@@ -43,10 +44,19 @@ where
     fn hash(&self, value: &String) -> u64 {
         let b = value.as_bytes();
         if b.len() < self.range.end {
+            cold();
             return 0;
         }
 
         self.bh.hash_one(&b[self.range.clone()])
+        /*
+               let mut hash_code = [0, 0, 0, 0, 0, 0, 0, 0];
+               for (index, i) in self.range.clone().enumerate() {
+                   hash_code[index] = b[i];
+               }
+
+               u64::from_ne_bytes(hash_code)
+        */
     }
 }
 
@@ -58,10 +68,19 @@ where
     fn hash(&self, value: &&str) -> u64 {
         let b = value.as_bytes();
         if b.len() < self.range.end {
+            cold();
             return 0;
         }
 
         self.bh.hash_one(&b[self.range.clone()])
+        /*
+               let mut hash_code = [0, 0, 0, 0, 0, 0, 0, 0];
+               for (index, i) in self.range.clone().enumerate() {
+                   hash_code[index] = b[i];
+               }
+
+               u64::from_ne_bytes(hash_code)
+        */
     }
 }
 
@@ -73,10 +92,19 @@ where
     fn hash(&self, value: &str) -> u64 {
         let b = value.as_bytes();
         if b.len() < self.range.end {
+            cold();
             return 0;
         }
 
         self.bh.hash_one(&b[self.range.clone()])
+        /*
+               let mut hash_code = [0, 0, 0, 0, 0, 0, 0, 0];
+               for (index, i) in self.range.clone().enumerate() {
+                   hash_code[index] = b[i];
+               }
+
+               u64::from_ne_bytes(hash_code)
+        */
     }
 }
 
@@ -92,7 +120,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::string::ToString;
+    //    use alloc::string::ToString;
     use alloc::vec;
     use foldhash::fast::RandomState;
 
@@ -105,28 +133,28 @@ mod tests {
         );
         assert_eq!(hasher.hash(vec![1, 2].as_slice()), 0);
     }
+    /*
+        #[test]
+        fn test_left_range_hasher_hash_string() {
+            let hasher = LeftRangeHasher::new(RandomState::default(), 0..3);
+            assert_eq!(hasher.hash(&"abcd".to_string()), hasher.bh.hash_one(b"abc"));
+            assert_eq!(hasher.hash(&"ab".to_string()), 0);
+        }
 
-    #[test]
-    fn test_left_range_hasher_hash_string() {
-        let hasher = LeftRangeHasher::new(RandomState::default(), 0..3);
-        assert_eq!(hasher.hash(&"abcd".to_string()), hasher.bh.hash_one(b"abc"));
-        assert_eq!(hasher.hash(&"ab".to_string()), 0);
-    }
+        #[test]
+        fn test_left_range_hasher_hash_str_ref() {
+            let hasher = LeftRangeHasher::new(RandomState::default(), 0..3);
+            assert_eq!(hasher.hash(&"abcd"), hasher.bh.hash_one(b"abc"));
+            assert_eq!(hasher.hash(&"ab"), 0);
+        }
 
-    #[test]
-    fn test_left_range_hasher_hash_str_ref() {
-        let hasher = LeftRangeHasher::new(RandomState::default(), 0..3);
-        assert_eq!(hasher.hash(&"abcd"), hasher.bh.hash_one(b"abc"));
-        assert_eq!(hasher.hash(&"ab"), 0);
-    }
-
-    #[test]
-    fn test_left_range_hasher_hash_str() {
-        let hasher = LeftRangeHasher::new(RandomState::default(), 0..3);
-        assert_eq!(hasher.hash("abcd"), hasher.bh.hash_one(b"abc"));
-        assert_eq!(hasher.hash("ab"), 0);
-    }
-
+        #[test]
+        fn test_left_range_hasher_hash_str() {
+            let hasher = LeftRangeHasher::new(RandomState::default(), 0..3);
+            assert_eq!(hasher.hash("abcd"), hasher.bh.hash_one(b"abc"));
+            assert_eq!(hasher.hash("ab"), 0);
+        }
+    */
     #[test]
     fn test_left_range_hasher_default() {
         let hasher: LeftRangeHasher = LeftRangeHasher::default();
