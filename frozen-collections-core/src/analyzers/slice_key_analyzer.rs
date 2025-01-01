@@ -35,11 +35,11 @@ pub enum SliceKeyAnalysisResult {
 /// we can totally skip hashing and just use their lengths as hash codes.
 pub fn analyze_slice_keys<'a, K, I, BH>(keys: I, bh: &BH) -> SliceKeyAnalysisResult
 where
-    K: Hash + 'a,
+    K: Hash + Eq + 'a,
     I: Iterator<Item = &'a [K]>,
     BH: BuildHasher,
 {
-    let keys = keys.collect();
+    let keys: Vec<&[K]> = keys.collect();
 
     // first, see if we can just use slice lengths as hash codes
     let result = analyze_lengths(&keys);
@@ -75,9 +75,9 @@ fn analyze_lengths<T>(keys: &Vec<&[T]>) -> SliceKeyAnalysisResult {
 }
 
 /// See if we can use subslices to reduce the time spent hashing
-fn analyze_subslices<T, BH>(keys: &Vec<&[T]>, bh: &BH) -> SliceKeyAnalysisResult
+fn analyze_subslices<T, BH>(keys: &[&[T]], bh: &BH) -> SliceKeyAnalysisResult
 where
-    T: Hash,
+    T: Hash + Eq,
     BH: BuildHasher,
 {
     // constrain the amount of work we do in this code
@@ -86,9 +86,34 @@ where
 
     let mut min_len = usize::MAX;
     let mut max_len = 0;
+    let mut prefix_len = usize::MAX;
+    let mut suffix_len = usize::MAX;
+
     for s in keys {
         min_len = min(min_len, s.len());
         max_len = max(max_len, s.len());
+
+        if s.len() < prefix_len {
+            prefix_len = s.len();
+        }
+
+        if s.len() < suffix_len {
+            suffix_len = s.len();
+        }
+
+        for i in 0..prefix_len {
+            if s[i] != keys[0][i] {
+                prefix_len = i;
+                break;
+            }
+        }
+
+        for i in 0..suffix_len {
+            if s[s.len() - i - 1] != keys[0][keys[0].len() - i - 1] {
+                suffix_len = i;
+                break;
+            }
+        }
     }
 
     // tolerate a certain amount of duplicate subslices
@@ -104,7 +129,7 @@ where
     while subslice_len <= max_subslice_len {
         // For each index, get a uniqueness factor for the left-justified subslices.
         // If any is above our threshold, we're done.
-        let mut subslice_index = 0;
+        let mut subslice_index = prefix_len;
         while subslice_index <= min_len - subslice_len {
             if is_sufficiently_unique(
                 keys,
@@ -134,7 +159,7 @@ where
         if min_len != max_len {
             // For each index, get a uniqueness factor for the right-justified subslices.
             // If any is above our threshold, we're done.
-            subslice_index = 0;
+            subslice_index = suffix_len;
             while subslice_index <= min_len - subslice_len {
                 if is_sufficiently_unique(
                     keys,
@@ -162,7 +187,7 @@ where
 }
 
 fn is_sufficiently_unique<T, BH>(
-    keys: &Vec<&[T]>,
+    keys: &[&[T]],
     subslice_index: usize,
     subslice_len: usize,
     left_justified: bool,

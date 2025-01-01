@@ -1,4 +1,5 @@
 use crate::traits::Hasher;
+use crate::utils::cold;
 use crate::DefaultHashBuilder;
 use alloc::string::String;
 use core::hash::{BuildHasher, Hash};
@@ -33,6 +34,7 @@ where
     #[inline]
     fn hash(&self, value: &[T]) -> u64 {
         if value.len() < RANGE_END {
+            cold();
             return 0;
         }
 
@@ -50,6 +52,7 @@ where
     fn hash(&self, value: &String) -> u64 {
         let b = value.as_bytes();
         if b.len() < RANGE_END {
+            cold();
             return 0;
         }
 
@@ -67,6 +70,7 @@ where
     fn hash(&self, value: &&str) -> u64 {
         let b = value.as_bytes();
         if b.len() < RANGE_END {
+            cold();
             return 0;
         }
 
@@ -84,6 +88,7 @@ where
     fn hash(&self, value: &str) -> u64 {
         let b = value.as_bytes();
         if b.len() < RANGE_END {
+            cold();
             return 0;
         }
 
