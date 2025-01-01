@@ -4,11 +4,11 @@ These benchmarks compare the performance of the frozen collecitons relative
 to the classic Rust collections.
 
 The frozen collections have different optimizations depending on the type of data they
-storeta and how it is declared. The benchmarks probe those different features to show
+store and how it is declared. The benchmarks probe those different features to show
 the effect of the different optimizations on effective performance.
 
 When you see `HashSet(classic)` vs. `HashSet(foldhash)` this reflects the performance difference between the
-normal hasher used by the standard collections as opposed to the performnace that the
+normal hasher used by the standard collections as opposed to the performance that the
 `foldhash` hasher provides.
 
 The benchmarks assume a 50% hit rate when probing for lookup, meaning that
