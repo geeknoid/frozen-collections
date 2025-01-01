@@ -56,14 +56,6 @@ where
         }
 
         self.bh.hash_one(&b[RANGE_START..RANGE_END])
-        /*
-                let mut hash_code = [0, 0, 0, 0, 0, 0, 0, 0];
-                for (index, i) in (RANGE_START..RANGE_END).enumerate() {
-                    hash_code[index] = b[i];
-                }
-
-                u64::from_ne_bytes(hash_code)
-        */
     }
 }
 
@@ -81,14 +73,6 @@ where
         }
 
         self.bh.hash_one(&b[RANGE_START..RANGE_END])
-        /*
-               let mut hash_code = [0, 0, 0, 0, 0, 0, 0, 0];
-               for (index, i) in (RANGE_START..RANGE_END).enumerate() {
-                   hash_code[index] = b[i];
-               }
-
-               u64::from_ne_bytes(hash_code)
-        */
     }
 }
 
@@ -106,21 +90,13 @@ where
         }
 
         self.bh.hash_one(&b[RANGE_START..RANGE_END])
-        /*
-                let mut hash_code = [0, 0, 0, 0, 0, 0, 0, 0];
-                for (index, i) in (RANGE_START..RANGE_END).enumerate() {
-                    hash_code[index] = b[i];
-                }
-
-                u64::from_ne_bytes(hash_code)
-        */
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    //    use alloc::string::ToString;
+    use alloc::string::ToString;
     use alloc::vec;
     use foldhash::fast::RandomState;
 
@@ -133,26 +109,25 @@ mod tests {
         );
         assert_eq!(hasher.hash(vec![1, 2].as_slice()), 0);
     }
-    /*
-       #[test]
-       fn test_left_range_hasher_hash_string() {
-           let hasher = InlineLeftRangeHasher::<0, 3>::new(RandomState::default());
-           assert_eq!(hasher.hash(&"abcd".to_string()), hasher.bh.hash_one(b"abc"));
-           assert_eq!(hasher.hash(&"ab".to_string()), 0);
-       }
 
-       #[test]
-       fn test_left_range_hasher_hash_str_ref() {
-           let hasher = InlineLeftRangeHasher::<0, 3>::new(RandomState::default());
-           assert_eq!(hasher.hash(&"abcd"), hasher.bh.hash_one(b"abc"));
-           assert_eq!(hasher.hash(&"ab"), 0);
-       }
+    #[test]
+    fn test_left_range_hasher_hash_string() {
+        let hasher = InlineLeftRangeHasher::<0, 3>::new(RandomState::default());
+        assert_eq!(hasher.hash(&"abcd".to_string()), hasher.bh.hash_one(b"abc"));
+        assert_eq!(hasher.hash(&"ab".to_string()), 0);
+    }
 
-       #[test]
-       fn test_left_range_hasher_hash_str() {
-           let hasher = InlineLeftRangeHasher::<0, 3>::new(RandomState::default());
-           assert_eq!(hasher.hash("abcd"), hasher.bh.hash_one(b"abc"));
-           assert_eq!(hasher.hash("ab"), 0);
-       }
-    */
+    #[test]
+    fn test_left_range_hasher_hash_str_ref() {
+        let hasher = InlineLeftRangeHasher::<0, 3>::new(RandomState::default());
+        assert_eq!(hasher.hash(&"abcd"), hasher.bh.hash_one(b"abc"));
+        assert_eq!(hasher.hash(&"ab"), 0);
+    }
+
+    #[test]
+    fn test_left_range_hasher_hash_str() {
+        let hasher = InlineLeftRangeHasher::<0, 3>::new(RandomState::default());
+        assert_eq!(hasher.hash("abcd"), hasher.bh.hash_one(b"abc"));
+        assert_eq!(hasher.hash("ab"), 0);
+    }
 }

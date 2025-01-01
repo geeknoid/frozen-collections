@@ -1,4 +1,6 @@
 use rand::Rng;
+use rand_chacha::rand_core::SeedableRng;
+use rand_chacha::ChaChaRng;
 use std::env;
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -253,7 +255,7 @@ fn emit_sparse_scalar_benchmark() {
 
 fn emit_random_scalar_benchmark() {
     fn random_producer(file: &mut BufWriter<File>, size: usize) {
-        let mut rng = rand::rng();
+        let mut rng = ChaChaRng::seed_from_u64(0x1234_5678);
 
         for _ in 0..size {
             let x: i32 = rng.random();
@@ -273,7 +275,7 @@ fn emit_random_scalar_benchmark() {
 
 fn emit_prefixed_string_benchmark() {
     fn prefixed_producer(file: &mut BufWriter<File>, size: usize) {
-        let mut rng = rand::rng();
+        let mut rng = ChaChaRng::seed_from_u64(0x1234_5678);
 
         for _ in 0..size {
             let len: u32 = rng.random();
@@ -301,7 +303,7 @@ fn emit_prefixed_string_benchmark() {
 
 fn emit_random_string_benchmark() {
     fn random_producer(file: &mut BufWriter<File>, size: usize) {
-        let mut rng = rand::rng();
+        let mut rng = ChaChaRng::seed_from_u64(0x1234_5678);
 
         for _ in 0..size {
             let len: u32 = rng.random();
@@ -329,7 +331,7 @@ fn emit_random_string_benchmark() {
 
 fn emit_hashed_benchmark() {
     fn hashed_producer(file: &mut BufWriter<File>, size: usize) {
-        let mut rng = rand::rng();
+        let mut rng = ChaChaRng::seed_from_u64(0x1234_5678);
 
         for _ in 0..size {
             let len: u32 = rng.random();
@@ -368,7 +370,7 @@ fn emit_hashed_benchmark() {
 
 fn emit_ordered_benchmark() {
     fn ordered_producer(file: &mut BufWriter<File>, size: usize) {
-        let mut rng = rand::rng();
+        let mut rng = ChaChaRng::seed_from_u64(0x1234_5678);
 
         for _ in 0..size {
             let len: u32 = rng.random();
