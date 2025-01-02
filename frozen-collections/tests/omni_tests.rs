@@ -638,8 +638,8 @@ fn binary_search() {
         (9, ()),
         (10, ()),
     ]);
-    let map_reference = HashbrownMap::<i32, ()>::from_iter(m.clone().into_iter());
-    let map_other = HashbrownMap::<i32, ()>::from_iter(m.clone().into_iter());
+    let map_reference = HashbrownMap::<i32, ()>::from_iter(m.clone());
+    let map_other = HashbrownMap::<i32, ()>::from_iter(m.clone());
 
     test_map(&m, &map_reference, &map_other);
     test_map_ops(&m, &map_reference);
@@ -648,8 +648,8 @@ fn binary_search() {
     test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
     let s = InlineBinarySearchSet::<i32, 10>::new(m);
-    let set_reference = HashbrownSet::<i32>::from_iter(s.clone().into_iter());
-    let set_other = HashbrownSet::<i32>::from_iter(s.clone().into_iter());
+    let set_reference = HashbrownSet::<i32>::from_iter(s.clone());
+    let set_other = HashbrownSet::<i32>::from_iter(s.clone());
 
     test_set(&s, &set_reference, &set_other);
     test_set_iter(&s, &set_reference);
@@ -671,8 +671,8 @@ fn eytzinger_search() {
         (3, ()),
         (5, ()),
     ]);
-    let map_reference = HashbrownMap::<i32, ()>::from_iter(m.clone().into_iter());
-    let map_other = HashbrownMap::<i32, ()>::from_iter(m.clone().into_iter());
+    let map_reference = HashbrownMap::<i32, ()>::from_iter(m.clone());
+    let map_other = HashbrownMap::<i32, ()>::from_iter(m.clone());
 
     test_map(&m, &map_reference, &map_other);
     test_map_ops(&m, &map_reference);
@@ -681,8 +681,8 @@ fn eytzinger_search() {
     test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
     let s = InlineEytzingerSearchSet::<i32, 10>::new(m);
-    let set_reference = HashbrownSet::<i32>::from_iter(s.clone().into_iter());
-    let set_other = HashbrownSet::<i32>::from_iter(s.clone().into_iter());
+    let set_reference = HashbrownSet::<i32>::from_iter(s.clone());
+    let set_other = HashbrownSet::<i32>::from_iter(s.clone());
 
     test_set(&s, &set_reference, &set_other);
     test_set_iter(&s, &set_reference);

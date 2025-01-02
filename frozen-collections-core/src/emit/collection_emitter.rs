@@ -101,9 +101,6 @@ pub struct CollectionEmitter {
 }
 
 const INLINE_SCAN_THRESHOLD: usize = 2;
-const SCAN_THRESHOLD: usize = 4;
-const ORDERED_SCAN_THRESHOLD: usize = 7;
-const BINARY_SEARCH_THRESHOLD: usize = 64;
 
 impl CollectionEmitter {
     /// Creates a new `CollectionEmitter` instance.
@@ -246,7 +243,7 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < SCAN_THRESHOLD {
+        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_inline_hash_with_bridge(entries)
@@ -275,12 +272,8 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < SCAN_THRESHOLD {
+        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
             gen.gen_inline_scan(entries)
-        } else if entries.len() < ORDERED_SCAN_THRESHOLD {
-            gen.gen_inline_ordered_scan(entries)
-        } else if entries.len() < BINARY_SEARCH_THRESHOLD {
-            gen.gen_inline_binary_search(entries)
         } else {
             gen.gen_inline_eytzinger_search(entries)
         };
@@ -314,10 +307,8 @@ impl CollectionEmitter {
             ScalarKeyAnalysisResult::DenseRange => gen.gen_inline_dense_scalar_lookup(entries),
             ScalarKeyAnalysisResult::SparseRange => gen.gen_inline_sparse_scalar_lookup(entries),
             ScalarKeyAnalysisResult::General => {
-                if entries.len() < SCAN_THRESHOLD {
+                if entries.len() < INLINE_SCAN_THRESHOLD {
                     gen.gen_inline_scan(entries)
-                } else if entries.len() < ORDERED_SCAN_THRESHOLD {
-                    gen.gen_inline_ordered_scan(entries)
                 } else {
                     gen.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new())
                 }
@@ -344,10 +335,8 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < SCAN_THRESHOLD {
+        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
             gen.gen_inline_scan(entries)
-        } else if entries.len() < ORDERED_SCAN_THRESHOLD {
-            gen.gen_inline_ordered_scan(entries)
         } else {
             let iter = entries.iter().map(|x| x.key.as_bytes());
 
@@ -394,8 +383,6 @@ impl CollectionEmitter {
         let gen = self.preflight(entries.len())?;
         let output = if entries.len() < INLINE_SCAN_THRESHOLD {
             gen.gen_inline_scan(entries)
-        } else if entries.len() < SCAN_THRESHOLD {
-            gen.gen_scan(entries)
         } else {
             gen.gen_hash_with_bridge(entries)
         };
@@ -411,12 +398,6 @@ impl CollectionEmitter {
         let gen = self.preflight(entries.len())?;
         let output = if entries.len() < INLINE_SCAN_THRESHOLD {
             gen.gen_inline_scan(entries)
-        } else if entries.len() < SCAN_THRESHOLD {
-            gen.gen_scan(entries)
-        } else if entries.len() < ORDERED_SCAN_THRESHOLD {
-            gen.gen_ordered_scan(entries)
-        } else if entries.len() < BINARY_SEARCH_THRESHOLD {
-            gen.gen_binary_search(entries)
         } else {
             gen.gen_eytzinger_search(entries)
         };
@@ -432,8 +413,6 @@ impl CollectionEmitter {
         let gen = self.preflight(entries.len())?;
         let output = if entries.len() < INLINE_SCAN_THRESHOLD {
             gen.gen_inline_scan(entries)
-        } else if entries.len() < SCAN_THRESHOLD {
-            gen.gen_scan(entries)
         } else {
             gen.gen_fz_scalar(entries)
         };
@@ -449,8 +428,6 @@ impl CollectionEmitter {
         let gen = self.preflight(entries.len())?;
         let output = if entries.len() < INLINE_SCAN_THRESHOLD {
             gen.gen_inline_scan(entries)
-        } else if entries.len() < SCAN_THRESHOLD {
-            gen.gen_scan(entries)
         } else {
             gen.gen_fz_string(entries)
         };

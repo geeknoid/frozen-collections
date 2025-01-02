@@ -1,5 +1,5 @@
-#![allow(clippy::redundant_pub_crate)]
 #![allow(clippy::needless_pass_by_value)]
+#![allow(unexpected_cfgs)]
 
 use crate::emit::collection_entry::CollectionEntry;
 use crate::hash_tables::HashTable;
@@ -18,7 +18,7 @@ use quote::quote;
 use syn::{parse_quote, Type};
 
 #[derive(Debug)]
-pub(crate) struct Generator {
+pub struct Generator {
     key_type: Type,
     value_type: Type,
     pub seed: u64,
@@ -26,7 +26,7 @@ pub(crate) struct Generator {
     gen_set: bool,
 }
 
-pub(crate) struct Output {
+pub struct Output {
     pub ctor: TokenStream,
     pub type_sig: TokenStream,
 }
@@ -47,49 +47,53 @@ impl Generator {
         }
     }
 
-    /*
-        pub fn gen_fz_hash<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
-            let key_type = &self.key_type;
-            let value_type = &self.value_type;
+    #[cfg(feature = "disabled")]
+    pub fn gen_fz_hash<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+        let key_type = &self.key_type;
+        let value_type = &self.value_type;
 
-            let mut ty = quote!(::frozen_collections::FzHashMap);
-            let mut type_sig = quote!(#ty::<#key_type, #value_type>);
-            let mut ctor = quote!(#type_sig::new(vec![
-                #(
-                    #entries,
-                )*
-            ]));
+        let mut ty = quote!(::frozen_collections::FzHashMap);
+        let mut generics = quote!(<#key_type, #len>);
+        let mut type_sig = quote!(#ty::#generics);
+        let mut ctor = quote!(#type_sig::new(vec![
+            #(
+                #entries,
+            )*
+        ]));
 
-            if self.gen_set {
-                ty = quote!(::frozen_collections::FzHashSet);
-                type_sig = quote!(#ty);
-                ctor = quote!(#type_sig::from(#ctor));
-            }
-
-            Output { ctor, type_sig }
+        if self.gen_set {
+            ty = quote!(::frozen_collections::FzHashSet);
+            generics = quote!(<#key_type>);
+            type_sig = quote!(#ty::#generics);
+            ctor = quote!(#type_sig::from(#ctor));
         }
 
-        pub fn gen_fz_ordered<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
-            let key_type = &self.key_type;
-            let value_type = &self.value_type;
+        Output { ctor, type_sig }
+    }
 
-            let mut ty = quote!(::frozen_collections::FzOrderedMap);
-            let mut type_sig = quote!(#ty::<#key_type, #value_type>);
-            let mut ctor = quote!(#type_sig::new(vec![
-                #(
-                    #entries,
-                )*
-            ]));
+    #[cfg(feature = "disabled")]
+    pub fn gen_fz_ordered<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+        let key_type = &self.key_type;
+        let value_type = &self.value_type;
 
-            if self.gen_set {
-                ty = quote!(::frozen_collections::FzOrderedSet);
-                type_sig = quote!(#ty);
-                ctor = quote!(#type_sig::from(#ctor));
-            }
+        let mut ty = quote!(::frozen_collections::FzOrderedMap);
+        let mut generics = quote!(<#key_type, #value_type>);
+        let mut type_sig = quote!(#ty::generics);
+        let mut ctor = quote!(#type_sig::new(vec![
+            #(
+                #entries,
+            )*
+        ]));
 
-            Output { ctor, type_sig }
+        if self.gen_set {
+            ty = quote!(::frozen_collections::FzOrderedSet);
+            generics = quote!(<#key_type>);
+            type_sig = quote!(#ty::#generics);
+            ctor = quote!(#type_sig::from(#ctor));
         }
-    */
+
+        Output { ctor, type_sig }
+    }
 
     #[cfg(feature = "macros")]
     pub fn gen_fz_scalar<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
@@ -97,7 +101,8 @@ impl Generator {
         let value_type = &self.value_type;
 
         let mut ty = quote!(::frozen_collections::FzScalarMap);
-        let mut type_sig = quote!(#ty::<#key_type, #value_type>);
+        let mut generics = quote!(<#key_type, #value_type>);
+        let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new(vec![
             #(
                 #entries,
@@ -106,7 +111,8 @@ impl Generator {
 
         if self.gen_set {
             ty = quote!(::frozen_collections::FzScalarSet);
-            type_sig = quote!(#ty);
+            generics = quote!(<#key_type>);
+            type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::from(#ctor));
         }
 
@@ -119,7 +125,8 @@ impl Generator {
         let value_type = &self.value_type;
 
         let mut ty = quote!(::frozen_collections::FzStringMap);
-        let mut type_sig = quote!(#ty::<#key_type, #value_type>);
+        let mut generics = quote!(<#key_type, #value_type>);
+        let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new(vec![
             #(
                 #entries,
@@ -128,14 +135,15 @@ impl Generator {
 
         if self.gen_set {
             ty = quote!(::frozen_collections::FzStringSet);
-            type_sig = quote!(#ty);
+            generics = quote!(<#key_type>);
+            type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::from(#ctor));
         }
 
         Output { ctor, type_sig }
     }
 
-    #[cfg(feature = "emit")]
+    #[cfg(feature = "disabled")]
     pub fn gen_inline_binary_search<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
@@ -309,6 +317,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
+    #[cfg(feature = "disabled")]
     pub fn gen_inline_ordered_scan<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
@@ -407,7 +416,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    #[cfg(feature = "macros")]
+    #[cfg(feature = "disabled")]
     pub fn gen_binary_search<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
@@ -481,7 +490,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    #[cfg(feature = "macros")]
+    #[cfg(feature = "disabled")]
     pub fn gen_ordered_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
@@ -505,7 +514,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    #[cfg(feature = "macros")]
+    #[cfg(feature = "disabled")]
     pub fn gen_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;

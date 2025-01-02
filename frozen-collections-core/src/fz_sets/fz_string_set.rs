@@ -97,7 +97,7 @@ where
 
 impl<T, Q, BH> Set<T, Q> for FzStringSet<T, BH>
 where
-    Q: Hash + Eq + Len + Equivalent<T>,
+    Q: ?Sized + Hash + Eq + Len + Equivalent<T>,
     BH: BuildHasher,
     LeftRangeHasher<BH>: Hasher<Q>,
     RightRangeHasher<BH>: Hasher<Q>,
@@ -106,7 +106,7 @@ where
 
 impl<T, Q, BH> SetQuery<T, Q> for FzStringSet<T, BH>
 where
-    Q: Hash + Eq + Len + Equivalent<T>,
+    Q: ?Sized + Hash + Eq + Len + Equivalent<T>,
     BH: BuildHasher,
     LeftRangeHasher<BH>: Hasher<Q>,
     RightRangeHasher<BH>: Hasher<Q>,

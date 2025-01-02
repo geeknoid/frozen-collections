@@ -2,7 +2,6 @@ use crate::utils::BitVec;
 use alloc::vec::Vec;
 
 /// How to treat a collection of hash codes for best performance.
-//#[derive(Clone)]
 pub struct HashCodeAnalysisResult {
     /// The recommended hash table size. This is not necessarily optimal, but it's good enough.
     pub num_hash_slots: usize,

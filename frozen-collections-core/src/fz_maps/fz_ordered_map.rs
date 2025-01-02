@@ -1,6 +1,5 @@
 use crate::maps::{
-    BinarySearchMap, EytzingerSearchMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys,
-    OrderedScanMap, Values, ValuesMut,
+    EytzingerSearchMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut,
 };
 use crate::traits::{Len, Map, MapIteration, MapQuery};
 use crate::utils::{dedup_by_keep_last, eytzinger_sort};
@@ -19,13 +18,6 @@ use {
     serde::{Deserialize, Deserializer, Serialize, Serializer},
 };
 
-#[derive(Clone)]
-enum MapTypes<K, V> {
-    BinarySearch(BinarySearchMap<K, V>),
-    EytzingerSearch(EytzingerSearchMap<K, V>),
-    Scanning(OrderedScanMap<K, V>),
-}
-
 /// A map optimized for fast read access with ordered keys.
 ///
 #[doc = include_str!("../doc_snippets/about.md")]
@@ -41,7 +33,7 @@ enum MapTypes<K, V> {
 /// this type as they generally perform better.
 #[derive(Clone)]
 pub struct FzOrderedMap<K, V> {
-    map_impl: MapTypes<K, V>,
+    map_impl: EytzingerSearchMap<K, V>,
 }
 
 impl<K, V> FzOrderedMap<K, V>
@@ -55,13 +47,9 @@ where
         dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
 
         Self {
-            map_impl: if entries.len() < 5 {
-                MapTypes::Scanning(OrderedScanMap::new_raw(entries))
-            } else if entries.len() < 64 {
-                MapTypes::BinarySearch(BinarySearchMap::new_raw(entries))
-            } else {
+            map_impl: {
                 eytzinger_sort(&mut entries);
-                MapTypes::EytzingerSearch(EytzingerSearchMap::new_raw(entries))
+                EytzingerSearchMap::new_raw(entries)
             },
         }
     }
@@ -70,7 +58,7 @@ where
 impl<K, V> Default for FzOrderedMap<K, V> {
     fn default() -> Self {
         Self {
-            map_impl: MapTypes::Scanning(OrderedScanMap::default()),
+            map_impl: EytzingerSearchMap::default(),
         }
     }
 }
@@ -99,11 +87,7 @@ where
 {
     #[must_use]
     fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
-        match &mut self.map_impl {
-            MapTypes::BinarySearch(m) => m.get_many_mut(keys),
-            MapTypes::EytzingerSearch(m) => m.get_many_mut(keys),
-            MapTypes::Scanning(m) => m.get_many_mut(keys),
-        }
+        self.map_impl.get_many_mut(keys)
     }
 }
 
@@ -114,31 +98,19 @@ where
     #[inline]
     #[must_use]
     fn get(&self, key: &Q) -> Option<&V> {
-        match &self.map_impl {
-            MapTypes::BinarySearch(m) => m.get(key),
-            MapTypes::EytzingerSearch(m) => m.get(key),
-            MapTypes::Scanning(m) => m.get(key),
-        }
+        self.map_impl.get(key)
     }
 
     #[inline]
     #[must_use]
     fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        match &self.map_impl {
-            MapTypes::BinarySearch(m) => m.get_key_value(key),
-            MapTypes::EytzingerSearch(m) => m.get_key_value(key),
-            MapTypes::Scanning(m) => m.get_key_value(key),
-        }
+        self.map_impl.get_key_value(key)
     }
 
     #[inline]
     #[must_use]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        match &mut self.map_impl {
-            MapTypes::BinarySearch(m) => m.get_mut(key),
-            MapTypes::EytzingerSearch(m) => m.get_mut(key),
-            MapTypes::Scanning(m) => m.get_mut(key),
-        }
+        self.map_impl.get_mut(key)
     }
 }
 
@@ -177,69 +149,37 @@ impl<K, V> MapIteration<K, V> for FzOrderedMap<K, V> {
         V: 'a;
 
     fn iter(&self) -> Self::Iterator<'_> {
-        match &self.map_impl {
-            MapTypes::BinarySearch(m) => m.iter(),
-            MapTypes::EytzingerSearch(m) => m.iter(),
-            MapTypes::Scanning(m) => m.iter(),
-        }
+        self.map_impl.iter()
     }
 
     fn keys(&self) -> Self::KeyIterator<'_> {
-        match &self.map_impl {
-            MapTypes::BinarySearch(m) => m.keys(),
-            MapTypes::EytzingerSearch(m) => m.keys(),
-            MapTypes::Scanning(m) => m.keys(),
-        }
+        self.map_impl.keys()
     }
 
     fn values(&self) -> Self::ValueIterator<'_> {
-        match &self.map_impl {
-            MapTypes::BinarySearch(m) => m.values(),
-            MapTypes::EytzingerSearch(m) => m.values(),
-            MapTypes::Scanning(m) => m.values(),
-        }
+        self.map_impl.values()
     }
 
     fn into_keys(self) -> Self::IntoKeyIterator {
-        match self.map_impl {
-            MapTypes::BinarySearch(m) => m.into_keys(),
-            MapTypes::EytzingerSearch(m) => m.into_keys(),
-            MapTypes::Scanning(m) => m.into_keys(),
-        }
+        self.map_impl.into_keys()
     }
 
     fn into_values(self) -> Self::IntoValueIterator {
-        match self.map_impl {
-            MapTypes::BinarySearch(m) => m.into_values(),
-            MapTypes::EytzingerSearch(m) => m.into_values(),
-            MapTypes::Scanning(m) => m.into_values(),
-        }
+        self.map_impl.into_values()
     }
 
     fn iter_mut(&mut self) -> Self::MutIterator<'_> {
-        match &mut self.map_impl {
-            MapTypes::BinarySearch(m) => m.iter_mut(),
-            MapTypes::EytzingerSearch(m) => m.iter_mut(),
-            MapTypes::Scanning(m) => m.iter_mut(),
-        }
+        self.map_impl.iter_mut()
     }
 
     fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
-        match &mut self.map_impl {
-            MapTypes::BinarySearch(m) => m.values_mut(),
-            MapTypes::EytzingerSearch(m) => m.values_mut(),
-            MapTypes::Scanning(m) => m.values_mut(),
-        }
+        self.map_impl.values_mut()
     }
 }
 
 impl<K, V> Len for FzOrderedMap<K, V> {
     fn len(&self) -> usize {
-        match &self.map_impl {
-            MapTypes::BinarySearch(m) => m.len(),
-            MapTypes::EytzingerSearch(m) => m.len(),
-            MapTypes::Scanning(m) => m.len(),
-        }
+        self.map_impl.len()
     }
 }
 
@@ -277,11 +217,7 @@ impl<K, V> IntoIterator for FzOrderedMap<K, V> {
     type IntoIter = IntoIter<K, V>;
 
     fn into_iter(self) -> Self::IntoIter {
-        match self.map_impl {
-            MapTypes::BinarySearch(m) => m.into_iter(),
-            MapTypes::EytzingerSearch(m) => m.into_iter(),
-            MapTypes::Scanning(m) => m.into_iter(),
-        }
+        self.map_impl.into_iter()
     }
 }
 
@@ -314,11 +250,7 @@ where
     V: Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match &self.map_impl {
-            MapTypes::BinarySearch(m) => m.fmt(f),
-            MapTypes::EytzingerSearch(m) => m.fmt(f),
-            MapTypes::Scanning(m) => m.fmt(f),
-        }
+        self.map_impl.fmt(f)
     }
 }
 

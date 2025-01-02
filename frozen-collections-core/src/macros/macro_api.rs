@@ -236,12 +236,9 @@ mod tests {
             let r = fz_string_set_macro(ts).unwrap().to_string();
             assert!(r.contains(expected), "{r} doesn't contain {expected}");
         }
-        check_impl(":: InlineScanSet", quote!({ "1", "2", "3", }));
-        check_impl(":: InlineOrderedScanSet", quote!({ "1", "2", "3", "4" }));
-        check_impl(
-            ":: InlineOrderedScanSet",
-            quote!({ "1", "2", "3", "4", "5", "6"}),
-        );
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", }));
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4" }));
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4", "5", "6"}));
 
         check_impl(
             ":: InlineHashSet",
@@ -264,7 +261,7 @@ mod tests {
         );
 
         check_impl(":: InlineScanSet", quote!({ x }));
-        check_impl(":: ScanSet", quote!({ x, "2", "3", }));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", }));
         check_impl(":: FzStringSet", quote!({ x, "2", "3", "4" }));
         check_impl(":: FzStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
         check_impl(
@@ -284,12 +281,12 @@ mod tests {
 
         check_impl(":: InlineDenseScalarLookupSet", quote!({ 1, 2, 3, }));
         check_impl(":: InlineSparseScalarLookupSet", quote!({ 1, 2, 3, 4, 6 }));
-        check_impl(":: InlineScanSet", quote!({ 1, 2, 10000 }));
-        check_impl(":: InlineOrderedScanSet", quote!({ 1, 2, 3, 4, 5, 10000 }));
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 10000 }));
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 10000 }));
         check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 6, 10000 }));
 
         check_impl(":: InlineScanSet", quote!({ x, }));
-        check_impl(":: ScanSet", quote!({ x, 2, 3, }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4 }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
@@ -304,33 +301,30 @@ mod tests {
 
         check_impl(":: InlineDenseScalarLookupSet", quote!({ 1, 2, 3, }));
         check_impl(":: InlineSparseScalarLookupSet", quote!({ 1, 2, 3, 4, 6 }));
-        check_impl(":: InlineScanSet", quote!({ 1, 2, 10000 }));
-        check_impl(":: InlineOrderedScanSet", quote!({ 1, 2, 3, 4, 5, 10000 }));
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 10000 }));
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 10000 }));
         check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 6, 10000 }));
 
-        check_impl(":: InlineScanSet", quote!({ "1", "2", "3", }));
-        check_impl(":: InlineOrderedScanSet", quote!({ "1", "2", "3", "4" }));
-        check_impl(
-            ":: InlineOrderedScanSet",
-            quote!({ "1", "2", "3", "4", "5", "6"}),
-        );
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", }));
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4" }));
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4", "5", "6"}));
         check_impl(
             ":: InlineHashSet",
             quote!({ "1", "2", "3", "4", "5", "6", "7" }),
         );
 
         check_impl(":: InlineScanSet", quote!({ Foo(1), }));
-        check_impl(":: ScanSet", quote!({ Foo(1), Foo(2), Foo(3), }));
+        check_impl(":: EytzingerSearchSet", quote!({ Foo(1), Foo(2), Foo(3), }));
         check_impl(
-            ":: OrderedScanSet",
+            ":: EytzingerSearchSet",
             quote!({ Foo(1), Foo(2), Foo(3), Foo(4) }),
         );
         check_impl(
-            ":: OrderedScanSet",
+            ":: EytzingerSearchSet",
             quote!({ Foo(1), Foo(2), Foo(3), Foo(4), Foo(5), Foo(6)}),
         );
         check_impl(
-            ":: BinarySearchSet",
+            ":: EytzingerSearchSet",
             quote!({ Foo(1), Foo(2), Foo(3), Foo(4), Foo(5), Foo(6), Foo(7) }),
         );
 
@@ -347,12 +341,12 @@ mod tests {
         );
 
         check_impl(":: InlineScanSet", quote!({ x, }));
-        check_impl(":: ScanSet", quote!({ x, 2, 3, }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4 }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
 
-        check_impl(":: ScanSet", quote!({ x, "2", "3", }));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", }));
         check_impl(":: FzStringSet", quote!({ x, "2", "3", "4" }));
         check_impl(":: FzStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
         check_impl(
@@ -370,35 +364,32 @@ mod tests {
 
         check_impl(":: InlineDenseScalarLookupSet", quote!({ 1, 2, 3, }));
         check_impl(":: InlineSparseScalarLookupSet", quote!({ 1, 2, 3, 4, 6 }));
-        check_impl(":: InlineScanSet", quote!({ 1, 2, 10000 }));
-        check_impl(":: InlineOrderedScanSet", quote!({ 1, 2, 3, 4, 5, 10000 }));
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 10000 }));
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 10000 }));
         check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 6, 10000 }));
 
-        check_impl(":: InlineScanSet", quote!({ "1", "2", "3", }));
-        check_impl(":: InlineOrderedScanSet", quote!({ "1", "2", "3", "4" }));
-        check_impl(
-            ":: InlineOrderedScanSet",
-            quote!({ "1", "2", "3", "4", "5", "6"}),
-        );
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", }));
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4" }));
+        check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4", "5", "6"}));
         check_impl(
             ":: InlineHashSet",
             quote!({ "1", "2", "3", "4", "5", "6", "7" }),
         );
 
         check_impl(":: InlineScanSet", quote!({ Foo(1), }));
-        check_impl(":: ScanSet", quote!({ Foo(1), Foo(2), Foo(3), }));
+        check_impl(":: HashSet", quote!({ Foo(1), Foo(2), Foo(3), }));
         check_impl(
             ":: HashSet",
             quote!({ Foo(1), Foo(2), Foo(3), Foo(4), Foo(5), Foo(6), Foo(7) }),
         );
 
         check_impl(":: InlineScanSet", quote!({ x, }));
-        check_impl(":: ScanSet", quote!({ x, 2, 3, }));
+        check_impl(":: FzScalarSet", quote!({ x, 2, 3, }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4 }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6}));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
 
-        check_impl(":: ScanSet", quote!({ x, "2", "3", }));
+        check_impl(":: FzStringSet", quote!({ x, "2", "3", }));
         check_impl(":: FzStringSet", quote!({ x, "2", "3", "4" }));
         check_impl(":: FzStringSet", quote!({ x, "2", "3", "4", "5", "6"}));
         check_impl(
