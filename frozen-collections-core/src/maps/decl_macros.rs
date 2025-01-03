@@ -345,81 +345,38 @@ macro_rules! scan_query_funcs {
     () => {
         #[inline]
         fn get(&self, key: &Q) -> Option<&V> {
+            let mut result = None;
             for entry in &self.entries {
                 if key.equivalent(&entry.0) {
-                    return Some(&entry.1);
+                    result = Some(&entry.1);
                 }
             }
 
-            None
+            result
         }
 
         #[inline]
         fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
+            let mut result = None;
             for entry in &mut self.entries {
                 if key.equivalent(&entry.0) {
-                    return Some(&mut entry.1);
+                    result = Some(&mut entry.1);
                 }
             }
 
-            None
+            result
         }
 
         #[inline]
         fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
+            let mut result = None;
             for entry in &self.entries {
                 if key.equivalent(&entry.0) {
-                    return Some((&entry.0, &entry.1));
+                    result = Some((&entry.0, &entry.1));
                 }
             }
 
-            None
-        }
-    };
-}
-
-macro_rules! ordered_scan_query_funcs {
-    () => {
-        #[inline]
-        fn get(&self, key: &Q) -> Option<&V> {
-            for entry in &self.entries {
-                let ord = key.compare(&entry.0);
-                if ord == Ordering::Equal {
-                    return Some(&entry.1);
-                } else if ord == Ordering::Less {
-                    break;
-                }
-            }
-
-            None
-        }
-
-        #[inline]
-        fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-            for entry in &mut self.entries {
-                let ord = key.compare(&entry.0);
-                if ord == Ordering::Equal {
-                    return Some(&mut entry.1);
-                } else if ord == Ordering::Less {
-                    break;
-                }
-            }
-
-            None
-        }
-
-        #[inline]
-        fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-            for entry in &self.entries {
-                let ord = key.compare(&entry.0);
-                if ord == Ordering::Equal {
-                    return Some((&entry.0, &entry.1));
-                } else if ord == Ordering::Less {
-                    break;
-                }
-            }
-
-            None
+            result
         }
     };
 }
@@ -461,7 +418,6 @@ pub(crate) use into_iter_fn;
 pub(crate) use into_iter_mut_ref_fn;
 pub(crate) use into_iter_ref_fn;
 pub(crate) use map_iteration_funcs;
-pub(crate) use ordered_scan_query_funcs;
 pub(crate) use partial_eq_fn;
 pub(crate) use scan_query_funcs;
 pub(crate) use sparse_scalar_lookup_query_funcs;

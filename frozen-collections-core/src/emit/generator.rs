@@ -317,31 +317,6 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    #[cfg(feature = "disabled")]
-    pub fn gen_inline_ordered_scan<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output {
-        let key_type = &self.key_type;
-        let value_type = &self.value_type;
-        let len = &self.len;
-
-        let mut ty = quote!(::frozen_collections::inline_maps::InlineOrderedScanMap);
-        let mut generics = quote!(<#key_type, #value_type, #len>);
-        let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new_raw([
-            #(
-                #sorted_entries,
-            )*
-        ]));
-
-        if self.gen_set {
-            ty = quote!(::frozen_collections::inline_sets::InlineOrderedScanSet);
-            generics = quote!(<#key_type, #len>);
-            type_sig = quote!(#ty::#generics);
-            ctor = quote!(#type_sig::new(#ctor));
-        }
-
-        Output { ctor, type_sig }
-    }
-
     pub fn gen_inline_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
@@ -483,30 +458,6 @@ impl Generator {
         if self.gen_set {
             ty = quote!(::frozen_collections::sets::HashSet);
             generics = quote!(<#key_type, #magnitude>);
-            type_sig = quote!(#ty::#generics);
-            ctor = quote!(#type_sig::new(#ctor));
-        }
-
-        Output { ctor, type_sig }
-    }
-
-    #[cfg(feature = "disabled")]
-    pub fn gen_ordered_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
-        let key_type = &self.key_type;
-        let value_type = &self.value_type;
-
-        let mut ty = quote!(::frozen_collections::maps::OrderedScanMap);
-        let mut generics = quote!(<#key_type, #value_type>);
-        let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new(vec![
-            #(
-                #entries,
-            )*
-        ]));
-
-        if self.gen_set {
-            ty = quote!(::frozen_collections::sets::OrderedScanSet);
-            generics = quote!(<#key_type>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::new(#ctor));
         }

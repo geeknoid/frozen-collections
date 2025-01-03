@@ -114,7 +114,15 @@ where
         let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
         let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();
         let entries = unsafe { self.entries.get_unchecked(range) };
-        entries.iter().find(|entry| eq(entry))
+
+        let mut result = None;
+        for entry in entries {
+            if eq(entry) {
+                result = Some(entry);
+            }
+        }
+
+        result
     }
 
     #[inline]
@@ -124,7 +132,15 @@ where
         let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
         let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();
         let entries = unsafe { self.entries.get_unchecked_mut(range) };
-        entries.iter_mut().find(|entry| eq(entry))
+
+        let mut result = None;
+        for entry in entries {
+            if eq(entry) {
+                result = Some(entry);
+            }
+        }
+
+        result
     }
 }
 

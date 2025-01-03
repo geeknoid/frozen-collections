@@ -100,8 +100,6 @@ pub struct CollectionEmitter {
     pub(crate) inferred_value_type: bool,
 }
 
-const INLINE_SCAN_THRESHOLD: usize = 2;
-
 impl CollectionEmitter {
     /// Creates a new `CollectionEmitter` instance.
     ///
@@ -243,7 +241,7 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_inline_hash_with_bridge(entries)
@@ -272,7 +270,7 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_inline_eytzinger_search(entries)
@@ -307,7 +305,7 @@ impl CollectionEmitter {
             ScalarKeyAnalysisResult::DenseRange => gen.gen_inline_dense_scalar_lookup(entries),
             ScalarKeyAnalysisResult::SparseRange => gen.gen_inline_sparse_scalar_lookup(entries),
             ScalarKeyAnalysisResult::General => {
-                if entries.len() < INLINE_SCAN_THRESHOLD {
+                if entries.len() < 8 {
                     gen.gen_inline_scan(entries)
                 } else {
                     gen.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new())
@@ -335,7 +333,7 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             let iter = entries.iter().map(|x| x.key.as_bytes());
@@ -381,7 +379,7 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_hash_with_bridge(entries)
@@ -396,7 +394,7 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_eytzinger_search(entries)
@@ -411,7 +409,7 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 8 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_fz_scalar(entries)
@@ -426,7 +424,7 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_fz_string(entries)
