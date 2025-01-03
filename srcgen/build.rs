@@ -13,10 +13,9 @@ fn main() {
     let dest_path = Path::new(&out_dir).join("data.rs");
     let mut file = BufWriter::new(File::create(dest_path).unwrap());
 
-    let (set1, set2) = make_sets();
-
-    _ = writeln!(file, "{set1}");
-    _ = writeln!(file, "{set2}");
+    for coll in &make_static_collections() {
+        _ = writeln!(file, "{coll}");
+    }
 
     println!("cargo::rerun-if-changed=build.rs");
 }
