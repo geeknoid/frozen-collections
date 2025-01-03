@@ -1,6 +1,6 @@
 use crate::hashers::BridgeHasher;
 use crate::maps::{
-    HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, ScanMap, Values, ValuesMut,
+    HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut,
 };
 use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_hash_keep_last;
@@ -21,12 +21,6 @@ use {
     serde::{Deserialize, Deserializer, Serialize, Serializer},
 };
 
-#[derive(Clone)]
-enum MapTypes<K, V, BH> {
-    Hash(HashMap<K, V, LargeCollection, BridgeHasher<BH>>),
-    Scanning(ScanMap<K, V>),
-}
-
 /// A map optimized for fast read access with hashable keys.
 ///
 #[doc = include_str!("../doc_snippets/about.md")]
@@ -42,7 +36,7 @@ enum MapTypes<K, V, BH> {
 /// this type as they generally perform better.
 #[derive(Clone)]
 pub struct FzHashMap<K, V, BH = DefaultHashBuilder> {
-    map_impl: MapTypes<K, V, BH>,
+    map_impl: HashMap<K, V, LargeCollection, BridgeHasher<BH>>,
 }
 
 impl<K, V> FzHashMap<K, V, DefaultHashBuilder>
@@ -68,13 +62,7 @@ where
         dedup_by_hash_keep_last(&mut entries, |x| bh.hash_one(&x.0), |x, y| x.0 == y.0);
 
         Self {
-            map_impl: if entries.len() < 4 {
-                MapTypes::Scanning(ScanMap::new_raw(entries))
-            } else {
-                MapTypes::Hash(
-                    HashMap::with_hasher_half_baked(entries, BridgeHasher::new(bh)).unwrap(),
-                )
-            },
+            map_impl: HashMap::with_hasher_half_baked(entries, BridgeHasher::new(bh)).unwrap(),
         }
     }
 }
@@ -85,7 +73,7 @@ where
 {
     fn default() -> Self {
         Self {
-            map_impl: MapTypes::Scanning(ScanMap::<K, V>::default()),
+            map_impl: HashMap::default(),
         }
     }
 }
@@ -117,10 +105,7 @@ where
 {
     #[must_use]
     fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
-        match &mut self.map_impl {
-            MapTypes::Hash(m) => m.get_many_mut(keys),
-            MapTypes::Scanning(m) => m.get_many_mut(keys),
-        }
+        self.map_impl.get_many_mut(keys)
     }
 }
 
@@ -131,26 +116,17 @@ where
 {
     #[inline]
     fn get(&self, key: &Q) -> Option<&V> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.get(key),
-            MapTypes::Scanning(m) => m.get(key),
-        }
+        self.map_impl.get(key)
     }
 
     #[inline]
     fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.get_key_value(key),
-            MapTypes::Scanning(m) => m.get_key_value(key),
-        }
+        self.map_impl.get_key_value(key)
     }
 
     #[inline]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        match &mut self.map_impl {
-            MapTypes::Hash(m) => m.get_mut(key),
-            MapTypes::Scanning(m) => m.get_mut(key),
-        }
+        self.map_impl.get_mut(key)
     }
 }
 
@@ -194,61 +170,37 @@ impl<K, V, BH> MapIteration<K, V> for FzHashMap<K, V, BH> {
         BH: 'a;
 
     fn iter(&self) -> Self::Iterator<'_> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.iter(),
-            MapTypes::Scanning(m) => m.iter(),
-        }
+        self.map_impl.iter()
     }
 
     fn keys(&self) -> Self::KeyIterator<'_> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.keys(),
-            MapTypes::Scanning(m) => m.keys(),
-        }
+        self.map_impl.keys()
     }
 
     fn values(&self) -> Self::ValueIterator<'_> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.values(),
-            MapTypes::Scanning(m) => m.values(),
-        }
+        self.map_impl.values()
     }
 
     fn into_keys(self) -> Self::IntoKeyIterator {
-        match self.map_impl {
-            MapTypes::Hash(m) => m.into_keys(),
-            MapTypes::Scanning(m) => m.into_keys(),
-        }
+        self.map_impl.into_keys()
     }
 
     fn into_values(self) -> Self::IntoValueIterator {
-        match self.map_impl {
-            MapTypes::Hash(m) => m.into_values(),
-            MapTypes::Scanning(m) => m.into_values(),
-        }
+        self.map_impl.into_values()
     }
 
     fn iter_mut(&mut self) -> Self::MutIterator<'_> {
-        match &mut self.map_impl {
-            MapTypes::Hash(m) => m.iter_mut(),
-            MapTypes::Scanning(m) => m.iter_mut(),
-        }
+        self.map_impl.iter_mut()
     }
 
     fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
-        match &mut self.map_impl {
-            MapTypes::Hash(m) => m.values_mut(),
-            MapTypes::Scanning(m) => m.values_mut(),
-        }
+        self.map_impl.values_mut()
     }
 }
 
 impl<K, V, BH> Len for FzHashMap<K, V, BH> {
     fn len(&self) -> usize {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.len(),
-            MapTypes::Scanning(m) => m.len(),
-        }
+        self.map_impl.len()
     }
 }
 
@@ -287,10 +239,7 @@ impl<K, V, BH> IntoIterator for FzHashMap<K, V, BH> {
     type IntoIter = IntoIter<K, V>;
 
     fn into_iter(self) -> Self::IntoIter {
-        match self.map_impl {
-            MapTypes::Hash(m) => m.into_iter(),
-            MapTypes::Scanning(m) => m.into_iter(),
-        }
+        self.map_impl.into_iter()
     }
 }
 
@@ -325,10 +274,7 @@ where
     V: Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.fmt(f),
-            MapTypes::Scanning(m) => m.fmt(f),
-        }
+        self.map_impl.fmt(f)
     }
 }
 

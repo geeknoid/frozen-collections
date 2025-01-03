@@ -99,7 +99,7 @@ mod tests {
     fn test_to_tokens() {
         let key_expr: Expr = parse_quote!(key);
         let value_expr: Expr = parse_quote!(value);
-        let entry = CollectionEntry::map_entry("key", key_expr.clone(), value_expr.clone());
+        let entry = CollectionEntry::map_entry("key", key_expr, value_expr);
         let mut tokens = TokenStream::new();
         entry.to_tokens(&mut tokens);
 
@@ -124,8 +124,8 @@ mod tests {
         let key = "key";
         let key_expr: Expr = parse_quote!(key);
         let value_expr: Expr = parse_quote!(value);
-        let entry = CollectionEntry::map_entry(key, key_expr.clone(), value_expr.clone());
-        let debug_str = format!("{:?}", entry);
+        let entry = CollectionEntry::map_entry(key, key_expr, value_expr);
+        let debug_str = format!("{entry:?}");
 
         assert_eq!(
             debug_str,

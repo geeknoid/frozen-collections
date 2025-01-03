@@ -110,14 +110,14 @@ where
 
 impl<T, Q, BH> Set<T, Q> for FzHashSet<T, BH>
 where
-    Q: Hash + Eq + Equivalent<T>,
+    Q: ?Sized + Hash + Eq + Equivalent<T>,
     BH: BuildHasher,
 {
 }
 
 impl<T, Q, BH> SetQuery<T, Q> for FzHashSet<T, BH>
 where
-    Q: Hash + Eq + Equivalent<T>,
+    Q: ?Sized + Hash + Eq + Equivalent<T>,
     BH: BuildHasher,
 {
     #[inline]

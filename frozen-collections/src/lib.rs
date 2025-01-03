@@ -324,7 +324,7 @@ pub use frozen_collections_core::traits::{
 ///
 ///     assert_eq!(
 ///         Some(&2),
-///         MY_MAP_0.get(&Key {
+///         MY_MAP_1.get(&Key {
 ///             name: "Bob",
 ///             age: 40
 ///         })
@@ -332,7 +332,7 @@ pub use frozen_collections_core::traits::{
 ///
 ///     assert_eq!(
 ///         None,
-///         MY_MAP_0.get(&Key {
+///         my_map_2.get(&Key {
 ///             name: "Fred",
 ///             age: 50
 ///         })
@@ -397,11 +397,11 @@ pub use frozen_collections_core::traits::{
 ///         })
 ///     );
 /// }
-///
-/// fn main() {
-///     variables();
-///     structs();
-/// }
+/// #
+/// # fn main() {
+/// #     variables();
+/// #     structs();
+/// # }
 /// ```
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_hash_map;
@@ -472,23 +472,23 @@ pub use frozen_collections_macros::fz_hash_map;
 ///     );
 ///
 ///     assert!(
-///         MY_SET_0.contains(&Key {
+///         MY_SET_1.contains(&Key {
 ///             name: "Bob",
 ///             age: 40
 ///         })
 ///     );
 ///
 ///     assert!(
-///         !MY_SET_0.contains(&Key {
+///         !my_set_2.contains(&Key {
 ///             name: "Fred",
 ///             age: 50
 ///         })
 ///     );
 /// }
-///
-/// fn main() {
-///     variables();
-/// }
+/// #
+/// # fn main() {
+/// #     variables();
+/// # }
 /// ```
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_hash_set;
@@ -561,7 +561,7 @@ pub use frozen_collections_macros::fz_hash_set;
 ///
 ///     assert_eq!(
 ///         Some(&2),
-///         MY_MAP_0.get(&Key {
+///         MY_MAP_1.get(&Key {
 ///             name: "Bob",
 ///             age: 40
 ///         })
@@ -569,7 +569,7 @@ pub use frozen_collections_macros::fz_hash_set;
 ///
 ///     assert_eq!(
 ///         None,
-///         MY_MAP_0.get(&Key {
+///         my_map_2.get(&Key {
 ///             name: "Fred",
 ///             age: 50
 ///         })
@@ -634,11 +634,11 @@ pub use frozen_collections_macros::fz_hash_set;
 ///         })
 ///     );
 /// }
-///
-/// fn main() {
-///     variables();
-///     structs();
-/// }
+/// #
+/// # fn main() {
+/// #     variables();
+/// #     structs();
+/// # }
 /// ```
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_ordered_map;
@@ -709,23 +709,23 @@ pub use frozen_collections_macros::fz_ordered_map;
 ///     );
 ///
 ///     assert!(
-///         MY_SET_0.contains(&Key {
+///         MY_SET_1.contains(&Key {
 ///             name: "Bob",
 ///             age: 40
 ///         })
 ///     );
 ///
 ///     assert!(
-///         !MY_SET_0.contains(&Key {
+///         !my_set_2.contains(&Key {
 ///             name: "Fred",
 ///             age: 50
 ///         })
 ///     );
 /// }
-///
-/// fn main() {
-///     variables();
-/// }
+/// #
+/// # fn main() {
+/// #     variables();
+/// # }
 /// ```
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_ordered_set;
@@ -792,8 +792,8 @@ pub use frozen_collections_macros::fz_ordered_set;
 ///     // they all work the same way and have the same API surface and implement the `Map` trait.
 ///
 ///     assert_eq!(Some(&1), MY_MAP_0.get(&Person::Alice));
-///     assert_eq!(Some(&2), MY_MAP_0.get(&Person::Bob));
-///     assert_eq!(None, MY_MAP_0.get(&Person::Fred));
+///     assert_eq!(Some(&2), MY_MAP_1.get(&Person::Bob));
+///     assert_eq!(None, my_map_2.get(&Person::Fred));
 /// }
 ///
 /// // How to embed a map into a struct using the map's type.
@@ -842,11 +842,11 @@ pub use frozen_collections_macros::fz_ordered_set;
 ///         ms1.map.get(&Person::Alice)
 ///     );
 /// }
-///
-/// fn main() {
-///     variables();
-///     structs();
-/// }
+/// #
+/// # fn main() {
+/// #     variables();
+/// #     structs();
+/// # }
 /// ```
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_scalar_map;
@@ -913,13 +913,13 @@ pub use frozen_collections_macros::fz_scalar_map;
 ///     // they all work the same way and have the same API surface and implement the `Set` trait.
 ///
 ///     assert!(MY_SET_0.contains(&Person::Alice));
-///     assert!(MY_SET_0.contains(&Person::Bob));
-///     assert!(!MY_SET_0.contains(&Person::Fred));
+///     assert!(MY_SET_1.contains(&Person::Bob));
+///     assert!(!my_set_2.contains(&Person::Fred));
 /// }
-///
-/// fn main() {
-///     variables();
-/// }
+/// #
+/// # fn main() {
+/// #     variables();
+/// # }
 /// ```
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_scalar_set;
@@ -969,20 +969,9 @@ pub use frozen_collections_macros::fz_scalar_set;
 ///     // no matter how the maps are declared, no matter the type selected to implement the map,
 ///     // they all work the same way and have the same API surface and implement the `Map` trait.
 ///
-///     assert_eq!(
-///         Some(&1),
-///         MY_MAP_0.get("Alice")
-///     );
-///
-///     assert_eq!(
-///         Some(&2),
-///         MY_MAP_0.get("Bob")
-///     );
-///
-///     assert_eq!(
-///         None,
-///         MY_MAP_0.get("Fred")
-///     );
+///     assert_eq!(Some(&1), MY_MAP_0.get("Alice"));
+///     assert_eq!(Some(&2), MY_MAP_1.get("Bob"));
+///     assert_eq!(None, my_map_2.get("Fred"));
 /// }
 ///
 /// // How to embed a map into a struct using the map's type.
@@ -1021,21 +1010,14 @@ pub use frozen_collections_macros::fz_scalar_set;
 ///         *v = 4;
 ///     }
 ///
-///     assert_eq!(
-///         Some(&3),
-///         ms0.map.get(&"Alice")
-///     );
-///
-///     assert_eq!(
-///         Some(&4),
-///         ms1.map.get("Alice")
-///     );
+///     assert_eq!(Some(&3), ms0.map.get(&"Alice"));
+///     assert_eq!(Some(&4), ms1.map.get("Alice"));
 /// }
-///
-/// fn main() {
-///     variables();
-///     structs();
-/// }
+/// #
+/// # fn main() {
+/// #     variables();
+/// #     structs();
+/// # }
 /// ```
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_string_map;
@@ -1087,21 +1069,14 @@ pub use frozen_collections_macros::fz_string_map;
 ///     // no matter how the sets are declared, no matter the type selected to implement the set,
 ///     // they all work the same way and have the same API surface and implement the `Set` trait.
 ///
-///     assert!(
-///         MY_SET_0.contains("Alice"));
-///
-///     assert!(
-///         MY_SET_0.contains("Bob")
-///     );
-///
-///     assert!(
-///         !MY_SET_0.contains("Fred")
-///     );
+///     assert!(MY_SET_0.contains("Alice"));
+///     assert!(MY_SET_1.contains("Bob"));
+///     assert!(!my_set_2.contains("Fred"));
 /// }
-///
-/// fn main() {
-///     variables();
-/// }
+/// #
+/// # fn main() {
+/// #     variables();
+/// # }
 /// ```
 #[cfg(feature = "macros")]
 pub use frozen_collections_macros::fz_string_set;

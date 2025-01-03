@@ -59,7 +59,7 @@ where
 
 impl<T, Q, const SZ: usize, const NHS: usize, CM, H> Set<T, Q> for InlineHashSet<T, SZ, NHS, CM, H>
 where
-    Q: Eq + Equivalent<T>,
+    Q: ?Sized + Eq + Equivalent<T>,
     CM: CollectionMagnitude,
     H: Hasher<Q>,
 {
@@ -68,7 +68,7 @@ where
 impl<T, Q, const SZ: usize, const NHS: usize, CM, H> SetQuery<T, Q>
     for InlineHashSet<T, SZ, NHS, CM, H>
 where
-    Q: Eq + Equivalent<T>,
+    Q: ?Sized + Eq + Equivalent<T>,
     CM: CollectionMagnitude,
     H: Hasher<Q>,
 {
