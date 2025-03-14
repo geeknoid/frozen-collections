@@ -5,8 +5,8 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::hash::Hash;
 use core::hint::black_box;
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use frozen_collections::{fz_hash_set, FzHashSet, SetQuery};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use frozen_collections::{FzHashSet, SetQuery, fz_hash_set};
 
 include!(concat!(env!("OUT_DIR"), "/hashed.rs"));
 

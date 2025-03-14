@@ -2,8 +2,8 @@ use core::fmt::Debug;
 use frozen_collections_core::traits::Map;
 use hashbrown::HashMap as HashbrownMap;
 use hashbrown::HashSet as HashbrownSet;
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use std::hash::Hash;
 use std::ops::Index;
 

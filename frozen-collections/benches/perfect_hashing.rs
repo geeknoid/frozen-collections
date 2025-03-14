@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use frozen_collections::SetQuery;
 use frozen_collections_core::fz_sets::{FzHashSet, FzStringSet};
 use rand::Rng;

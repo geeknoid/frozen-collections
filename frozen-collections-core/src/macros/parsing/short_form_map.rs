@@ -1,4 +1,4 @@
-use crate::macros::parsing::payload::{parse_map_payload, Payload};
+use crate::macros::parsing::payload::{Payload, parse_map_payload};
 use syn::parse::{Parse, ParseStream};
 
 pub struct ShortFormMap {

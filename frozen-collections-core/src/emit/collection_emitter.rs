@@ -1,5 +1,5 @@
 use crate::analyzers::{
-    analyze_scalar_keys, analyze_slice_keys, ScalarKeyAnalysisResult, SliceKeyAnalysisResult,
+    ScalarKeyAnalysisResult, SliceKeyAnalysisResult, analyze_scalar_keys, analyze_slice_keys,
 };
 use crate::emit::collection_entry::CollectionEntry;
 use crate::emit::generator::{Generator, Output};
@@ -13,7 +13,7 @@ use core::hash::BuildHasher;
 use foldhash::fast::RandomState;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_quote, Type, Visibility};
+use syn::{Type, Visibility, parse_quote};
 
 #[cfg(feature = "macros")]
 use crate::emit::NonLiteralKey;
@@ -240,11 +240,11 @@ impl CollectionEmitter {
 
         self.clean_values(&mut entries);
 
-        let gen = self.preflight(entries.len())?;
+        let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            gen.gen_inline_scan(entries)
+            generator.gen_inline_scan(entries)
         } else {
-            gen.gen_inline_hash_with_bridge(entries)
+            generator.gen_inline_hash_with_bridge(entries)
         };
 
         self.postflight(output)
@@ -269,11 +269,11 @@ impl CollectionEmitter {
         dedup_by_keep_last(&mut entries, |x, y| x.key == y.key);
         self.clean_values(&mut entries);
 
-        let gen = self.preflight(entries.len())?;
+        let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            gen.gen_inline_scan(entries)
+            generator.gen_inline_scan(entries)
         } else {
-            gen.gen_inline_eytzinger_search(entries)
+            generator.gen_inline_eytzinger_search(entries)
         };
 
         self.postflight(output)
@@ -300,15 +300,19 @@ impl CollectionEmitter {
 
         let analysis = analyze_scalar_keys(entries.iter().map(|x| x.key));
 
-        let gen = self.preflight(entries.len())?;
+        let generator = self.preflight(entries.len())?;
         let output = match analysis {
-            ScalarKeyAnalysisResult::DenseRange => gen.gen_inline_dense_scalar_lookup(entries),
-            ScalarKeyAnalysisResult::SparseRange => gen.gen_inline_sparse_scalar_lookup(entries),
+            ScalarKeyAnalysisResult::DenseRange => {
+                generator.gen_inline_dense_scalar_lookup(entries)
+            }
+            ScalarKeyAnalysisResult::SparseRange => {
+                generator.gen_inline_sparse_scalar_lookup(entries)
+            }
             ScalarKeyAnalysisResult::General => {
                 if entries.len() < 8 {
-                    gen.gen_inline_scan(entries)
+                    generator.gen_inline_scan(entries)
                 } else {
-                    gen.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new())
+                    generator.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new())
                 }
             }
         };
@@ -332,19 +336,19 @@ impl CollectionEmitter {
 
         self.clean_values(&mut entries);
 
-        let gen = self.preflight(entries.len())?;
+        let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            gen.gen_inline_scan(entries)
+            generator.gen_inline_scan(entries)
         } else {
             let iter = entries.iter().map(|x| x.key.as_bytes());
 
-            let bh = foldhash::fast::FixedState::with_seed(gen.seed);
+            let bh = foldhash::fast::FixedState::with_seed(generator.seed);
             let analysis = analyze_slice_keys(iter, &bh);
 
             match analysis {
                 SliceKeyAnalysisResult::LeftHandSubslice(range) => {
                     let hasher = LeftRangeHasher::new(bh, range.clone());
-                    gen.gen_inline_hash_with_range(
+                    generator.gen_inline_hash_with_range(
                         entries,
                         range,
                         &quote!(InlineLeftRangeHasher),
@@ -354,7 +358,7 @@ impl CollectionEmitter {
 
                 SliceKeyAnalysisResult::RightHandSubslice(range) => {
                     let hasher = RightRangeHasher::new(bh, range.clone());
-                    gen.gen_inline_hash_with_range(
+                    generator.gen_inline_hash_with_range(
                         entries,
                         range,
                         &quote!(InlineRightRangeHasher),
@@ -363,10 +367,10 @@ impl CollectionEmitter {
                 }
 
                 SliceKeyAnalysisResult::Length => {
-                    gen.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new())
+                    generator.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new())
                 }
 
-                SliceKeyAnalysisResult::General => gen.gen_inline_hash_with_bridge(entries),
+                SliceKeyAnalysisResult::General => generator.gen_inline_hash_with_bridge(entries),
             }
         };
 
@@ -378,11 +382,11 @@ impl CollectionEmitter {
         self,
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
-        let gen = self.preflight(entries.len())?;
+        let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            gen.gen_inline_scan(entries)
+            generator.gen_inline_scan(entries)
         } else {
-            gen.gen_hash_with_bridge(entries)
+            generator.gen_hash_with_bridge(entries)
         };
 
         self.postflight(output)
@@ -393,11 +397,11 @@ impl CollectionEmitter {
         self,
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
-        let gen = self.preflight(entries.len())?;
+        let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            gen.gen_inline_scan(entries)
+            generator.gen_inline_scan(entries)
         } else {
-            gen.gen_eytzinger_search(entries)
+            generator.gen_eytzinger_search(entries)
         };
 
         self.postflight(output)
@@ -408,11 +412,11 @@ impl CollectionEmitter {
         self,
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
-        let gen = self.preflight(entries.len())?;
+        let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 8 {
-            gen.gen_inline_scan(entries)
+            generator.gen_inline_scan(entries)
         } else {
-            gen.gen_fz_scalar(entries)
+            generator.gen_fz_scalar(entries)
         };
 
         self.postflight(output)
@@ -423,11 +427,11 @@ impl CollectionEmitter {
         self,
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
-        let gen = self.preflight(entries.len())?;
+        let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            gen.gen_inline_scan(entries)
+            generator.gen_inline_scan(entries)
         } else {
-            gen.gen_fz_string(entries)
+            generator.gen_fz_string(entries)
         };
 
         self.postflight(output)

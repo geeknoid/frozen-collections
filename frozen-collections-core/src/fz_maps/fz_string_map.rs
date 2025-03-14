@@ -1,11 +1,11 @@
-use crate::analyzers::{analyze_slice_keys, SliceKeyAnalysisResult};
+use crate::DefaultHashBuilder;
+use crate::analyzers::{SliceKeyAnalysisResult, analyze_slice_keys};
 use crate::hashers::{BridgeHasher, LeftRangeHasher, RightRangeHasher};
 use crate::maps::{
     HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut,
 };
 use crate::traits::{Hasher, LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_keep_last;
-use crate::DefaultHashBuilder;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};

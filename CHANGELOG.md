@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.4.0 - 2025-03-15
+
 ### Changed
 
 - Various small perf improvements.
@@ -16,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added missing ?Sized to the definition of the Q generic in a few
   collection types. This missing annotation would lead to compilation
   errors depending on the collection used and the type of the key
-  used.
+
+- Update to latest Rust version and dependencies.
 
 ## 0.3.0 - 2024-12-29
 

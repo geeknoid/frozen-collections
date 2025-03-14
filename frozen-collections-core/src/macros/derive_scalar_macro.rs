@@ -71,14 +71,16 @@ mod tests {
 
     #[test]
     fn basic() {
-        assert!(derive_scalar_macro(quote!(
-            enum Color {
-                Red,
-                Green,
-                Blue,
-            }
-        ))
-        .is_ok());
+        assert!(
+            derive_scalar_macro(quote!(
+                enum Color {
+                    Red,
+                    Green,
+                    Blue,
+                }
+            ))
+            .is_ok()
+        );
     }
 
     #[test]

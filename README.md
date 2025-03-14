@@ -4,7 +4,7 @@
 [![docs.rs](https://docs.rs/frozen-collections/badge.svg)](https://docs.rs/frozen-collections)
 [![CI](https://github.com/geeknoid/frozen-collections/workflows/main/badge.svg)](https://github.com/geeknoid/frozen-collections/actions)
 [![Coverage](https://codecov.io/gh/geeknoid/frozen-collections/graph/badge.svg?token=FCUG0EL5TI)](https://codecov.io/gh/geeknoid/frozen-collections)
-[![Minimum Supported Rust Version 1.83](https://img.shields.io/badge/MSRV-1.83-blue.svg)]()
+[![Minimum Supported Rust Version 1.85](https://img.shields.io/badge/MSRV-1.85-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 * [Summary](#summary)

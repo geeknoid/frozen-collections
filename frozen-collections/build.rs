@@ -1,6 +1,6 @@
 use rand::Rng;
-use rand_chacha::rand_core::SeedableRng;
 use rand_chacha::ChaChaRng;
+use rand_chacha::rand_core::SeedableRng;
 use std::env;
 use std::fs::File;
 use std::io::{BufWriter, Write};

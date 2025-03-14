@@ -9,7 +9,7 @@ use core::fmt::Display;
 use core::str::FromStr;
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
-use syn::{parse2, parse_str, Expr, ExprLit, Lit, LitInt, LitStr};
+use syn::{Expr, ExprLit, Lit, LitInt, LitStr, parse_str, parse2};
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum MacroKind {
@@ -205,14 +205,14 @@ fn eval_literal_expr(expr: &ExprLit) -> syn::Result<DiscoveredKeyKind> {
                 return Err(syn::Error::new_spanned(
                     expr,
                     format!("unknown suffix {} for scalar value", expr.suffix()),
-                ))
+                ));
             }
         },
         _ => {
             return Err(syn::Error::new_spanned(
                 expr,
                 "invalid literal, expecting a scalar or string value",
-            ))
+            ));
         }
     };
 
