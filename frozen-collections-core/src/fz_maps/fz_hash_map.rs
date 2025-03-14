@@ -1,10 +1,10 @@
+use crate::DefaultHashBuilder;
 use crate::hashers::BridgeHasher;
 use crate::maps::{
     HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut,
 };
 use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_hash_keep_last;
-use crate::DefaultHashBuilder;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};

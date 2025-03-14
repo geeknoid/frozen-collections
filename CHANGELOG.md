@@ -9,8 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## 0.4.0 - 2025-03-14
+
+### Changed
+
+- Various small perf improvements.
+
 - Completed conversion from ahash to foldhash which gave some good performance gains in specific scenarios.
 
+- Update to latest Rust and dependencies
 
 ## 0.3.0 - 2024-12-29
 

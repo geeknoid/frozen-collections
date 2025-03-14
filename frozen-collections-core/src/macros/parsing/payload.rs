@@ -2,7 +2,7 @@ use crate::macros::parsing::entry::Entry;
 use crate::macros::parsing::long_form_set::SetEntry;
 use alloc::vec::Vec;
 use syn::parse::Parse;
-use syn::{braced, Token};
+use syn::{Token, braced};
 
 /// Data associated with a frozen collection macro.
 pub struct Payload {

@@ -1,4 +1,4 @@
-use crate::analyzers::{analyze_scalar_keys, ScalarKeyAnalysisResult};
+use crate::analyzers::{ScalarKeyAnalysisResult, analyze_scalar_keys};
 use crate::hashers::PassthroughHasher;
 use crate::maps::{
     DenseScalarLookupMap, HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys,

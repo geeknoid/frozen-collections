@@ -1,5 +1,5 @@
-use frozen_collections::emit::*;
 use frozen_collections::Len;
+use frozen_collections::emit::*;
 use proc_macro2::TokenStream;
 use syn::parse_quote;
 

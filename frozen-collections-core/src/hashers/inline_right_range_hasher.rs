@@ -1,6 +1,6 @@
+use crate::DefaultHashBuilder;
 use crate::traits::Hasher;
 use crate::utils::cold;
-use crate::DefaultHashBuilder;
 use alloc::string::String;
 use core::hash::{BuildHasher, Hash};
 

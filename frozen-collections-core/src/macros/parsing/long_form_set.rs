@@ -1,4 +1,4 @@
-use crate::macros::parsing::payload::{parse_set_payload, Payload};
+use crate::macros::parsing::payload::{Payload, parse_set_payload};
 use proc_macro2::Ident;
 use syn::parse::{Parse, ParseStream};
 use syn::{Expr, Token, Type, Visibility};

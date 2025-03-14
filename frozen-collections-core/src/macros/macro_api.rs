@@ -1,7 +1,7 @@
 use crate::emit::CollectionEmitter;
 use crate::macros::parsing::map::Map;
 use crate::macros::parsing::set::Set;
-use crate::macros::processor::{process, MacroKind};
+use crate::macros::processor::{MacroKind, process};
 use alloc::string::ToString;
 use proc_macro2::TokenStream;
 use syn::parse2;
@@ -127,7 +127,7 @@ mod tests {
     use alloc::string::ToString;
     use proc_macro2::Delimiter::Brace;
     use proc_macro2::{Group, TokenTree};
-    use quote::{quote, ToTokens, TokenStreamExt};
+    use quote::{ToTokens, TokenStreamExt, quote};
 
     #[test]
     fn missing_static_in_map() {

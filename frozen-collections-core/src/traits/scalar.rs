@@ -1,5 +1,5 @@
 use core::num::{
-    NonZeroI16, NonZeroI32, NonZeroI8, NonZeroIsize, NonZeroU16, NonZeroU32, NonZeroU8,
+    NonZeroI8, NonZeroI16, NonZeroI32, NonZeroIsize, NonZeroU8, NonZeroU16, NonZeroU32,
     NonZeroUsize,
 };
 

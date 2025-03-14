@@ -9,7 +9,7 @@
 
 use frozen_collections_core::macros::*;
 use proc_macro::TokenStream;
-use proc_macro_error::proc_macro_error;
+use proc_macro_error2::proc_macro_error;
 
 #[proc_macro]
 #[proc_macro_error]
