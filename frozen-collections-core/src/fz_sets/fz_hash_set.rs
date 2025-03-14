@@ -1,3 +1,4 @@
+use crate::DefaultHashBuilder;
 use crate::fz_maps::FzHashMap;
 use crate::sets::decl_macros::{
     bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
@@ -5,7 +6,6 @@ use crate::sets::decl_macros::{
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
-use crate::DefaultHashBuilder;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::BuildHasher;

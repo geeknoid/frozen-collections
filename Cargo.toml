@@ -9,15 +9,15 @@ members = [
 ]
 
 [workspace.package]
-version = "0.3.0"
-edition = "2021"
+version = "0.4.0"
+edition = "2024"
 categories = ["data-structures", "no-std"]
 keywords = ["map", "set", "collection"]
 repository = "https://github.com/geeknoid/frozen-collections"
 license = "MIT"
 authors = ["Martin Taillefer <martin@taillefer.org>"]
 readme = "README.md"
-rust-version = "1.83.0"
+rust-version = "1.85.0"
 
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }

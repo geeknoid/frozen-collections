@@ -2,8 +2,8 @@
 
 use core::fmt::{Debug, Formatter};
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
-use syn::{parse_quote, Expr};
+use quote::{ToTokens, quote};
+use syn::{Expr, parse_quote};
 
 #[cfg(feature = "macros")]
 pub(crate) struct NonLiteralKey;

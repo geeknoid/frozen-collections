@@ -2,7 +2,7 @@
 extern crate alloc;
 
 use core::hint::black_box;
-use frozen_collections::{fz_string_map, FzStringMap, MapIteration, MapQuery};
+use frozen_collections::{FzStringMap, MapIteration, MapQuery, fz_string_map};
 use hashbrown::HashMap as HashbrownMap;
 
 fz_string_map!(static MAP: MyMapType<&'static str, i32>, { "1": 1, "22":2, "333":3, "4444":4, "55555":5, "666666":6, "7777777":7, "88888888":8, "999999999":9 });

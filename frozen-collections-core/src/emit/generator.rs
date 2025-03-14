@@ -15,7 +15,7 @@ use core::ops::Range;
 use foldhash::fast::FixedState;
 use proc_macro2::{Literal, TokenStream};
 use quote::quote;
-use syn::{parse_quote, Type};
+use syn::{Type, parse_quote};
 
 #[derive(Debug)]
 pub struct Generator {
