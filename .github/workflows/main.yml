@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          - 1.85.0
+          - stable
           - beta
           - nightly
 
@@ -24,6 +24,8 @@ jobs:
       - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       - run: rustup component add clippy
       - run: rustup component add rustfmt
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
       - name: Build - no features
         run: cargo build --verbose --all-targets --no-default-features
       - name: Build - std
@@ -46,6 +48,8 @@ jobs:
         run: cargo test --doc --verbose
       - name: Doc
         run: cargo doc --all-features
+      - name: Audit
+        run: cargo audit
       - name: Delete Cargo.lock
         run: rm Cargo.lock
       - name: Publish
