@@ -46,6 +46,8 @@ jobs:
         run: cargo test --doc --verbose
       - name: Doc
         run: cargo doc --all-features
+      - name: Delete Cargo.lock
+        run: rm Cargo.lock
       - name: Publish
         run: cargo publish -p frozen-collections-core --dry-run
 

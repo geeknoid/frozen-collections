@@ -5,10 +5,7 @@ use alloc::vec;
 use core::hint::black_box;
 use frozen_collections::hashers::PassthroughHasher;
 use frozen_collections::inline_maps::InlineScanMap;
-use frozen_collections::maps::{
-    BinarySearchMap, DenseScalarLookupMap, EytzingerSearchMap, HashMap, OrderedScanMap, ScanMap,
-    SparseScalarLookupMap,
-};
+use frozen_collections::maps::{DenseScalarLookupMap, HashMap, ScanMap, SparseScalarLookupMap};
 use frozen_collections::{FzScalarMap, MapQuery, SmallCollection};
 use hashbrown::HashMap as HashbrownMap;
 
@@ -39,21 +36,6 @@ fn main() {
     let map = ScanMap::new(input.clone());
     for key in probe.clone() {
         _ = black_box(call_scan_map(&map, key));
-    }
-
-    let map = OrderedScanMap::new(input.clone());
-    for key in probe.clone() {
-        _ = black_box(call_ordered_scan_map(&map, key));
-    }
-
-    let map = BinarySearchMap::new(input.clone());
-    for key in probe.clone() {
-        _ = black_box(call_binary_search_map(&map, key));
-    }
-
-    let map = EytzingerSearchMap::new(input.clone());
-    for key in probe.clone() {
-        _ = black_box(call_eytzinger_search_map(&map, key));
     }
 
     let map = FzScalarMap::new(input.clone());
@@ -111,22 +93,7 @@ fn call_fz_scalar_map(map: &FzScalarMap<i32, i32>, key: i32) -> bool {
 }
 
 #[inline(never)]
-fn call_binary_search_map(map: &BinarySearchMap<i32, i32>, key: i32) -> bool {
-    map.contains_key(&key)
-}
-
-#[inline(never)]
-fn call_eytzinger_search_map(map: &EytzingerSearchMap<i32, i32>, key: i32) -> bool {
-    map.contains_key(&key)
-}
-
-#[inline(never)]
 fn call_scan_map(map: &ScanMap<i32, i32>, key: i32) -> bool {
-    map.contains_key(&key)
-}
-
-#[inline(never)]
-fn call_ordered_scan_map(map: &OrderedScanMap<i32, i32>, key: i32) -> bool {
     map.contains_key(&key)
 }
 

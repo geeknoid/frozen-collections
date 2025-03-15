@@ -110,19 +110,6 @@ macro_rules! test_all {
         test_set_iter(&s, &set_reference);
         test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 
-        let mut m = OrderedScanMap::new(map_input.clone());
-        test_map(&m, &map_reference, &map_other);
-        test_map_ops(&m, &map_reference);
-        test_map_iter(&m, &map_reference);
-        test_map_iter_mut(&mut m, &map_reference);
-        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
-
-        let s = OrderedScanSet::new(m);
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
-
         let mut m = ScanMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
@@ -437,7 +424,6 @@ fn test_common() {
 #[test]
 fn test_set_defaults() {
     test_set_default::<BinarySearchSet<i32>, i32>();
-    test_set_default::<OrderedScanSet<i32>, i32>();
     test_set_default::<ScanSet<i32>, i32>();
     test_set_default::<DenseScalarLookupSet<i32>, i32>();
     test_set_default::<SparseScalarLookupSet<i32>, i32>();
@@ -452,7 +438,6 @@ fn test_set_defaults() {
 #[test]
 fn test_map_defaults() {
     test_map_default::<BinarySearchMap<i32, i32>, i32>();
-    test_map_default::<OrderedScanMap<i32, i32>, i32>();
     test_map_default::<ScanMap<i32, i32>, i32>();
     test_map_default::<DenseScalarLookupMap<i32, i32>, i32>();
     test_map_default::<SparseScalarLookupMap<i32, i32>, i32>();
@@ -482,9 +467,6 @@ fn test_set_empties() {
 
     test_set_empty(&BinarySearchSet::<i32>::default());
     test_set_empty(&BinarySearchSet::<i32>::new(BinarySearchMap::new(vec![])));
-
-    test_set_empty(&OrderedScanSet::<i32>::default());
-    test_set_empty(&OrderedScanSet::<i32>::new(OrderedScanMap::new(vec![])));
 
     test_set_empty(&ScanSet::<i32>::default());
     test_set_empty(&ScanSet::<i32>::new(ScanMap::new(vec![])));
@@ -533,9 +515,6 @@ fn test_map_empties() {
 
     test_map_empty(&BinarySearchMap::<i32, i32>::default());
     test_map_empty(&BinarySearchMap::<i32, i32>::new(vec![]));
-
-    test_map_empty(&OrderedScanMap::<i32, i32>::default());
-    test_map_empty(&OrderedScanMap::<i32, i32>::new(vec![]));
 
     test_map_empty(&ScanMap::<i32, i32>::default());
     test_map_empty(&ScanMap::<i32, i32>::new(vec![]));

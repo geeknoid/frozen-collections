@@ -64,7 +64,7 @@ use crate::emit::NonLiteralKey;
 ///     // Write the generated frozen collection code to the file.
 ///     _ = writeln!(file, "{map}");
 ///
-///     // given a directive to cargo to re-run the build script if it changes
+///     // giving a directive to cargo to re-run the build script if it changes
 ///     println!("cargo::rerun-if-changed=build.rs");
 /// }
 /// ```
@@ -99,8 +99,6 @@ pub struct CollectionEmitter {
     #[allow(dead_code)]
     pub(crate) inferred_value_type: bool,
 }
-
-const INLINE_SCAN_THRESHOLD: usize = 2;
 
 impl CollectionEmitter {
     /// Creates a new `CollectionEmitter` instance.
@@ -243,7 +241,7 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_inline_hash_with_bridge(entries)
@@ -272,7 +270,7 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_inline_eytzinger_search(entries)
@@ -307,7 +305,7 @@ impl CollectionEmitter {
             ScalarKeyAnalysisResult::DenseRange => gen.gen_inline_dense_scalar_lookup(entries),
             ScalarKeyAnalysisResult::SparseRange => gen.gen_inline_sparse_scalar_lookup(entries),
             ScalarKeyAnalysisResult::General => {
-                if entries.len() < INLINE_SCAN_THRESHOLD {
+                if entries.len() < 8 {
                     gen.gen_inline_scan(entries)
                 } else {
                     gen.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new())
@@ -335,7 +333,7 @@ impl CollectionEmitter {
         self.clean_values(&mut entries);
 
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             let iter = entries.iter().map(|x| x.key.as_bytes());
@@ -381,7 +379,7 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_hash_with_bridge(entries)
@@ -396,7 +394,7 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_eytzinger_search(entries)
@@ -411,7 +409,7 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 8 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_fz_scalar(entries)
@@ -426,7 +424,7 @@ impl CollectionEmitter {
         entries: Vec<CollectionEntry<NonLiteralKey>>,
     ) -> Result<TokenStream, String> {
         let gen = self.preflight(entries.len())?;
-        let output = if entries.len() < INLINE_SCAN_THRESHOLD {
+        let output = if entries.len() < 4 {
             gen.gen_inline_scan(entries)
         } else {
             gen.gen_fz_string(entries)
@@ -600,5 +598,21 @@ mod tests {
         let emitter = CollectionEmitter::new(&parse_quote! { i32 });
         let result = emitter.preflight(10);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_no_alias_instance() {
+        let v: Vec<CollectionEntry<i32>> = Vec::new();
+
+        let result = CollectionEmitter::new(&parse_quote! { i32 })
+            .symbol_name("SYMBOL")
+            .emit_ordered_collection(v)
+            .unwrap()
+            .to_string();
+
+        assert_eq!(
+            "let SYMBOL : :: frozen_collections :: inline_sets :: InlineScanSet :: < i32 , 0 > = :: frozen_collections :: inline_sets :: InlineScanSet :: < i32 , 0 > :: new (:: frozen_collections :: inline_maps :: InlineScanMap :: < i32 , () , 0 > :: new_raw ([])) ;",
+            result
+        );
     }
 }

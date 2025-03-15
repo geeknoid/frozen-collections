@@ -1,4 +1,20 @@
-fn make_sets() -> (TokenStream, TokenStream) {
+fn make_static_collections() -> Vec<TokenStream> {
+    let mut v = Vec::new();
+
+    let entries = vec![
+        CollectionEntry::set_entry("Red", parse_quote! { "Red" }),
+        CollectionEntry::set_entry("Green", parse_quote! { "Green" }),
+    ];
+
+    v.push(CollectionEmitter::new(&parse_quote! { &'static str })
+        .symbol_name("SMALL_STATIC_ORDERED_SET")
+        .alias_name("A1")
+        .static_instance(true)
+        .const_keys(true)
+        .const_values(true)
+        .emit_ordered_collection(entries)
+        .unwrap());
+
     let entries = vec![
         CollectionEntry::set_entry("Red", parse_quote! { "Red" }),
         CollectionEntry::set_entry("Green", parse_quote! { "Green" }),
@@ -11,14 +27,14 @@ fn make_sets() -> (TokenStream, TokenStream) {
         CollectionEntry::set_entry("Grey", parse_quote! { "Gray" }),
     ];
 
-    let set1 = CollectionEmitter::new(&parse_quote! { &'static str })
-        .symbol_name("MY_SET_1")
-        .alias_name("MySet1")
+    v.push(CollectionEmitter::new(&parse_quote! { &'static str })
+        .symbol_name("MEDIUM_STATIC_ORDERED_SET")
+        .alias_name("A2")
         .static_instance(true)
         .const_keys(true)
         .const_values(true)
         .emit_ordered_collection(entries)
-        .unwrap();
+        .unwrap());
 
     let entries = vec![
         CollectionEntry::set_entry("Red", parse_quote! { "Red" }),
@@ -102,14 +118,46 @@ fn make_sets() -> (TokenStream, TokenStream) {
         CollectionEntry::set_entry("7Grey", parse_quote! { "7Gray" }),
     ];
 
-    let set2 = CollectionEmitter::new(&parse_quote! { &'static str })
-        .symbol_name("MY_SET_2")
-        .alias_name("MySet2")
+    v.push(CollectionEmitter::new(&parse_quote! { &'static str })
+        .symbol_name("LARGE_STATIC_ORDERED_SET")
+        .alias_name("A3")
         .static_instance(true)
         .const_keys(true)
         .const_values(true)
         .emit_ordered_collection(entries)
-        .unwrap();
+        .unwrap());
 
-    (set1, set2)
+    let entries = vec![
+        CollectionEntry::set_entry("Red", parse_quote! { "Red" }),
+        CollectionEntry::set_entry("Green", parse_quote! { "Green" }),
+    ];
+
+    v.push(CollectionEmitter::new(&parse_quote! { &'static str })
+        .symbol_name("SMALL_STATIC_HASH_SET")
+        .static_instance(true)
+        .const_keys(true)
+        .const_values(true)
+        .emit_hash_collection(entries)
+        .unwrap());
+
+    let entries = vec![
+        CollectionEntry::set_entry("Red", parse_quote! { "Red" }),
+        CollectionEntry::set_entry("Green", parse_quote! { "Green" }),
+        CollectionEntry::set_entry("Blue", parse_quote! { "Blue" }),
+        CollectionEntry::set_entry("Yellow", parse_quote! { "Yellow" }),
+        CollectionEntry::set_entry("Cyan", parse_quote! { "Cyan" }),
+        CollectionEntry::set_entry("Magenta", parse_quote! { "Magenta" }),
+        CollectionEntry::set_entry("White", parse_quote! { "White" }),
+        CollectionEntry::set_entry("Black", parse_quote! { "Black" }),
+        CollectionEntry::set_entry("Grey", parse_quote! { "Gray" }),
+    ];
+
+    v.push(CollectionEmitter::new(&parse_quote! { &'static str })
+        .symbol_name("MEDIUM_STATIC_HASH_SET")
+        .static_instance(true)
+        .const_values(true)
+        .emit_hash_collection(entries)
+        .unwrap());
+
+    v
 }

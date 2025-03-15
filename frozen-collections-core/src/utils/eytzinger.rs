@@ -67,3 +67,39 @@ where
         }
     }
 }
+
+/*
+//const NUM_PREFETCH_LEVELS: usize = 3;
+
+#[inline]
+#[allow(clippy::module_name_repetitions)]
+pub fn eytzinger_search_by<'a, T: 'a, F>(data: &'a [T], mut f: F) -> Option<usize>
+where
+    F: FnMut(&'a T) -> Ordering,
+{
+/*
+    let mut i = 1;
+    while (1 << NUM_PREFETCH_LEVELS) * i < data.len() {
+        i = 2 * i + (f(&data[i]) == Ordering::Greater) as usize;
+        prefetch_for_read(data, (1 << NUM_PREFETCH_LEVELS) * i);
+    }
+*/
+    let mut i = 0;
+    while i < data.len() {
+        let v = &data[i];
+        i = match f(v) {
+            Ordering::Greater | Ordering::Equal => 2 * i + 1,
+            Ordering::Less => 2 * i + 2,
+        };
+    }
+
+    let p = i + 1;
+    let j = p >> (1 + (!p).trailing_zeros());
+    let val = unsafe { data.get_unchecked(j - 1) };
+    if j != 0 && (f(val) == Ordering::Equal) {
+        Some(j - 1)
+    } else {
+        None
+    }
+}
+*/
