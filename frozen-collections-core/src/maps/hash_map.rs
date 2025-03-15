@@ -249,21 +249,25 @@ mod test {
             input.push((i, i));
         }
 
-        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(
-            input,
-            BridgeHasher::default()
-        )
-        .is_ok());
+        assert!(
+            HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(
+                input,
+                BridgeHasher::default()
+            )
+            .is_ok()
+        );
 
         let mut input: Vec<(i32, i32)> = Vec::new();
         for i in 0..256 {
             input.push((i, i));
         }
 
-        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(
-            input,
-            BridgeHasher::default()
-        )
-        .is_err());
+        assert!(
+            HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(
+                input,
+                BridgeHasher::default()
+            )
+            .is_err()
+        );
     }
 }

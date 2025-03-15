@@ -7,13 +7,13 @@ rust-version.workspace = true
 
 [dev-dependencies]
 frozen-collections = { path = "../frozen-collections", features = ["emit"], default-features = false }
-syn = "2.0.93"
-proc-macro2 = "1.0.92"
+syn = "2.0.100"
+proc-macro2 = "1.0.94"
 
 [build-dependencies]
 frozen-collections = { path = "../frozen-collections", features = ["emit"], default-features = false }
-syn = "2.0.93"
-proc-macro2 = "1.0.92"
+syn = "2.0.100"
+proc-macro2 = "1.0.94"
 
 [lints]
 workspace = true

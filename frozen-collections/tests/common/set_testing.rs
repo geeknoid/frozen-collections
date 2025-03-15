@@ -3,8 +3,8 @@ use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use frozen_collections::{Set, SetOps};
 use hashbrown::HashSet as HashbrownSet;
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 pub fn test_set<ST, T>(set: &ST, reference: &HashbrownSet<T>, other: &HashbrownSet<T>)
 where

@@ -1,5 +1,5 @@
-use crate::traits::Hasher;
 use crate::DefaultHashBuilder;
+use crate::traits::Hasher;
 use core::hash::{BuildHasher, Hash};
 
 /// Wraps a normal [`BuildHasher`].
