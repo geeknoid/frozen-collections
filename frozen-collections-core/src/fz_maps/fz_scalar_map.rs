@@ -99,7 +99,6 @@ impl<K, V> Map<K, V, K> for FzScalarMap<K, V>
 where
     K: Scalar + Eq + Equivalent<K>,
 {
-    #[must_use]
     fn get_many_mut<const N: usize>(&mut self, keys: [&K; N]) -> Option<[&mut V; N]> {
         match &mut self.map_impl {
             MapTypes::Hash(m) => m.get_many_mut(keys),
@@ -114,7 +113,6 @@ where
     K: Scalar + Eq + Equivalent<K>,
 {
     #[inline(always)]
-    #[must_use]
     fn get(&self, key: &K) -> Option<&V> {
         match &self.map_impl {
             MapTypes::Hash(m) => m.get(key),
@@ -124,7 +122,6 @@ where
     }
 
     #[inline]
-    #[must_use]
     fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
         match &self.map_impl {
             MapTypes::Hash(m) => m.get_key_value(key),
@@ -134,7 +131,6 @@ where
     }
 
     #[inline]
-    #[must_use]
     fn get_mut(&mut self, key: &K) -> Option<&mut V> {
         match &mut self.map_impl {
             MapTypes::Hash(m) => m.get_mut(key),
@@ -299,7 +295,7 @@ where
         }
 
         self.iter()
-            .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
+            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
     }
 }
 

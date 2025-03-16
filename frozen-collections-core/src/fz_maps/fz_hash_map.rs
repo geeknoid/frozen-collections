@@ -103,7 +103,6 @@ where
     Q: ?Sized + Hash + Eq + Equivalent<K>,
     BH: BuildHasher,
 {
-    #[must_use]
     fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
         self.map_impl.get_many_mut(keys)
     }
@@ -256,7 +255,7 @@ where
         }
 
         self.iter()
-            .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
+            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
     }
 }
 

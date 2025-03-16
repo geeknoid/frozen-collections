@@ -123,7 +123,6 @@ where
     LeftRangeHasher<BH>: Hasher<Q>,
     RightRangeHasher<BH>: Hasher<Q>,
 {
-    #[must_use]
     fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
         match &mut self.map_impl {
             MapTypes::LeftRange(m) => m.get_many_mut(keys),
@@ -141,7 +140,6 @@ where
     RightRangeHasher<BH>: Hasher<Q>,
 {
     #[inline]
-    #[must_use]
     fn get(&self, key: &Q) -> Option<&V> {
         match &self.map_impl {
             MapTypes::LeftRange(m) => m.get(key),
@@ -151,7 +149,6 @@ where
     }
 
     #[inline]
-    #[must_use]
     fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
         match &self.map_impl {
             MapTypes::LeftRange(m) => m.get_key_value(key),
@@ -161,7 +158,6 @@ where
     }
 
     #[inline]
-    #[must_use]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
         match &mut self.map_impl {
             MapTypes::LeftRange(m) => m.get_mut(key),
@@ -335,7 +331,7 @@ where
         }
 
         self.iter()
-            .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
+            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
     }
 }
 

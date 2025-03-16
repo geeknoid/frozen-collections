@@ -36,7 +36,7 @@ impl BitVec {
     pub fn get(&self, index: usize) -> bool {
         debug_assert!(index < self.len, "Out of bounds");
 
-        (self.bits[index / 64] & 1 << (index % 64)) != 0
+        (self.bits[index / 64] & (1 << (index % 64))) != 0
     }
 }
 

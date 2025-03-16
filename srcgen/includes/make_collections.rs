@@ -1,3 +1,7 @@
+use frozen_collections::emit::*;
+use proc_macro2::TokenStream;
+use syn::parse_quote;
+
 fn make_static_collections() -> Vec<TokenStream> {
     let mut v = Vec::new();
 

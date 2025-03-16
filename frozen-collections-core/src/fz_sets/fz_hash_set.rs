@@ -223,7 +223,7 @@ where
     T: Deserialize<'de> + Hash + Eq,
     BH: BuildHasher + Default,
 {
-    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -250,7 +250,7 @@ where
         formatter.write_str("a set with hashable values")
     }
 
-    fn visit_seq<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
+    fn visit_seq<M>(self, mut access: M) -> Result<Self::Value, M::Error>
     where
         M: SeqAccess<'de>,
     {

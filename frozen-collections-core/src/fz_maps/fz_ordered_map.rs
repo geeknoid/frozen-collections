@@ -85,7 +85,6 @@ impl<K, V, Q> Map<K, V, Q> for FzOrderedMap<K, V>
 where
     Q: ?Sized + Eq + Comparable<K>,
 {
-    #[must_use]
     fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
         self.map_impl.get_many_mut(keys)
     }
@@ -96,19 +95,16 @@ where
     Q: ?Sized + Eq + Comparable<K>,
 {
     #[inline]
-    #[must_use]
     fn get(&self, key: &Q) -> Option<&V> {
         self.map_impl.get(key)
     }
 
     #[inline]
-    #[must_use]
     fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
         self.map_impl.get_key_value(key)
     }
 
     #[inline]
-    #[must_use]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
         self.map_impl.get_mut(key)
     }
@@ -233,7 +229,7 @@ where
         }
 
         self.iter()
-            .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
+            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
     }
 }
 

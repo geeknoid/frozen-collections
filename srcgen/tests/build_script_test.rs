@@ -1,7 +1,4 @@
-use frozen_collections::emit::*;
 use frozen_collections::{Len, SetQuery};
-use proc_macro2::TokenStream;
-use syn::parse_quote;
 
 include!(concat!(env!("OUT_DIR"), "/data.rs"));
 include!("../includes/make_collections.rs");
