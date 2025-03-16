@@ -225,7 +225,7 @@ impl<'de, BH> Deserialize<'de> for FzStringSet<&'de str, BH>
 where
     BH: BuildHasher + Default,
 {
-    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {

@@ -7,6 +7,7 @@ use crate::hashers::BridgeHasher;
 use crate::traits::{
     CollectionMagnitude, Hasher, LargeCollection, MediumCollection, Scalar, SmallCollection,
 };
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 use const_random::const_random;
@@ -14,8 +15,8 @@ use core::hash::Hash;
 use core::ops::Range;
 use foldhash::fast::FixedState;
 use proc_macro2::{Literal, TokenStream};
-use quote::quote;
-use syn::{Type, parse_quote};
+use quote::{ToTokens, quote};
+use syn::{Type, parse_quote, parse_str};
 
 #[derive(Debug)]
 pub struct Generator {
@@ -147,7 +148,7 @@ impl Generator {
     pub fn gen_inline_binary_search<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
+        let len = Self::inject_underscores(self.len.to_token_stream());
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineBinarySearchMap);
         let mut generics = quote!(<#key_type, #value_type, #len>);
@@ -177,9 +178,14 @@ impl Generator {
     {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
-        let min_key = &sorted_entries[0].key.index();
-        let max_key = &sorted_entries[sorted_entries.len() - 1].key.index();
+        let len = Self::inject_underscores(self.len.to_token_stream());
+        let min_key = Self::inject_underscores(sorted_entries[0].key.index().to_token_stream());
+        let max_key = Self::inject_underscores(
+            sorted_entries[sorted_entries.len() - 1]
+                .key
+                .index()
+                .to_token_stream(),
+        );
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineDenseScalarLookupMap);
         let mut generics = quote!(<#key_type, #value_type, #len>);
@@ -207,7 +213,7 @@ impl Generator {
     ) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
+        let len = Self::inject_underscores(self.len.to_token_stream());
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineEytzingerSearchMap);
         let mut generics = quote!(<#key_type, #value_type, #len>);
@@ -234,12 +240,12 @@ impl Generator {
     {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
+        let len = Self::inject_underscores(self.len.to_token_stream());
         let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(
             entries,
             &BridgeHasher::new(FixedState::with_seed(self.seed)),
         );
-        let seed = self.seed;
+        let seed = Self::inject_underscores(self.seed.to_token_stream());
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
         let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::BridgeHasher<::frozen_collections::foldhash::FixedState>>);
@@ -266,7 +272,7 @@ impl Generator {
     {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
+        let len = Self::inject_underscores(self.len.to_token_stream());
         let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(entries, hasher);
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
@@ -296,9 +302,9 @@ impl Generator {
     {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
+        let len = Self::inject_underscores(self.len.to_token_stream());
         let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(entries, hasher);
-        let seed = self.seed;
+        let seed = Self::inject_underscores(self.seed.to_token_stream());
         let range_start = Literal::usize_unsuffixed(hash_range.start);
         let range_end = Literal::usize_unsuffixed(hash_range.end);
 
@@ -320,7 +326,7 @@ impl Generator {
     pub fn gen_inline_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
+        let len = Self::inject_underscores(self.len.to_token_stream());
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineScanMap);
         let mut generics = quote!(<#key_type, #value_type, #len>);
@@ -362,7 +368,7 @@ impl Generator {
 
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
+        let len = Self::inject_underscores(self.len.to_token_stream());
         let magnitude = Self::collection_magnitude(count);
         let lookup = lookup.iter().map(|x| Literal::usize_unsuffixed(*x));
         let num_slots = Literal::usize_unsuffixed(lookup.len());
@@ -499,7 +505,7 @@ impl Generator {
     {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = &self.len;
+        let len = Self::inject_underscores(self.len.to_token_stream());
 
         let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash(&x.key)).unwrap();
         let slots = ht.slots;
@@ -533,5 +539,38 @@ impl Generator {
         } else {
             quote!(::frozen_collections::LargeCollection)
         }
+    }
+
+    fn inject_underscores(v: TokenStream) -> TokenStream {
+        let mut full: Vec<char> = v.to_string().chars().collect();
+        let mut suffix_index = None;
+        for (index, c) in full.iter().enumerate() {
+            if !c.is_ascii_digit() {
+                suffix_index = Some(index);
+                break;
+            }
+        }
+
+        let number = if let Some(index) = suffix_index {
+            &mut full[0..index]
+        } else {
+            full.as_mut_slice()
+        };
+
+        number.reverse();
+        let mut output = Vec::new();
+        for (index, c) in number.iter().enumerate() {
+            if index % 3 == 0 && index != 0 {
+                output.push('_');
+            }
+            output.push(*c);
+        }
+        output.reverse();
+
+        if let Some(index) = suffix_index {
+            output.extend_from_slice(&full[index..]);
+        }
+
+        parse_str(&output.into_iter().collect::<String>()).unwrap()
     }
 }

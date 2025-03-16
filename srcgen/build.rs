@@ -1,10 +1,7 @@
-use frozen_collections::emit::*;
-use proc_macro2::TokenStream;
 use std::env;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
-use syn::parse_quote;
 
 include!("./includes/make_collections.rs");
 

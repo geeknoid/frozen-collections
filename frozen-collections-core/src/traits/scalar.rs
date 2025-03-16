@@ -134,7 +134,7 @@ mod tests {
         assert_eq!((-40i64).index(), 0x8000_0000_0000_0000 - 40);
 
         assert_eq!(30isize.index(), 0x8000_0000_0000_0000 + 30);
-        assert_eq!((40i64).index(), 0x8000_0000_0000_0000 + 40);
+        assert_eq!(40i64.index(), 0x8000_0000_0000_0000 + 40);
     }
 
     #[test]
