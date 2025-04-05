@@ -17,7 +17,7 @@ repository = "https://github.com/geeknoid/frozen-collections"
 license = "MIT"
 authors = ["Martin Taillefer <martin@taillefer.org>"]
 readme = "README.md"
-rust-version = "1.85.0"
+rust-version = "1.86.0"
 
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }

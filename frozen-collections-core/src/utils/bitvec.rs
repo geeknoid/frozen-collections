@@ -10,7 +10,7 @@ pub struct BitVec {
 impl BitVec {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            bits: (0..((capacity as u64) + 63) / 64).collect(),
+            bits: (0..(capacity as u64).div_ceil(64)).collect(),
             len: capacity,
         }
     }

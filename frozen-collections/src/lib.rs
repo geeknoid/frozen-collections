@@ -126,7 +126,7 @@
 //!
 //! # Using in a Build Script
 //!
-//! You can use the [`CollectionEmitter`](CollectionEmitter) struct to initialize a frozen collections from a build
+//! You can use the [`CollectionEmitter`](crate::emit::CollectionEmitter) struct to initialize a frozen collections from a build
 //! script and output the results in a file that then gets compiled into your application. Due
 //! to the fact build scripts run in a richer environment than procedural macros, the resulting
 //! efficiency of collections generated from build scripts can be slightly faster than the ones
@@ -234,7 +234,7 @@
 //! `Cargo.toml` file:
 //!
 //! - **`macros`**. Enables the macros that create frozen collections at compile time.
-//! - **`emit`**. Enables the [`CollectionEmitter`](CollectionEmitter) struct that lets you create frozen collections from a build script.
+//! - **`emit`**. Enables the [`CollectionEmitter`](crate::emit::CollectionEmitter) struct that lets you create frozen collections from a build script.
 //! - **`serde`**. Enables serialization and deserialization support for the frozen collections.
 //! - **`std`**. Enables small features only available when building with the standard library.
 //!
