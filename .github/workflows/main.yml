@@ -39,8 +39,6 @@ jobs:
         run: cargo test --verbose
       - name: Doc Tests
         run: cargo test --doc --verbose
-      - name: Doc
-        run: cargo doc --all-features
       - name: Delete Cargo.lock
         run: rm Cargo.lock
       - name: Publish Dry-Run
@@ -68,6 +66,8 @@ jobs:
         run: cargo audit
       - name: Format
         run: cargo fmt -- --check
+      - name: Docs
+        run: RUSTDOCFLAGS='--deny warnings' cargo doc --no-deps --all-features
 
   coverage:
     runs-on: ubuntu-latest
