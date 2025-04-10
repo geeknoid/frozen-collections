@@ -6,6 +6,7 @@ use crate::maps::{
 };
 use crate::traits::{Hasher, LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_keep_last;
+use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};
@@ -51,6 +52,14 @@ impl<'a, V> FzStringMap<&'a str, V, DefaultHashBuilder> {
     }
 }
 
+impl<V> FzStringMap<String, V, DefaultHashBuilder> {
+    /// Creates a frozen map.
+    #[must_use]
+    pub fn new_with_strings(entries: Vec<(String, V)>) -> Self {
+        Self::with_strings_and_hasher(entries, RandomState::default())
+    }
+}
+
 impl<'a, V, BH> FzStringMap<&'a str, V, BH>
 where
     BH: BuildHasher,
@@ -61,6 +70,40 @@ where
     pub fn with_hasher(mut entries: Vec<(&'a str, V)>, bh: BH) -> Self {
         entries.sort_by(|x, y| x.0.cmp(y.0));
         dedup_by_keep_last(&mut entries, |x, y| x.0.eq(y.0));
+
+        Self {
+            map_impl: {
+                match analyze_slice_keys(entries.iter().map(|x| x.0.as_bytes()), &bh) {
+                    SliceKeyAnalysisResult::General | SliceKeyAnalysisResult::Length => {
+                        let h = BridgeHasher::new(bh);
+                        MapTypes::Hash(HashMap::with_hasher_half_baked(entries, h).unwrap())
+                    }
+
+                    SliceKeyAnalysisResult::LeftHandSubslice(range) => {
+                        let h = LeftRangeHasher::new(bh, range);
+                        MapTypes::LeftRange(HashMap::with_hasher_half_baked(entries, h).unwrap())
+                    }
+
+                    SliceKeyAnalysisResult::RightHandSubslice(range) => {
+                        let h = RightRangeHasher::new(bh, range);
+                        MapTypes::RightRange(HashMap::with_hasher_half_baked(entries, h).unwrap())
+                    }
+                }
+            },
+        }
+    }
+}
+
+impl<V, BH> FzStringMap<String, V, BH>
+where
+    BH: BuildHasher,
+{
+    /// Creates a frozen map which uses the given hash builder to hash keys.
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
+    pub fn with_strings_and_hasher(mut entries: Vec<(String, V)>, bh: BH) -> Self {
+        entries.sort_by(|x, y| x.0.cmp(&y.0));
+        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
 
         Self {
             map_impl: {
@@ -98,6 +141,19 @@ where
     }
 }
 
+impl<V, BH> Default for FzStringMap<String, V, BH>
+where
+    BH: Default,
+{
+    fn default() -> Self {
+        Self {
+            map_impl: MapTypes::Hash(
+                HashMap::<String, V, LargeCollection, BridgeHasher<BH>>::default(),
+            ),
+        }
+    }
+}
+
 impl<'a, V, const N: usize, BH> From<[(&'a str, V); N]> for FzStringMap<&'a str, V, BH>
 where
     BH: BuildHasher + Default,
@@ -107,12 +163,30 @@ where
     }
 }
 
+impl<V, const N: usize, BH> From<[(String, V); N]> for FzStringMap<String, V, BH>
+where
+    BH: BuildHasher + Default,
+{
+    fn from(entries: [(String, V); N]) -> Self {
+        Self::with_strings_and_hasher(Vec::from(entries), BH::default())
+    }
+}
+
 impl<'a, V, BH> FromIterator<(&'a str, V)> for FzStringMap<&'a str, V, BH>
 where
     BH: BuildHasher + Default,
 {
     fn from_iter<T: IntoIterator<Item = (&'a str, V)>>(iter: T) -> Self {
         Self::with_hasher(iter.into_iter().collect(), BH::default())
+    }
+}
+
+impl<V, BH> FromIterator<(String, V)> for FzStringMap<String, V, BH>
+where
+    BH: BuildHasher + Default,
+{
+    fn from_iter<T: IntoIterator<Item = (String, V)>>(iter: T) -> Self {
+        Self::with_strings_and_hasher(iter.into_iter().collect(), BH::default())
     }
 }
 
@@ -377,19 +451,34 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(MapVisitor {
+        deserializer.deserialize_map(StrMapVisitor {
             marker: PhantomData,
         })
     }
 }
 
 #[cfg(feature = "serde")]
-struct MapVisitor<V, BH> {
+impl<'de, V> Deserialize<'de> for FzStringMap<String, V>
+where
+    V: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(StringMapVisitor {
+            marker: PhantomData,
+        })
+    }
+}
+
+#[cfg(feature = "serde")]
+struct StrMapVisitor<V, BH> {
     marker: PhantomData<(V, BH)>,
 }
 
 #[cfg(feature = "serde")]
-impl<'de, V, BH> Visitor<'de> for MapVisitor<V, BH>
+impl<'de, V, BH> Visitor<'de> for StrMapVisitor<V, BH>
 where
     V: Deserialize<'de>,
     BH: BuildHasher + Default,
@@ -410,5 +499,35 @@ where
         }
 
         Ok(FzStringMap::with_hasher(v, BH::default()))
+    }
+}
+
+#[cfg(feature = "serde")]
+struct StringMapVisitor<V, BH> {
+    marker: PhantomData<(V, BH)>,
+}
+
+#[cfg(feature = "serde")]
+impl<'de, V, BH> Visitor<'de> for StringMapVisitor<V, BH>
+where
+    V: Deserialize<'de>,
+    BH: BuildHasher + Default,
+{
+    type Value = FzStringMap<String, V, BH>;
+
+    fn expecting(&self, formatter: &mut Formatter) -> Result {
+        formatter.write_str("a map with string keys")
+    }
+
+    fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
+    where
+        M: MapAccess<'de>,
+    {
+        let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
+        while let Some(x) = access.next_entry::<&str, V>()? {
+            v.push((x.0.to_string(), x.1));
+        }
+
+        Ok(FzStringMap::with_strings_and_hasher(v, BH::default()))
     }
 }

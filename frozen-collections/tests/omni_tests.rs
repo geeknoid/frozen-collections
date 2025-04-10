@@ -316,7 +316,7 @@ macro_rules! test_all {
         let s = hashbrown::HashSet::<_>::from_iter(set_input.clone().into_iter());
         test_set(&s, &set_reference, &set_other);
 
-        // handle String cases
+        // handle &str cases
 
         let set_reference = HashbrownSet::<&str>::from_iter(vec![ $( stringify!($input), )* ].into_iter());
         let set_other = HashbrownSet::<&str>::from_iter(vec![ $( stringify!($other), )* ].into_iter());
@@ -344,6 +344,43 @@ macro_rules! test_all {
         test_set_iter(&s, &set_reference);
 
         let s = FzStringSet::new(set_input.clone());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+
+        let s = FzStringSet::from_iter(set_input.clone().into_iter());
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+
+        // handle String cases
+
+        let set_reference = HashbrownSet::<String>::from_iter(vec![ $( stringify!($input).to_string(), )* ].into_iter());
+        let set_other = HashbrownSet::<String>::from_iter(vec![ $( stringify!($other).to_string(), )* ].into_iter());
+        let set_input = vec![ $( stringify!($input).to_string(), )* ];
+
+        let map_reference = HashbrownMap::<_, _>::from_iter(vec![ $( (stringify!($input).to_string(), ()), )* ].into_iter());
+        let map_other = HashbrownMap::<_, _>::from_iter(vec![ $( (stringify!($other).to_string(), ()), )* ].into_iter());
+        let map_input = vec![ $( (stringify!($input).to_string(), ()), )* ];
+
+        let mut m = FzStringMap::new_with_strings(map_input.clone());
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+
+        let mut m = FzStringMap::from_iter(map_input.clone().into_iter());
+        test_map(&m, &map_reference, &map_other);
+        test_map_ops(&m, &map_reference);
+        test_map_iter(&m, &map_reference);
+        test_map_iter_mut(&mut m, &map_reference);
+
+        let s = FzStringSet::from(m);
+        test_set(&s, &set_reference, &set_other);
+        test_set_ops(&s, &set_reference, &set_other);
+        test_set_iter(&s, &set_reference);
+
+        let s = FzStringSet::new_with_strings(set_input.clone());
         test_set(&s, &set_reference, &set_other);
         test_set_ops(&s, &set_reference, &set_other);
         test_set_iter(&s, &set_reference);
@@ -433,6 +470,7 @@ fn test_set_defaults() {
     test_set_default::<FzOrderedSet<i32>, i32>();
     test_set_default::<FzScalarSet<i32>, i32>();
     test_set_default::<FzStringSet<&str>, &str>();
+    test_set_default::<FzStringSet<String>, String>();
 }
 
 #[test]
@@ -447,6 +485,7 @@ fn test_map_defaults() {
     test_map_default::<FzOrderedMap<i32, i32>, i32>();
     test_map_default::<FzScalarMap<i32, i32>, i32>();
     test_map_default::<FzStringMap<&str, i32>, &str>();
+    test_map_default::<FzStringMap<String, i32>, String>();
 }
 
 #[test]
@@ -497,6 +536,9 @@ fn test_set_empties() {
 
     test_set_empty(&FzStringSet::<&str>::default());
     test_set_empty(&FzStringSet::from(FzStringMap::new(vec![])));
+
+    test_set_empty(&FzStringSet::<String>::default());
+    test_set_empty(&FzStringSet::from(FzStringMap::new_with_strings(vec![])));
 }
 
 #[test]
@@ -539,6 +581,9 @@ fn test_map_empties() {
 
     test_map_empty(&FzStringMap::<&str, i32>::default());
     test_map_empty(&FzStringMap::<&str, i32>::new(vec![]));
+
+    test_map_empty(&FzStringMap::<String, i32>::default());
+    test_map_empty(&FzStringMap::<String, i32>::new_with_strings(vec![]));
 
     fz_hash_map!(let m: MyHashMap<i32, i32>, {});
     test_map_empty(&m);
@@ -585,7 +630,7 @@ fn edge_cases() {
 }
 
 #[test]
-fn string_type_serialization() {
+fn str_type_serialization() {
     let m1 = FzStringMap::<_, _>::from([("A", 1), ("B", 2)]);
     let json = serde_json::to_string(&m1).unwrap();
     let m2: FzStringMap<&str, i32> = serde_json::from_str(&json).unwrap();
@@ -600,6 +645,25 @@ fn string_type_serialization() {
     assert!(m.is_err());
 
     let s: serde_json::Result<FzStringSet<&str>> = serde_json::from_str("{XXX: XXX,}");
+    assert!(s.is_err());
+}
+
+#[test]
+fn string_type_serialization() {
+    let m1 = FzStringMap::<_, _>::from([("A".to_string(), 1), ("B".to_string(), 2)]);
+    let json = serde_json::to_string(&m1).unwrap();
+    let m2: FzStringMap<String, i32> = serde_json::from_str(&json).unwrap();
+    assert_eq_map(&m1, &m2);
+
+    let s1 = FzStringSet::<_>::from(["A".to_string(), "B".to_string()]);
+    let json = serde_json::to_string(&s1).unwrap();
+    let s2: FzStringSet<String> = serde_json::from_str(&json).unwrap();
+    assert_eq_set(&s1, &s2);
+
+    let m: serde_json::Result<FzStringMap<String, i32>> = serde_json::from_str("[\"123\": 2]");
+    assert!(m.is_err());
+
+    let s: serde_json::Result<FzStringSet<String>> = serde_json::from_str("{XXX: XXX,}");
     assert!(s.is_err());
 }
 
