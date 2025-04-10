@@ -14,7 +14,6 @@ macro_rules! get_many_mut_fn {
     };
 
     ("Hash") => {
-        #[must_use]
         fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
             if crate::utils::has_duplicates_with_hasher(&keys, &self.hasher) {
                 crate::utils::cold();
