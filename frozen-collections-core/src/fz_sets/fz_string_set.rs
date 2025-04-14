@@ -7,6 +7,7 @@ use crate::sets::decl_macros::{
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Hasher, Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
+use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::Debug;
 use core::hash::BuildHasher;
@@ -47,6 +48,14 @@ impl<'a> FzStringSet<&'a str, DefaultHashBuilder> {
     }
 }
 
+impl FzStringSet<String, DefaultHashBuilder> {
+    /// Creates a new frozen set.
+    #[must_use]
+    pub fn new_with_strings(entries: Vec<String>) -> Self {
+        Self::with_strings_and_hasher(entries, RandomState::default())
+    }
+}
+
 impl<'a, BH> FzStringSet<&'a str, BH>
 where
     BH: BuildHasher,
@@ -60,7 +69,34 @@ where
     }
 }
 
+impl<BH> FzStringSet<String, BH>
+where
+    BH: BuildHasher,
+{
+    /// Creates a new frozen set which uses the given hash builder to hash values.
+    #[must_use]
+    pub fn with_strings_and_hasher(entries: Vec<String>, bh: BH) -> Self {
+        Self {
+            map: FzStringMap::with_strings_and_hasher(
+                entries.into_iter().map(|x| (x, ())).collect(),
+                bh,
+            ),
+        }
+    }
+}
+
 impl<BH> Default for FzStringSet<&str, BH>
+where
+    BH: Default,
+{
+    fn default() -> Self {
+        Self {
+            map: FzStringMap::default(),
+        }
+    }
+}
+
+impl<BH> Default for FzStringSet<String, BH>
 where
     BH: Default,
 {
@@ -77,6 +113,12 @@ impl<'a, BH> From<FzStringMap<&'a str, (), BH>> for FzStringSet<&'a str, BH> {
     }
 }
 
+impl<BH> From<FzStringMap<String, (), BH>> for FzStringSet<String, BH> {
+    fn from(map: FzStringMap<String, (), BH>) -> Self {
+        Self { map }
+    }
+}
+
 impl<'a, const N: usize, BH> From<[&'a str; N]> for FzStringSet<&'a str, BH>
 where
     BH: BuildHasher + Default,
@@ -86,11 +128,29 @@ where
     }
 }
 
+impl<const N: usize, BH> From<[String; N]> for FzStringSet<String, BH>
+where
+    BH: BuildHasher + Default,
+{
+    fn from(entries: [String; N]) -> Self {
+        Self::from(FzStringMap::from_iter(entries.into_iter().map(|x| (x, ()))))
+    }
+}
+
 impl<'a, BH> FromIterator<&'a str> for FzStringSet<&'a str, BH>
 where
     BH: BuildHasher + Default,
 {
     fn from_iter<IT: IntoIterator<Item = &'a str>>(iter: IT) -> Self {
+        Self::from(FzStringMap::from_iter(iter.into_iter().map(|x| (x, ()))))
+    }
+}
+
+impl<BH> FromIterator<String> for FzStringSet<String, BH>
+where
+    BH: BuildHasher + Default,
+{
+    fn from_iter<IT: IntoIterator<Item = String>>(iter: IT) -> Self {
         Self::from(FzStringMap::from_iter(iter.into_iter().map(|x| (x, ()))))
     }
 }
@@ -229,19 +289,34 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_seq(SetVisitor {
+        deserializer.deserialize_seq(StrSetVisitor {
             marker: PhantomData,
         })
     }
 }
 
 #[cfg(feature = "serde")]
-struct SetVisitor<BH> {
+impl<'de, BH> Deserialize<'de> for FzStringSet<String, BH>
+where
+    BH: BuildHasher + Default,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_seq(StringSetVisitor {
+            marker: PhantomData,
+        })
+    }
+}
+
+#[cfg(feature = "serde")]
+struct StrSetVisitor<BH> {
     marker: PhantomData<BH>,
 }
 
 #[cfg(feature = "serde")]
-impl<'de, BH> Visitor<'de> for SetVisitor<BH>
+impl<'de, BH> Visitor<'de> for StrSetVisitor<BH>
 where
     BH: BuildHasher + Default,
 {
@@ -261,6 +336,38 @@ where
         }
 
         Ok(FzStringSet::from(FzStringMap::with_hasher(
+            v,
+            BH::default(),
+        )))
+    }
+}
+
+#[cfg(feature = "serde")]
+struct StringSetVisitor<BH> {
+    marker: PhantomData<BH>,
+}
+
+#[cfg(feature = "serde")]
+impl<'de, BH> Visitor<'de> for StringSetVisitor<BH>
+where
+    BH: BuildHasher + Default,
+{
+    type Value = FzStringSet<String, BH>;
+
+    fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
+        formatter.write_str("a set with string values")
+    }
+
+    fn visit_seq<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
+    where
+        M: SeqAccess<'de>,
+    {
+        let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
+        while let Some(x) = access.next_element::<&str>()? {
+            v.push((x.to_string(), ()));
+        }
+
+        Ok(FzStringSet::from(FzStringMap::with_strings_and_hasher(
             v,
             BH::default(),
         )))
