@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.5.0 - 2025-04-17
+
 ### Added
 
 - Added support for keys of types String to the FzStringMap and FzStringSet types.
+
+### Changed
 
 - Update to latest Rust version and dependencies.
 
