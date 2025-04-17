@@ -181,7 +181,7 @@
 //! collections are slightly slower.
 //!
 //! When creating static collections using the macros, the collections produced can often be embedded directly as constant data
-//! into the binary of the application, thus requiring no initialization time and no heap space. at
+//! into the binary of the application, thus requiring no initialization time and no heap space.
 //! This also happens to be the fastest form for these collections. When possible, this happens
 //! automatically, you don't need to do anything special to enable this behavior.
 //!
