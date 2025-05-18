@@ -8,7 +8,7 @@ use core::ops::Range;
 /// Hashes a portion of a right-aligned slice.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RightRangeHasher<BH = DefaultHashBuilder> {
     bh: BH,
     range: Range<usize>,

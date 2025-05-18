@@ -33,7 +33,7 @@ macro_rules! test_ordered {
 
             let mut s2 = StdBTreeSet::new();
             for x in v.into_iter() {
-                s2.insert(x);
+                _ = s2.insert(x);
             }
 
             _ = fz_ordered_set_macro(quote!(static _S3: Foo< $type >, {
@@ -86,7 +86,7 @@ macro_rules! test_ordered {
 
             let mut m2 = StdBTreeMap::new();
             for x in v.into_iter() {
-                m2.insert(x.0, x.1);
+                _ = m2.insert(x.0, x.1);
             }
 
             _ = fz_ordered_map_macro(quote!(static _M3: Foo< $type, i32 >, {

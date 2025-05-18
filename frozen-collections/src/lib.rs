@@ -11,14 +11,14 @@
 //!
 //! As part of creating a frozen collection, analysis is performed over the data that the collection
 //! will hold to determine the best layout and algorithm to use to deliver optimal performance.
-//! Depending on the situation, sometimes the analysis is done at compile-time whereas in
+//! Depending on the situation, sometimes the analysis is done at compile-time, whereas in
 //! other cases it is done at runtime when the collection is initialized.
 //! This analysis can take some time, but the value in spending this time up front
 //! is that the collections provide faster read-time performance.
 //!
 //! Frozen maps are only partially immutable. The keys associated with a frozen map are determined
 //! at creation time and cannot change, but the values can be updated at will if you have a
-//! mutable reference to the map. Frozen sets however are completely immutable and so never
+//! mutable reference to the map. Frozen sets, however, are completely immutable and so never
 //! change after creation.
 //!
 //! See [BENCHMARKS.md](https://github.com/geeknoid/frozen-collections/blob/main/BENCHMARKS.md) for
@@ -30,7 +30,7 @@
 //! one of eight macros to create frozen collections: [`fz_hash_map!`], [`fz_ordered_map!`],
 //! [`fz_scalar_map!`], [`fz_string_map!`], [`fz_hash_set!`], [`fz_ordered_set!`],
 //! [`fz_scalar_set!`], or [`fz_string_set!`]. These macros analyze the data you provide
-//! and return a custom implementation type that's optimized for the data. All the
+//! and return a custom implementation type optimized for the data. All the
 //! possible types implement the [`Map`] or [`Set`] traits.
 //!
 //! The macros exist in a short form and a long form, described below.
@@ -52,9 +52,9 @@
 //! });
 //! ```
 //!
-//! At build time, the  macro analyzes the data supplied and determines the best map
+//! At build time, the macro analyzes the data supplied and determines the best map
 //! implementation type to use. As such, the type of `m` is not known to this code. `m` will
-//! always implement the [`Map`] trait however, so you can leverage type inference even though
+//! always implement the [`Map`] trait, however, so you can leverage type inference even though
 //! you don't know the actual type of `m`:
 //!
 //! ```rust
@@ -126,7 +126,7 @@
 //!
 //! # Using in a Build Script
 //!
-//! You can use the [`CollectionEmitter`](crate::emit::CollectionEmitter) struct to initialize a frozen collections from a build
+//! You can use the [`CollectionEmitter`](crate::emit::CollectionEmitter) struct to initialize a frozen collection from a build
 //! script and output the results in a file that then gets compiled into your application. Due
 //! to the fact build scripts run in a richer environment than procedural macros, the resulting
 //! efficiency of collections generated from build scripts can be slightly faster than the ones
@@ -177,13 +177,13 @@
 //!
 //! The analysis performed when creating maps tries to find the best concrete implementation type
 //! given the data at hand. The macros perform analysis at build time and generally produce slightly
-//! faster results. The collection types meanwhile perform analysis at runtime and the resulting
+//! faster results. The collection types meanwhile perform analysis at runtime, and the resulting
 //! collections are slightly slower.
 //!
 //! When creating static collections using the macros, the collections produced can often be embedded directly as constant data
 //! into the binary of the application, thus requiring no initialization time and no heap space.
 //! This also happens to be the fastest form for these collections. When possible, this happens
-//! automatically, you don't need to do anything special to enable this behavior.
+//! automatically. You don't need to do anything special to enable this behavior.
 //!
 //! # Analysis and Optimizations
 //!
@@ -196,19 +196,19 @@
 //! - **Scalar as Hash**. When the keys are of an integer or enum type, this uses the keys themselves
 //!   as hash codes, avoiding the overhead of hashing.
 //!
-//! - **Length as Hash**. When the keys are of a string type, the length of the keys
+//! - **Length as Hash**. When the keys are of a string type, the lengths of the keys
 //!   are used as hash code, avoiding the overhead of hashing.
 //!
 //! - **Dense Scalar Lookup**. When the keys represent a contiguous range of integer or enum values,
-//!   lookups use a simple array access instead of hashing.
+//!   lookups use a simple array instead of hashing.
 //!
 //! - **Sparse Scalar Lookup**. When the keys represent a sparse range of integer or enum values,
-//!   lookups use a sparse array access instead of hashing.
+//!   lookups use a sparse array instead of hashing.
 //!
-//! - **Left Hand Substring Hashing**. When the keys are of a string type, this uses sub-slices of
+//! - **Left-Hand Substring Hashing**. When the keys are of a string type, this uses sub-slices of
 //!   the keys for hashing, reducing the overhead of hashing.
 //!
-//! - **Right Hand Substring Hashing**. Similar to the Left Hand Substring Hashing from above, but
+//! - **Right-Hand Substring Hashing**. Similar to the Left-Hand Substring Hashing from above, but
 //!   using right-aligned sub-slices instead.
 //!
 //! - **Linear Scan**. For very small collections, this avoids hashing completely by scanning through

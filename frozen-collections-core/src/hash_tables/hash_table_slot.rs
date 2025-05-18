@@ -4,7 +4,7 @@
 ///
 /// A slot contains the range of indices in the table's entry vector
 /// that contain entries that hash to this slot.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[allow(clippy::module_name_repetitions)]
 pub struct HashTableSlot<CM> {
     pub(crate) min_index: CM,

@@ -11,9 +11,9 @@ syn = "2.0.100"
 proc-macro2 = "1.0.94"
 
 [build-dependencies]
-frozen-collections = { path = "../frozen-collections", features = ["emit"], default-features = false }
-syn = "2.0.100"
-proc-macro2 = "1.0.94"
+frozen-collections = { workspace = true, features = ["emit"] }
+syn = { workspace = true }
+proc-macro2 = { workspace = true }
 
 [lints]
 workspace = true

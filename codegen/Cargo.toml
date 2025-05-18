@@ -6,8 +6,8 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dev-dependencies]
-frozen-collections = { path = "../frozen-collections", features = ["macros"], default-features = false }
-hashbrown = "0.15.2"
+frozen-collections = { workspace = true, features = ["macros", "std"] }
+hashbrown = { workspace = true }
 
 [lints]
 workspace = true

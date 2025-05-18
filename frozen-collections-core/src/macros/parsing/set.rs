@@ -3,6 +3,7 @@ use crate::macros::parsing::short_form_set::ShortFormSet;
 use syn::parse::Parse;
 use syn::{Token, Visibility};
 
+#[allow(clippy::large_enum_variant)]
 pub enum Set {
     Short(ShortFormSet),
     Long(LongFormSet),
@@ -16,16 +17,16 @@ impl Parse for Set {
         }
 
         if input.peek(Token![static]) {
-            input.parse::<Token![static]>()?;
+            _ = input.parse::<Token![static]>()?;
             let mut s = input.parse::<LongFormSet>()?;
             s.visibility = visibility;
             s.is_static = true;
             Ok(Self::Long(s))
         } else if input.peek(Token![let]) {
-            input.parse::<Token![let]>()?;
+            _ = input.parse::<Token![let]>()?;
 
             let is_mutable = if input.peek(Token![mut]) {
-                input.parse::<Token![mut]>()?;
+                _ = input.parse::<Token![mut]>()?;
                 true
             } else {
                 false

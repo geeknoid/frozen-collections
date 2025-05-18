@@ -3,11 +3,15 @@
 //! <div class="warning">
 //! This crate is an implementation detail of the `frozen_collections` crate.
 //! This crate's API is therefore not stable and may change at any time. Please do not
-//! use this crate directly, and instead use the public API provided by the
+//! use this crate directly and instead use the public API provided by the
 //! `frozen_collections` crate.
 //! </div>
 
-use frozen_collections_core::macros::*;
+use frozen_collections_core::macros::{
+    derive_scalar_macro, fz_hash_map_macro, fz_hash_set_macro, fz_ordered_map_macro,
+    fz_ordered_set_macro, fz_scalar_map_macro, fz_scalar_set_macro, fz_string_map_macro,
+    fz_string_set_macro,
+};
 use proc_macro::TokenStream;
 use proc_macro_error2::proc_macro_error;
 

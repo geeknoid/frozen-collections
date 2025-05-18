@@ -68,7 +68,7 @@ situations.
 
 - The `macros` cargo feature controls the availability of the frozen collection macros.
 
-- The frozen collection facade types are now exposed as first class types and are the 
+- The frozen collection facade types are now exposed as first-class types and are the 
 recommended way to use frozen collections with data discovered at runtime, whereas the
 macros are for data known at compile time.
 

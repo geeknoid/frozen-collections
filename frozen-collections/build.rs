@@ -20,6 +20,7 @@ fn emit_benchmark_preamble(name: &str) -> BufWriter<File> {
     writeln!(file, "#[allow(clippy::items_after_statements)]").unwrap();
     writeln!(file, "#[allow(clippy::explicit_auto_deref)]").unwrap();
     writeln!(file, "#[allow(clippy::redundant_closure_for_method_calls)]").unwrap();
+    writeln!(file, "#[allow(unused_results)]").unwrap();
     writeln!(file, "fn {name}(c: &mut Criterion) {{").unwrap();
     writeln!(file, "    let mut group = c.benchmark_group(\"{name}\");").unwrap();
 

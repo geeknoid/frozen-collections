@@ -34,7 +34,7 @@ where
     ///
     /// # Errors
     ///
-    /// Fails if the all the values in the input vector, after sorting and dedupping,
+    /// Fails if all the values in the input vector, after sorting and dedupping,
     /// don't represent a continuous range.
     #[must_use]
     pub const fn new(map: DenseScalarLookupMap<T, ()>) -> Self {

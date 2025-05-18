@@ -15,6 +15,7 @@ macro_rules! impl_unsigned_scalar {
             impl Scalar for $t {
                 #[inline]
                 #[allow(clippy::cast_possible_truncation)]
+                #[allow(trivial_numeric_casts)]
                 fn index(&self) -> usize {
                     *self as usize
                 }
@@ -30,6 +31,7 @@ macro_rules! impl_signed_scalar {
                 #[inline]
                 #[allow(clippy::cast_sign_loss)]
                 #[allow(clippy::cast_possible_truncation)]
+                #[allow(trivial_numeric_casts)]
                 fn index(&self) -> usize {
                     ((*self as $unsigned_ty) ^ $mask) as usize
                 }
@@ -44,6 +46,7 @@ macro_rules! impl_unsigned_nz_scalar {
             impl Scalar for $t {
                 #[inline]
                 #[allow(clippy::cast_possible_truncation)]
+                #[allow(trivial_numeric_casts)]
                 fn index(&self) -> usize {
                     (*self).get() as usize
                 }
@@ -59,6 +62,7 @@ macro_rules! impl_signed_nz_scalar {
                 #[inline]
                 #[allow(clippy::cast_sign_loss)]
                 #[allow(clippy::cast_possible_truncation)]
+                #[allow(trivial_numeric_casts)]
                 fn index(&self) -> usize {
                     (((*self).get() as $unsigned_ty) ^ $mask) as usize
                 }

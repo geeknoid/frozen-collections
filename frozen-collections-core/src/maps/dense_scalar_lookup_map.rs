@@ -38,7 +38,7 @@ where
     ///
     /// # Errors
     ///
-    /// Fails if the all the keys in the input vector, after sorting and dedupping,
+    /// Fails if all the keys in the input vector, after sorting and dedupping,
     /// don't represent a continuous range of values.
     pub fn new(mut entries: Vec<(K, V)>) -> core::result::Result<Self, String> {
         entries.sort_by_key(|x| x.0);

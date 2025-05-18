@@ -24,7 +24,7 @@ use {
     serde::{Serialize, Serializer},
 };
 
-/// A general purpose map implemented using a hash table.
+/// A general-purpose map implemented using a hash table.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]
@@ -241,6 +241,7 @@ mod test {
     use crate::hashers::BridgeHasher;
     use crate::maps::HashMap;
     use crate::traits::SmallCollection;
+    use alloc::vec::Vec;
 
     #[test]
     fn fails_when_not_in_magnitude() {

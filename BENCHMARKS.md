@@ -78,7 +78,7 @@ String sets where the values are random.
 
 ### prefixed_string
 
-String sets where the values are random, but share a common prefix.
+String sets where the values are random but share a common prefix.
 
 |            | `HashSet(classic)`          | `HashSet(foldhash)`              | `FzStringSet`                    | `fz_string_set`                   |
 |:-----------|:----------------------------|:---------------------------------|:---------------------------------|:--------------------------------- |

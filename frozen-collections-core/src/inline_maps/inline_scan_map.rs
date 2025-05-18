@@ -17,7 +17,7 @@ use {
     serde::{Serialize, Serializer},
 };
 
-/// A general purpose map implemented using linear scanning.
+/// A general-purpose map implemented using linear scanning.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]

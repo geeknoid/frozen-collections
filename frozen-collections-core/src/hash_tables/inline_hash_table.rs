@@ -15,7 +15,7 @@ use core::ops::Range;
 ///
 /// This implementation always has a power-of-two number of hash slots. This speeds up
 /// lookups by avoiding the need to perform a modulo operation.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct InlineHashTable<T, const SZ: usize, const NHS: usize, CM = SmallCollection> {
     mask: u64,
     slots: [HashTableSlot<CM>; NHS],

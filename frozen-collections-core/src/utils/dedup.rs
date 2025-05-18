@@ -24,7 +24,7 @@ where
         for j in (i + 1)..unsorted_entries.len() {
             let (s0, s1) = unsorted_entries.split_at_mut(j);
             if cmp(&mut s0[i], &mut s1[0]) {
-                dupes.insert(i);
+                _ = dupes.insert(i);
                 break;
             }
         }
@@ -58,7 +58,7 @@ where
     for i in 0..sorted_entries.len() - 1 {
         let (s0, s1) = sorted_entries.split_at_mut(i + 1);
         if cmp(&mut s0[i], &mut s1[0]) {
-            dupes.insert(i);
+            _ = dupes.insert(i);
         }
     }
 
@@ -94,7 +94,7 @@ where
         let r = keep.find_entry(hash, |other| eq(value, &unsorted_entries[*other]));
         if let Ok(entry) = r {
             dupes.push(*entry.get());
-            entry.remove();
+            _ = entry.remove();
         }
 
         _ = keep.insert_unique(hash, index, |x| hasher(&unsorted_entries[*x]));
@@ -115,7 +115,7 @@ where
     });
 }
 
-/// Look for the first duplicate value if any.
+/// Look for the first duplicate value, if any.
 pub fn has_duplicates<I>(values: I) -> bool
 where
     I: Iterator<Item: Hash + Eq>,
@@ -142,7 +142,7 @@ impl<T> Hash for Wrapper<T> {
     }
 }
 
-/// Look for the first duplicate value if any.
+/// Look for the first duplicate value, if any.
 pub fn has_duplicates_with_hasher<H, T>(values: &[&T], hasher: &H) -> bool
 where
     H: Hasher<T>,

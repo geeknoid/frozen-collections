@@ -16,20 +16,6 @@ pub trait Len {
     }
 }
 
-#[cfg(feature = "std")]
-impl<T, CM> Len for std::collections::HashSet<T, CM> {
-    fn len(&self) -> usize {
-        self.len()
-    }
-}
-
-#[cfg(feature = "std")]
-impl<K, V, CM> Len for std::collections::HashMap<K, V, CM> {
-    fn len(&self) -> usize {
-        self.len()
-    }
-}
-
 impl Len for String {
     fn len(&self) -> usize {
         self.len()
@@ -54,13 +40,6 @@ impl Len for core::ffi::CStr {
     }
 }
 
-#[cfg(feature = "std")]
-impl Len for std::ffi::CString {
-    fn len(&self) -> usize {
-        self.as_bytes().len()
-    }
-}
-
 impl<T> Len for [T] {
     fn len(&self) -> usize {
         self.len()
@@ -82,6 +61,51 @@ impl<T: ?Sized + Len> Len for Rc<T> {
 impl<T: ?Sized + Len> Len for Arc<T> {
     fn len(&self) -> usize {
         T::len(self)
+    }
+}
+
+impl<T> Len for Vec<T> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<T> Len for VecDeque<T> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<K, V, BH> Len for hashbrown::HashMap<K, V, BH> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<T, BH> Len for hashbrown::HashSet<T, BH> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+#[cfg(feature = "std")]
+impl<T, CM> Len for std::collections::HashSet<T, CM> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+#[cfg(feature = "std")]
+impl<K, V, CM> Len for std::collections::HashMap<K, V, CM> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+#[cfg(feature = "std")]
+impl Len for std::ffi::CString {
+    fn len(&self) -> usize {
+        self.as_bytes().len()
     }
 }
 
@@ -113,18 +137,6 @@ impl<T> Len for std::collections::LinkedList<T> {
     }
 }
 
-impl<T> Len for Vec<T> {
-    fn len(&self) -> usize {
-        self.len()
-    }
-}
-
-impl<T> Len for VecDeque<T> {
-    fn len(&self) -> usize {
-        self.len()
-    }
-}
-
 #[cfg(feature = "std")]
 impl Len for std::ffi::OsStr {
     fn len(&self) -> usize {
@@ -139,24 +151,16 @@ impl Len for std::ffi::OsString {
     }
 }
 
-impl<K, V, BH> Len for hashbrown::HashMap<K, V, BH> {
-    fn len(&self) -> usize {
-        self.len()
-    }
-}
-
-impl<T, BH> Len for hashbrown::HashSet<T, BH> {
-    fn len(&self) -> usize {
-        self.len()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::traits::Len;
+    use alloc::boxed::Box;
     use alloc::collections::VecDeque;
     use alloc::rc::Rc;
+    use alloc::string::String;
     use alloc::sync::Arc;
+    use alloc::vec;
+    use alloc::vec::Vec;
 
     fn get_len<T: Len + ?Sized>(value: &T) -> usize {
         value.len()
@@ -169,7 +173,7 @@ mod tests {
         assert_eq!(get_len(&set), 0);
         assert!(set.is_empty());
 
-        set.insert(1);
+        _ = set.insert(1);
         assert_eq!(get_len(&set), 1);
         assert!(!set.is_empty());
     }
@@ -181,31 +185,29 @@ mod tests {
         assert_eq!(get_len(&map), 0);
         assert!(map.is_empty());
 
-        map.insert("key", "value");
+        _ = map.insert("key", "value");
         assert_eq!(get_len(&map), 1);
         assert!(!map.is_empty());
     }
 
     #[test]
-    #[cfg(feature = "std")]
     fn hashbrown_hashset_len_and_is_empty() {
         let mut set = hashbrown::HashSet::new();
         assert_eq!(get_len(&set), 0);
         assert!(set.is_empty());
 
-        set.insert(1);
+        _ = set.insert(1);
         assert_eq!(get_len(&set), 1);
         assert!(!set.is_empty());
     }
 
     #[test]
-    #[cfg(feature = "std")]
     fn hashbrown_hashmap_len_and_is_empty() {
         let mut map = hashbrown::HashMap::new();
         assert_eq!(get_len(&map), 0);
         assert!(map.is_empty());
 
-        map.insert("key", "value");
+        _ = map.insert("key", "value");
         assert_eq!(get_len(&map), 1);
         assert!(!map.is_empty());
     }
@@ -274,7 +276,7 @@ mod tests {
         assert_eq!(get_len(&v), 0);
         assert!(v.is_empty());
 
-        let v: VecDeque<i32> = vec![1, 2, 3].into();
+        let v: VecDeque<i32> = alloc::vec![1, 2, 3].into();
         assert_eq!(get_len(&v), 3);
         assert!(!v.is_empty());
     }
@@ -313,30 +315,33 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn btreemap_len_and_is_empty() {
         use std::collections::BTreeMap;
         let mut map = BTreeMap::new();
         assert_eq!(get_len(&map), 0);
         assert!(map.is_empty());
 
-        map.insert("key", "value");
+        _ = map.insert("key", "value");
         assert_eq!(get_len(&map), 1);
         assert!(!map.is_empty());
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn btreeset_len_and_is_empty() {
         use std::collections::BTreeSet;
         let mut set = BTreeSet::new();
         assert_eq!(get_len(&set), 0);
         assert!(set.is_empty());
 
-        set.insert(1);
+        _ = set.insert(1);
         assert_eq!(get_len(&set), 1);
         assert!(!set.is_empty());
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn binaryheap_len_and_is_empty() {
         use std::collections::BinaryHeap;
         let mut heap = BinaryHeap::new();
@@ -349,6 +354,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn linkedlist_len_and_is_empty() {
         use std::collections::LinkedList;
         let mut list = LinkedList::new();
@@ -387,7 +393,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "std")]
     fn slice_len_and_is_empty() {
         let s: &[u8] = [].as_slice();
         assert_eq!(get_len(s), 0);

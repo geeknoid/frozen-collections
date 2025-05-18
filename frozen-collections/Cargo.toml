@@ -10,44 +10,24 @@ keywords.workspace = true
 repository.workspace = true
 license.workspace = true
 rust-version.workspace = true
-resolver = "2"
 
 [dependencies]
-foldhash = { version = "0.1.5", default-features = false }
-frozen-collections-macros = { version = "0.5.0", path = "../frozen-collections-macros", optional = true }
-frozen-collections-core = { version = "0.5.0", path = "../frozen-collections-core", default-features = false }
+foldhash = { workspace = true }
+frozen-collections-macros = { workspace = true, optional = true }
+frozen-collections-core = { workspace = true }
 
 [dev-dependencies]
-rand = "0.9.0"
-quote = "1.0.40"
-hashbrown = { version = "0.15.2", features = ["serde"] }
-criterion = "0.5.1"
-boomphf = "0.6.0"
-ph = "0.9.2"
-frozen-collections-core = { version = "0.5.0", path = "../frozen-collections-core" }
-serde = "1.0.219"
-serde_json = "1.0.140"
+rand = { workspace = true }
+quote = { workspace = true }
+hashbrown = { workspace = true, features = ["serde"] }
+criterion = { workspace = true }
+frozen-collections-core = { workspace = true, features = ["std", "serde"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 [build-dependencies]
-foldhash = { version = "0.1.5", default-features = false }
-rand_chacha = "0.9.0"
-rand = "0.9.0"
-
-[[bench]]
-name = "hashed_keys"
-harness = false
-
-[[bench]]
-name = "ordered_keys"
-harness = false
-
-[[bench]]
-name = "scalar_keys"
-harness = false
-
-[[bench]]
-name = "string_keys"
-harness = false
+rand_chacha = { workspace = true }
+rand = { workspace = true }
 
 [lints]
 workspace = true

@@ -25,7 +25,7 @@ fn check_collections_exist() {
     assert!(MEDIUM_STATIC_HASH_SET.contains(&"Red"));
 }
 
-// this test runs the same code as the build script in order to register code coverage
+// this test runs the same code as the build script to register code coverage
 #[test]
 fn invoke_emitter() {
     for coll in &make_static_collections() {

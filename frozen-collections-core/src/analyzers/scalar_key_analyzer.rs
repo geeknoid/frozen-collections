@@ -1,6 +1,6 @@
 use crate::traits::Scalar;
 
-/// How to treat integer keys for best performance.
+/// How to treat integer keys for the best performance.
 #[derive(PartialEq, Eq, Debug)]
 pub enum ScalarKeyAnalysisResult {
     /// No special optimization possible.
@@ -51,6 +51,7 @@ where
 mod tests {
     use super::*;
     use alloc::vec;
+    use alloc::vec::Vec;
 
     #[test]
     fn test_analyze_scalar_keys_empty() {

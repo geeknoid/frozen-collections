@@ -8,7 +8,7 @@ use crate::analyzers::analyze_hash_codes;
 use crate::hash_tables::HashTableSlot;
 use crate::traits::{CollectionMagnitude, Len, SmallCollection};
 
-/// A general purpose hash table.
+/// A general-purpose hash table.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 ///

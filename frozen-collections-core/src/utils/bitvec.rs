@@ -79,7 +79,7 @@ mod tests {
     #[allow(clippy::should_panic_without_expect)]
     fn get_panic() {
         let bitvec = BitVec::with_capacity(12);
-        bitvec.get(12);
+        _ = bitvec.get(12);
     }
 
     #[test]
