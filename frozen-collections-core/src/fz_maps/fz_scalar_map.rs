@@ -1,8 +1,7 @@
 use crate::analyzers::{ScalarKeyAnalysisResult, analyze_scalar_keys};
 use crate::hashers::PassthroughHasher;
 use crate::maps::{
-    DenseScalarLookupMap, HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys,
-    SparseScalarLookupMap, Values, ValuesMut,
+    DenseScalarLookupMap, HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, SparseScalarLookupMap, Values, ValuesMut,
 };
 use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery, Scalar};
 use crate::utils::dedup_by_keep_last;
@@ -54,12 +53,8 @@ where
 
         Self {
             map_impl: match analyze_scalar_keys(entries.iter().map(|x| x.0)) {
-                ScalarKeyAnalysisResult::DenseRange => {
-                    MapTypes::Dense(DenseScalarLookupMap::new_raw(entries))
-                }
-                ScalarKeyAnalysisResult::SparseRange => {
-                    MapTypes::Sparse(SparseScalarLookupMap::new_raw(entries))
-                }
+                ScalarKeyAnalysisResult::DenseRange => MapTypes::Dense(DenseScalarLookupMap::new_raw(entries)),
+                ScalarKeyAnalysisResult::SparseRange => MapTypes::Sparse(SparseScalarLookupMap::new_raw(entries)),
                 ScalarKeyAnalysisResult::General => {
                     let h = PassthroughHasher::new();
                     MapTypes::Hash(HashMap::with_hasher_half_baked(entries, h).unwrap())
@@ -107,10 +102,7 @@ where
         }
     }
 
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&K; N],
-    ) -> [Option<&mut V>; N] {
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&K; N]) -> [Option<&mut V>; N] {
         unsafe {
             match &mut self.map_impl {
                 MapTypes::Hash(m) => m.get_disjoint_unchecked_mut(keys),
@@ -307,8 +299,7 @@ where
             return false;
         }
 
-        self.iter()
-            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
+        self.iter().all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
     }
 }
 
@@ -352,9 +343,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(MapVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_map(MapVisitor { marker: PhantomData })
     }
 }
 

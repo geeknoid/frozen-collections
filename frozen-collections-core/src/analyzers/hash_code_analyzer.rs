@@ -98,8 +98,7 @@ where
             // The larger the table, the fewer collisions we tolerate. The idea
             // here is to reduce the risk of a table getting very big and still
             // having a relatively high count of collisions.
-            acceptable_collisions =
-                (acceptable_collisions / 100) * ACCEPTABLE_COLLISION_PERCENTAGE_OF_REDUCTION;
+            acceptable_collisions = (acceptable_collisions / 100) * ACCEPTABLE_COLLISION_PERCENTAGE_OF_REDUCTION;
         }
 
         num_slots = (num_slots + 1).next_power_of_two();
@@ -177,10 +176,7 @@ mod tests {
             let result = analyze_hash_codes(hash_codes.iter().copied());
 
             assert_eq!(case.expected_num_hash_slots, result.num_hash_slots);
-            assert_eq!(
-                case.expected_num_hash_collisions,
-                result.num_hash_collisions
-            );
+            assert_eq!(case.expected_num_hash_collisions, result.num_hash_collisions);
         }
     }
 }

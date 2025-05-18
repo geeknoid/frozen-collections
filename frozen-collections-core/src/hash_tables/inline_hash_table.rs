@@ -51,11 +51,7 @@ where
 
     #[inline]
     #[allow(clippy::cast_possible_truncation)]
-    pub(crate) fn find_mut(
-        &mut self,
-        hash_code: u64,
-        mut eq: impl FnMut(&T) -> bool,
-    ) -> Option<&mut T> {
+    pub(crate) fn find_mut(&mut self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&mut T> {
         let hash_slot_index = (hash_code & self.mask) as usize;
         let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
         let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();

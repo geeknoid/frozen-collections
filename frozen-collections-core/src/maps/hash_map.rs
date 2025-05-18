@@ -1,14 +1,11 @@
 use crate::hash_tables::HashTable;
 use crate::hashers::BridgeHasher;
 use crate::maps::decl_macros::{
-    get_disjoint_mut_fn, get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn,
-    hash_query_funcs, index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn,
-    map_iteration_funcs, partial_eq_fn,
+    get_disjoint_mut_fn, get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn, hash_query_funcs, index_fn, into_iter_fn,
+    into_iter_mut_ref_fn, into_iter_ref_fn, map_iteration_funcs, partial_eq_fn,
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
-use crate::traits::{
-    CollectionMagnitude, Hasher, Len, Map, MapIteration, MapQuery, SmallCollection,
-};
+use crate::traits::{CollectionMagnitude, Hasher, Len, Map, MapIteration, MapQuery, SmallCollection};
 use crate::utils::dedup_by_hash_keep_last;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -77,16 +74,10 @@ where
     ///
     /// Fails if the number of entries in the vector, after deduplication, exceeds the
     /// magnitude of the collection as specified by the `CM` generic argument.
-    pub(crate) fn with_hasher_half_baked(
-        processed_entries: Vec<(K, V)>,
-        hasher: H,
-    ) -> core::result::Result<Self, String> {
+    pub(crate) fn with_hasher_half_baked(processed_entries: Vec<(K, V)>, hasher: H) -> core::result::Result<Self, String> {
         let c = &hasher;
         let h = |entry: &(K, V)| c.hash(&entry.0);
-        Ok(Self::new_raw(
-            HashTable::<(K, V), CM>::new(processed_entries, h)?,
-            hasher,
-        ))
+        Ok(Self::new_raw(HashTable::<(K, V), CM>::new(processed_entries, h)?, hasher))
     }
 
     /// Creates a frozen map.
@@ -252,25 +243,13 @@ mod test {
             input.push((i, i));
         }
 
-        assert!(
-            HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(
-                input,
-                BridgeHasher::default()
-            )
-            .is_ok()
-        );
+        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(input, BridgeHasher::default()).is_ok());
 
         let mut input: Vec<(i32, i32)> = Vec::new();
         for i in 0..256 {
             input.push((i, i));
         }
 
-        assert!(
-            HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(
-                input,
-                BridgeHasher::default()
-            )
-            .is_err()
-        );
+        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(input, BridgeHasher::default()).is_err());
     }
 }

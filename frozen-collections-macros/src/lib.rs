@@ -8,9 +8,8 @@
 //! </div>
 
 use frozen_collections_core::macros::{
-    derive_scalar_macro, fz_hash_map_macro, fz_hash_set_macro, fz_ordered_map_macro,
-    fz_ordered_set_macro, fz_scalar_map_macro, fz_scalar_set_macro, fz_string_map_macro,
-    fz_string_set_macro,
+    derive_scalar_macro, fz_hash_map_macro, fz_hash_set_macro, fz_ordered_map_macro, fz_ordered_set_macro, fz_scalar_map_macro,
+    fz_scalar_set_macro, fz_string_map_macro, fz_string_set_macro,
 };
 use proc_macro::TokenStream;
 use proc_macro_error2::proc_macro_error;

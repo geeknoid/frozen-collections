@@ -25,10 +25,7 @@ pub trait Map<K, V, Q: ?Sized = K>: MapQuery<K, V, Q> + MapIteration<K, V> + Len
     /// Calling this method with overlapping keys is [undefined behavior](https://doc.rust-lang.org/reference/behavior-considered-undefined.html)
     /// even if the resulting references are not used.
     #[must_use]
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&Q; N],
-    ) -> [Option<&mut V>; N];
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N];
 }
 
 #[cfg(feature = "std")]
@@ -42,10 +39,7 @@ where
         Self::get_disjoint_mut(self, keys)
     }
 
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&Q; N],
-    ) -> [Option<&mut V>; N] {
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
         unsafe { Self::get_disjoint_unchecked_mut(self, keys) }
     }
 }
@@ -65,10 +59,7 @@ where
         unsafe { self.get_disjoint_unchecked_mut(keys) }
     }
 
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&Q; N],
-    ) -> [Option<&mut V>; N] {
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
         let mut result: MaybeUninit<[Option<&mut V>; N]> = MaybeUninit::uninit();
         let p = result.as_mut_ptr();
         let x: *mut Self = self;
@@ -92,10 +83,7 @@ where
         Self::get_many_mut(self, keys)
     }
 
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&Q; N],
-    ) -> [Option<&mut V>; N] {
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
         unsafe { Self::get_many_unchecked_mut(self, keys) }
     }
 }

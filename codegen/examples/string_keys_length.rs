@@ -9,18 +9,7 @@ fz_string_map!(static MAP: MyMapType<&'static str, i32>, { "1": 1, "22":2, "333"
 
 fn main() {
     let input = MAP.clone();
-    let probe = [
-        "0",
-        "1",
-        "22",
-        "333",
-        "4444",
-        "A",
-        "B",
-        "C",
-        "D",
-        "ABCDEFGHIJKL",
-    ];
+    let probe = ["0", "1", "22", "333", "4444", "A", "B", "C", "D", "ABCDEFGHIJKL"];
 
     let map: HashbrownMap<_, _> = input.iter().map(|x| (*x.0, *x.1)).collect();
     for key in probe {

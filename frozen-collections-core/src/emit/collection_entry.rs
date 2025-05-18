@@ -16,11 +16,7 @@ pub struct CollectionEntry<K> {
 
 impl<K> CollectionEntry<K> {
     pub const fn map_entry(key: K, key_expr: Expr, value_expr: Expr) -> Self {
-        Self {
-            key,
-            key_expr,
-            value_expr,
-        }
+        Self { key, key_expr, value_expr }
     }
 
     pub fn set_entry(value: K, value_expr: Expr) -> Self {
@@ -127,9 +123,6 @@ mod tests {
         let entry = CollectionEntry::map_entry(key, key_expr, value_expr);
         let debug_str = format!("{entry:?}");
 
-        assert_eq!(
-            debug_str,
-            "CollectionEntry { key: \"key\", key_expr 'key', value_expr: 'value'}"
-        );
+        assert_eq!(debug_str, "CollectionEntry { key: \"key\", key_expr 'key', value_expr: 'value'}");
     }
 }

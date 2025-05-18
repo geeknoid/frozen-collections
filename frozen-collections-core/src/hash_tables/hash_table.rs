@@ -54,10 +54,7 @@ where
             let hash_code = hash(&entry);
             let hash_slot_index = (hash_code % num_hash_slots as u64) as usize;
 
-            prep_items.push(PrepItem {
-                hash_slot_index,
-                entry,
-            });
+            prep_items.push(PrepItem { hash_slot_index, entry });
         }
 
         // sort items so hash collisions are contiguous.

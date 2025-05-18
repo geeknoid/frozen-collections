@@ -70,10 +70,7 @@ fn call_hashbrown_map(map: &HashbrownMap<i32, i32>, key: i32) -> bool {
 }
 
 #[inline(never)]
-fn call_hash_map_with_passthrough_hasher(
-    map: &HashMap<i32, i32, SmallCollection, PassthroughHasher>,
-    key: i32,
-) -> bool {
+fn call_hash_map_with_passthrough_hasher(map: &HashMap<i32, i32, SmallCollection, PassthroughHasher>, key: i32) -> bool {
     map.contains_key(&key)
 }
 

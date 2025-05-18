@@ -1,13 +1,9 @@
 use crate::inline_maps::InlineSparseScalarLookupMap;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn,
-    partial_eq_fn, set_iteration_funcs, sub_fn,
+    bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn, set_iteration_funcs, sub_fn,
 };
 use crate::sets::{IntoIter, Iter};
-use crate::traits::{
-    CollectionMagnitude, Len, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery,
-    SmallCollection,
-};
+use crate::traits::{CollectionMagnitude, Len, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery, SmallCollection};
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
@@ -31,8 +27,7 @@ use {
 /// - `SZ`: The number of entries in the set.
 /// - `LTSZ`: The number of entries in the lookup table.
 #[derive(Clone)]
-pub struct InlineSparseScalarLookupSet<T, const SZ: usize, const LTSZ: usize, CM = SmallCollection>
-{
+pub struct InlineSparseScalarLookupSet<T, const SZ: usize, const LTSZ: usize, CM = SmallCollection> {
     map: InlineSparseScalarLookupMap<T, (), SZ, LTSZ, CM>,
 }
 
@@ -44,16 +39,14 @@ impl<T, const SZ: usize, const LTSZ: usize, CM> InlineSparseScalarLookupSet<T, S
     }
 }
 
-impl<T, const SZ: usize, const LTSZ: usize, CM> Set<T, T>
-    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, const SZ: usize, const LTSZ: usize, CM> Set<T, T> for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     CM: CollectionMagnitude,
     T: Scalar,
 {
 }
 
-impl<T, const SZ: usize, const LTSZ: usize, CM> SetQuery<T, T>
-    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, const SZ: usize, const LTSZ: usize, CM> SetQuery<T, T> for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     CM: CollectionMagnitude,
     T: Scalar,
@@ -61,9 +54,7 @@ where
     get_fn!("Scalar");
 }
 
-impl<T, const SZ: usize, const LTSZ: usize, CM> SetIteration<T>
-    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
-{
+impl<T, const SZ: usize, const LTSZ: usize, CM> SetIteration<T> for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM> {
     type Iterator<'a>
         = Iter<'a, T>
     where
@@ -73,16 +64,13 @@ impl<T, const SZ: usize, const LTSZ: usize, CM> SetIteration<T>
     set_iteration_funcs!();
 }
 
-impl<T, const SZ: usize, const LTSZ: usize, CM> Len
-    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
-{
+impl<T, const SZ: usize, const LTSZ: usize, CM> Len for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM> {
     fn len(&self) -> usize {
         SZ
     }
 }
 
-impl<T, ST, const SZ: usize, const LTSZ: usize, CM> BitOr<&ST>
-    for &InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, ST, const SZ: usize, const LTSZ: usize, CM> BitOr<&ST> for &InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     T: Scalar + Hash,
     ST: Set<T>,
@@ -91,8 +79,7 @@ where
     bitor_fn!();
 }
 
-impl<T, ST, const SZ: usize, const LTSZ: usize, CM> BitAnd<&ST>
-    for &InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, ST, const SZ: usize, const LTSZ: usize, CM> BitAnd<&ST> for &InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     T: Scalar + Hash,
     ST: Set<T>,
@@ -101,8 +88,7 @@ where
     bitand_fn!();
 }
 
-impl<T, ST, const SZ: usize, const LTSZ: usize, CM> BitXor<&ST>
-    for &InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, ST, const SZ: usize, const LTSZ: usize, CM> BitXor<&ST> for &InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     T: Scalar + Hash,
     ST: Set<T>,
@@ -111,8 +97,7 @@ where
     bitxor_fn!();
 }
 
-impl<T, ST, const SZ: usize, const LTSZ: usize, CM> Sub<&ST>
-    for &InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, ST, const SZ: usize, const LTSZ: usize, CM> Sub<&ST> for &InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     T: Scalar + Hash,
     ST: Set<T>,
@@ -121,20 +106,15 @@ where
     sub_fn!();
 }
 
-impl<T, const SZ: usize, const LTSZ: usize, CM> IntoIterator
-    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
-{
+impl<T, const SZ: usize, const LTSZ: usize, CM> IntoIterator for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM> {
     into_iter_fn!();
 }
 
-impl<'a, T, const SZ: usize, const LTSZ: usize, CM> IntoIterator
-    for &'a InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
-{
+impl<'a, T, const SZ: usize, const LTSZ: usize, CM> IntoIterator for &'a InlineSparseScalarLookupSet<T, SZ, LTSZ, CM> {
     into_iter_ref_fn!();
 }
 
-impl<T, ST, const SZ: usize, const LTSZ: usize, CM> PartialEq<ST>
-    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, ST, const SZ: usize, const LTSZ: usize, CM> PartialEq<ST> for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     T: Scalar,
     ST: Set<T>,
@@ -150,8 +130,7 @@ where
 {
 }
 
-impl<T, const SZ: usize, const LTSZ: usize, CM> Debug
-    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, const SZ: usize, const LTSZ: usize, CM> Debug for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     T: Debug,
 {
@@ -159,8 +138,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<T, const SZ: usize, const LTSZ: usize, CM> Serialize
-    for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
+impl<T, const SZ: usize, const LTSZ: usize, CM> Serialize for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
     T: Serialize,
 {

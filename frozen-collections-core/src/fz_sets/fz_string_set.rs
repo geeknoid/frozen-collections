@@ -2,8 +2,7 @@ use crate::DefaultHashBuilder;
 use crate::fz_maps::FzStringMap;
 use crate::hashers::{LeftRangeHasher, RightRangeHasher};
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
-    set_iteration_funcs, sub_fn,
+    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn, set_iteration_funcs, sub_fn,
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Hasher, Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
@@ -77,10 +76,7 @@ where
     #[must_use]
     pub fn with_strings_and_hasher(entries: Vec<String>, bh: BH) -> Self {
         Self {
-            map: FzStringMap::with_strings_and_hasher(
-                entries.into_iter().map(|x| (x, ())).collect(),
-                bh,
-            ),
+            map: FzStringMap::with_strings_and_hasher(entries.into_iter().map(|x| (x, ())).collect(), bh),
         }
     }
 }
@@ -289,9 +285,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_seq(StrSetVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_seq(StrSetVisitor { marker: PhantomData })
     }
 }
 
@@ -304,9 +298,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_seq(StringSetVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_seq(StringSetVisitor { marker: PhantomData })
     }
 }
 
@@ -335,10 +327,7 @@ where
             v.push((x, ()));
         }
 
-        Ok(FzStringSet::from(FzStringMap::with_hasher(
-            v,
-            BH::default(),
-        )))
+        Ok(FzStringSet::from(FzStringMap::with_hasher(v, BH::default())))
     }
 }
 
@@ -367,9 +356,6 @@ where
             v.push((x.to_string(), ()));
         }
 
-        Ok(FzStringSet::from(FzStringMap::with_strings_and_hasher(
-            v,
-            BH::default(),
-        )))
+        Ok(FzStringSet::from(FzStringMap::with_strings_and_hasher(v, BH::default())))
     }
 }

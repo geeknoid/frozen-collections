@@ -1,6 +1,6 @@
 use crate::maps::decl_macros::{
-    debug_fn, get_disjoint_mut_fn, index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn,
-    map_iteration_funcs, partial_eq_fn, scan_query_funcs,
+    debug_fn, get_disjoint_mut_fn, index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn, map_iteration_funcs, partial_eq_fn,
+    scan_query_funcs,
 };
 use crate::maps::decl_macros::{get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn};
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};

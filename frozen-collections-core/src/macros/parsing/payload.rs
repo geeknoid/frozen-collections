@@ -19,10 +19,7 @@ pub fn parse_set_payload(input: syn::parse::ParseStream) -> syn::Result<Payload>
         entries: content
             .parse_terminated(SetEntry::parse, Token![,])?
             .into_iter()
-            .map(|x| Entry {
-                key: x.value,
-                value: None,
-            })
+            .map(|x| Entry { key: x.value, value: None })
             .collect(),
     })
 }
@@ -34,9 +31,6 @@ pub fn parse_map_payload(input: syn::parse::ParseStream) -> syn::Result<Payload>
     _ = braced!(content in input);
 
     Ok(Payload {
-        entries: content
-            .parse_terminated(Entry::parse, Token![,])?
-            .into_iter()
-            .collect(),
+        entries: content.parse_terminated(Entry::parse, Token![,])?.into_iter().collect(),
     })
 }

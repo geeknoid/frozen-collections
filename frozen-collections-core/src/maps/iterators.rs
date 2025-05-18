@@ -9,9 +9,7 @@ pub struct Iter<'a, K, V> {
 
 impl<'a, K, V> Iter<'a, K, V> {
     pub(crate) fn new(entries: &'a [(K, V)]) -> Self {
-        Self {
-            inner: entries.iter(),
-        }
+        Self { inner: entries.iter() }
     }
 }
 
@@ -50,9 +48,7 @@ impl<K, V> ExactSizeIterator for Iter<'_, K, V> {
 
 impl<K, V> Clone for Iter<'_, K, V> {
     fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
+        Self { inner: self.inner.clone() }
     }
 }
 
@@ -73,9 +69,7 @@ pub struct IterMut<'a, K, V> {
 
 impl<'a, K, V> IterMut<'a, K, V> {
     pub(crate) fn new(entries: &'a mut [(K, V)]) -> Self {
-        Self {
-            inner: entries.iter_mut(),
-        }
+        Self { inner: entries.iter_mut() }
     }
 }
 
@@ -132,9 +126,7 @@ pub struct Keys<'a, K, V> {
 impl<'a, K, V> Keys<'a, K, V> {
     #[must_use]
     pub fn new(entries: &'a [(K, V)]) -> Self {
-        Self {
-            inner: Iter::new(entries),
-        }
+        Self { inner: Iter::new(entries) }
     }
 }
 
@@ -172,9 +164,7 @@ impl<K, V> FusedIterator for Keys<'_, K, V> {}
 
 impl<K, V> Clone for Keys<'_, K, V> {
     fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
+        Self { inner: self.inner.clone() }
     }
 }
 
@@ -195,9 +185,7 @@ pub struct Values<'a, K, V> {
 impl<'a, K, V> Values<'a, K, V> {
     #[must_use]
     pub fn new(entries: &'a [(K, V)]) -> Self {
-        Self {
-            inner: Iter::new(entries),
-        }
+        Self { inner: Iter::new(entries) }
     }
 }
 
@@ -235,9 +223,7 @@ impl<K, V> FusedIterator for Values<'_, K, V> {}
 
 impl<K, V> Clone for Values<'_, K, V> {
     fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
+        Self { inner: self.inner.clone() }
     }
 }
 
@@ -471,10 +457,7 @@ mod tests {
         assert_eq!(entries.len(), iter.len());
 
         let collected: Vec<_> = iter.collect();
-        assert_eq!(
-            collected,
-            vec![(&"Alice", &1), (&"Bob", &2), (&"Sandy", &3), (&"Tom", &4)]
-        );
+        assert_eq!(collected, vec![(&"Alice", &1), (&"Bob", &2), (&"Sandy", &3), (&"Tom", &4)]);
     }
 
     #[test]
@@ -791,10 +774,7 @@ mod tests {
         assert_eq!(4, into_iter.len());
 
         let collected: Vec<_> = into_iter.collect();
-        assert_eq!(
-            collected,
-            vec![("Alice", 1), ("Bob", 2), ("Sandy", 3), ("Tom", 4)]
-        );
+        assert_eq!(collected, vec![("Alice", 1), ("Bob", 2), ("Sandy", 3), ("Tom", 4)]);
     }
 
     #[test]

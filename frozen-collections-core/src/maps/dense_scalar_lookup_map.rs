@@ -1,7 +1,6 @@
 use crate::maps::decl_macros::{
-    debug_fn, dense_scalar_lookup_query_funcs, get_disjoint_mut_fn,
-    get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn, index_fn, into_iter_fn,
-    into_iter_mut_ref_fn, into_iter_ref_fn, map_iteration_funcs, partial_eq_fn,
+    debug_fn, dense_scalar_lookup_query_funcs, get_disjoint_mut_fn, get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn,
+    index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn, map_iteration_funcs, partial_eq_fn,
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapIteration, MapQuery, Scalar};
@@ -198,9 +197,6 @@ mod tests {
     #[test]
     fn error_in_new() {
         let map = DenseScalarLookupMap::<u8, u8>::new(vec![(1, 1), (2, 2), (4, 3)]);
-        assert_eq!(
-            map,
-            Err("keys must be in a contiguous range <= usize::MAX in size".to_string())
-        );
+        assert_eq!(map, Err("keys must be in a contiguous range <= usize::MAX in size".to_string()));
     }
 }

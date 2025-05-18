@@ -1,10 +1,7 @@
 macro_rules! get_disjoint_mut_fn {
     ("Scalar") => {
         fn get_disjoint_mut<const N: usize>(&mut self, keys: [&K; N]) -> [Option<&mut V>; N] {
-            if crate::utils::has_duplicates_with_hasher(
-                &keys,
-                &crate::hashers::PassthroughHasher::default(),
-            ) {
+            if crate::utils::has_duplicates_with_hasher(&keys, &crate::hashers::PassthroughHasher::default()) {
                 crate::utils::cold();
                 panic!("duplicate keys found");
             }
@@ -38,28 +35,19 @@ macro_rules! get_disjoint_mut_fn {
 
 macro_rules! get_disjoint_unchecked_mut_fn {
     ("Scalar") => {
-        unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-            &mut self,
-            keys: [&K; N],
-        ) -> [Option<&mut V>; N] {
+        unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&K; N]) -> [Option<&mut V>; N] {
             get_disjoint_unchecked_mut_body!(self, keys);
         }
     };
 
     ("Hash") => {
-        unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-            &mut self,
-            keys: [&Q; N],
-        ) -> [Option<&mut V>; N] {
+        unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
             get_disjoint_unchecked_mut_body!(self, keys);
         }
     };
 
     () => {
-        unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-            &mut self,
-            keys: [&Q; N],
-        ) -> [Option<&mut V>; N] {
+        unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
             get_disjoint_unchecked_mut_body!(self, keys);
         }
     };
@@ -67,8 +55,7 @@ macro_rules! get_disjoint_unchecked_mut_fn {
 
 macro_rules! get_disjoint_unchecked_mut_body {
     ($self:ident, $keys:ident) => {
-        let mut result: core::mem::MaybeUninit<[Option<&mut V>; N]> =
-            core::mem::MaybeUninit::uninit();
+        let mut result: core::mem::MaybeUninit<[Option<&mut V>; N]> = core::mem::MaybeUninit::uninit();
         let p = result.as_mut_ptr();
         let x: *mut Self = $self;
 
@@ -133,9 +120,7 @@ macro_rules! partial_eq_fn {
                 return false;
             }
 
-            return self
-                .iter()
-                .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v));
+            return self.iter().all(|(key, value)| other.get(key).map_or(false, |v| *value == *v));
         }
     };
 }
@@ -282,9 +267,7 @@ macro_rules! eytzinger_search_query_funcs {
     () => {
         #[inline]
         fn get(&self, key: &Q) -> Option<&V> {
-            if let Some(index) =
-                eytzinger_search_by(&self.entries, |entry| key.compare(&entry.0).reverse())
-            {
+            if let Some(index) = eytzinger_search_by(&self.entries, |entry| key.compare(&entry.0).reverse()) {
                 let entry = unsafe { self.entries.get_unchecked(index) };
                 Some(&entry.1)
             } else {
@@ -294,9 +277,7 @@ macro_rules! eytzinger_search_query_funcs {
 
         #[inline]
         fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-            if let Some(index) =
-                eytzinger_search_by(&self.entries, |entry| key.compare(&entry.0).reverse())
-            {
+            if let Some(index) = eytzinger_search_by(&self.entries, |entry| key.compare(&entry.0).reverse()) {
                 let entry = unsafe { self.entries.get_unchecked_mut(index) };
                 Some(&mut entry.1)
             } else {
@@ -306,9 +287,7 @@ macro_rules! eytzinger_search_query_funcs {
 
         #[inline]
         fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-            if let Some(index) =
-                eytzinger_search_by(&self.entries, |entry| key.compare(&entry.0).reverse())
-            {
+            if let Some(index) = eytzinger_search_by(&self.entries, |entry| key.compare(&entry.0).reverse()) {
                 let entry = unsafe { self.entries.get_unchecked(index) };
                 Some((&entry.0, &entry.1))
             } else {
@@ -325,8 +304,7 @@ macro_rules! sparse_scalar_lookup_query_funcs {
             let index = key.index();
             if index >= self.min && index <= self.max {
                 let index_in_lookup = index - self.min;
-                let index_in_entries: usize =
-                    unsafe { (*self.lookup.get_unchecked(index_in_lookup)).into() };
+                let index_in_entries: usize = unsafe { (*self.lookup.get_unchecked(index_in_lookup)).into() };
                 if index_in_entries > 0 {
                     let entry = unsafe { self.entries.get_unchecked(index_in_entries - 1) };
                     return Some(&entry.1);
@@ -341,8 +319,7 @@ macro_rules! sparse_scalar_lookup_query_funcs {
             let index = key.index();
             if index >= self.min && index <= self.max {
                 let index_in_lookup = index - self.min;
-                let index_in_entries: usize =
-                    unsafe { (*self.lookup.get_unchecked(index_in_lookup)).into() };
+                let index_in_entries: usize = unsafe { (*self.lookup.get_unchecked(index_in_lookup)).into() };
                 if index_in_entries > 0 {
                     let entry = unsafe { self.entries.get_unchecked(index_in_entries - 1) };
                     return Some((&entry.0, &entry.1));
@@ -357,8 +334,7 @@ macro_rules! sparse_scalar_lookup_query_funcs {
             let index = key.index();
             if index >= self.min && index <= self.max {
                 let index_in_lookup = index - self.min;
-                let index_in_entries: usize =
-                    unsafe { (*self.lookup.get_unchecked(index_in_lookup)).into() };
+                let index_in_entries: usize = unsafe { (*self.lookup.get_unchecked(index_in_lookup)).into() };
                 if index_in_entries > 0 {
                     let entry = unsafe { self.entries.get_unchecked_mut(index_in_entries - 1) };
                     return Some(&mut entry.1);

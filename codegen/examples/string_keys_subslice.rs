@@ -9,13 +9,7 @@ fz_string_map!(static MAP: MyMapType<&'static str, i32>, { "ALongPrefixRedd": 1,
 
 fn main() {
     let input = MAP.clone();
-    let probe = [
-        "ALongPrefixRedd",
-        "ALongPrefixCyan",
-        "Tomato",
-        "Potato",
-        "Carrot",
-    ];
+    let probe = ["ALongPrefixRedd", "ALongPrefixCyan", "Tomato", "Potato", "Carrot"];
 
     let map: HashbrownMap<_, _> = input.iter().map(|x| (*x.0, *x.1)).collect();
     for key in probe {
@@ -29,9 +23,7 @@ fn main() {
 
     let map = input;
     for key in probe {
-        _ = black_box(call_inline_hash_map_with_inline_left_range_hasher(
-            &map, key,
-        ));
+        _ = black_box(call_inline_hash_map_with_inline_left_range_hasher(&map, key));
     }
 }
 

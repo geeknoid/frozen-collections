@@ -1,8 +1,7 @@
 use crate::DefaultHashBuilder;
 use crate::fz_maps::FzHashMap;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
-    set_iteration_funcs, sub_fn,
+    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn, set_iteration_funcs, sub_fn,
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
@@ -72,9 +71,7 @@ where
     BH: Default,
 {
     fn default() -> Self {
-        Self {
-            map: FzHashMap::default(),
-        }
+        Self { map: FzHashMap::default() }
     }
 }
 
@@ -227,9 +224,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_seq(SetVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_seq(SetVisitor { marker: PhantomData })
     }
 }
 

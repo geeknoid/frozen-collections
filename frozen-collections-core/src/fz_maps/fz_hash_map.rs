@@ -1,8 +1,6 @@
 use crate::DefaultHashBuilder;
 use crate::hashers::BridgeHasher;
-use crate::maps::{
-    HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut,
-};
+use crate::maps::{HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_hash_keep_last;
 use alloc::vec::Vec;
@@ -107,10 +105,7 @@ where
         self.map_impl.get_disjoint_mut(keys)
     }
 
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&Q; N],
-    ) -> [Option<&mut V>; N] {
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
         unsafe { self.map_impl.get_disjoint_unchecked_mut(keys) }
     }
 }
@@ -261,8 +256,7 @@ where
             return false;
         }
 
-        self.iter()
-            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
+        self.iter().all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
     }
 }
 
@@ -304,9 +298,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(MapVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_map(MapVisitor { marker: PhantomData })
     }
 }
 
