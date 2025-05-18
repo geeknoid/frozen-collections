@@ -43,7 +43,7 @@ pub trait SetOps<T> {
     /// then the resulting `Intersection` may yield references to
     /// one or the other. This can be relevant if `T` contains fields which
     /// are not compared by its `Eq` implementation and may hold different
-    /// value between the two equal copies of `T` in the two sets.
+    /// values between the two equal copies of `T` in the two sets.
     #[must_use]
     fn intersection<'a, ST>(&'a self, other: &'a ST) -> Intersection<'a, Self, ST, T>
     where
