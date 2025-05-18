@@ -26,8 +26,7 @@ syn = { workspace = true, optional = true, features = ["printing", "parsing", "c
 rand = { workspace = true }
 
 [features]
-default = []
-#"std", "macros", "serde", "emit"]
+default = ["std", "macros", "serde", "emit"]
 macros = ["dep:syn", "dep:quote", "dep:proc-macro2"]
 emit = ["dep:syn", "dep:quote", "dep:proc-macro2"]
 serde = ["dep:serde"]

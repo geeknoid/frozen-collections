@@ -1,53 +1,83 @@
-macro_rules! get_many_mut_fn {
+macro_rules! get_disjoint_mut_fn {
     ("Scalar") => {
-        fn get_many_mut<const N: usize>(&mut self, keys: [&K; N]) -> Option<[&mut V; N]> {
+        fn get_disjoint_mut<const N: usize>(&mut self, keys: [&K; N]) -> [Option<&mut V>; N] {
             if crate::utils::has_duplicates_with_hasher(
                 &keys,
                 &crate::hashers::PassthroughHasher::default(),
             ) {
                 crate::utils::cold();
-                return None;
+                panic!("duplicate keys found");
             }
 
-            get_many_mut_body!(self, keys);
+            unsafe { self.get_disjoint_unchecked_mut(keys) }
         }
     };
 
     ("Hash") => {
-        fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
+        fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
             if crate::utils::has_duplicates_with_hasher(&keys, &self.hasher) {
                 crate::utils::cold();
-                return None;
+                panic!("duplicate keys found");
             }
 
-            get_many_mut_body!(self, keys);
+            unsafe { self.get_disjoint_unchecked_mut(keys) }
         }
     };
 
     () => {
-        fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
+        fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
             if crate::utils::has_duplicates_slow(&keys) {
                 crate::utils::cold();
-                return None;
+                panic!("duplicate keys found");
             }
 
-            get_many_mut_body!(self, keys);
+            unsafe { self.get_disjoint_unchecked_mut(keys) }
         }
     };
 }
 
-macro_rules! get_many_mut_body {
+macro_rules! get_disjoint_unchecked_mut_fn {
+    ("Scalar") => {
+        unsafe fn get_disjoint_unchecked_mut<const N: usize>(
+            &mut self,
+            keys: [&K; N],
+        ) -> [Option<&mut V>; N] {
+            get_disjoint_unchecked_mut_body!(self, keys);
+        }
+    };
+
+    ("Hash") => {
+        unsafe fn get_disjoint_unchecked_mut<const N: usize>(
+            &mut self,
+            keys: [&Q; N],
+        ) -> [Option<&mut V>; N] {
+            get_disjoint_unchecked_mut_body!(self, keys);
+        }
+    };
+
+    () => {
+        unsafe fn get_disjoint_unchecked_mut<const N: usize>(
+            &mut self,
+            keys: [&Q; N],
+        ) -> [Option<&mut V>; N] {
+            get_disjoint_unchecked_mut_body!(self, keys);
+        }
+    };
+}
+
+macro_rules! get_disjoint_unchecked_mut_body {
     ($self:ident, $keys:ident) => {
-        let mut result: core::mem::MaybeUninit<[&mut V; N]> = core::mem::MaybeUninit::uninit();
+        let mut result: core::mem::MaybeUninit<[Option<&mut V>; N]> =
+            core::mem::MaybeUninit::uninit();
         let p = result.as_mut_ptr();
         let x: *mut Self = $self;
 
         unsafe {
             for (i, key) in $keys.iter().enumerate() {
-                (*p)[i] = (*x).get_mut(*key)?;
+                (*p)[i] = (*x).get_mut(*key);
             }
 
-            return Some(result.assume_init());
+            return result.assume_init();
         }
     };
 }
@@ -409,8 +439,9 @@ pub(crate) use binary_search_query_funcs;
 pub(crate) use debug_fn;
 pub(crate) use dense_scalar_lookup_query_funcs;
 pub(crate) use eytzinger_search_query_funcs;
-pub(crate) use get_many_mut_body;
-pub(crate) use get_many_mut_fn;
+pub(crate) use get_disjoint_mut_fn;
+pub(crate) use get_disjoint_unchecked_mut_body;
+pub(crate) use get_disjoint_unchecked_mut_fn;
 pub(crate) use hash_query_funcs;
 pub(crate) use index_fn;
 pub(crate) use into_iter_fn;

@@ -67,7 +67,7 @@ where
 
     let mut num_slots = min_size;
     while num_slots <= max_size {
-        use_table.fill(false);
+        use_table.clear_all();
         let mut num_collisions = 0;
 
         for code in &hash_codes {
@@ -78,7 +78,7 @@ where
                     break;
                 }
             } else {
-                use_table.set(slot, true);
+                use_table.set(slot);
             }
         }
 

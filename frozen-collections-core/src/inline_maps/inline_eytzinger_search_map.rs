@@ -1,6 +1,7 @@
 use crate::maps::decl_macros::{
-    debug_fn, eytzinger_search_query_funcs, get_many_mut_body, get_many_mut_fn, index_fn,
-    into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn, map_iteration_funcs, partial_eq_fn,
+    debug_fn, eytzinger_search_query_funcs, get_disjoint_mut_fn, get_disjoint_unchecked_mut_body,
+    get_disjoint_unchecked_mut_fn, index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn,
+    map_iteration_funcs, partial_eq_fn,
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapIteration, MapQuery};
@@ -53,7 +54,8 @@ impl<K, V, Q, const SZ: usize> Map<K, V, Q> for InlineEytzingerSearchMap<K, V, S
 where
     Q: ?Sized + Eq + Comparable<K>,
 {
-    get_many_mut_fn!();
+    get_disjoint_mut_fn!();
+    get_disjoint_unchecked_mut_fn!();
 }
 
 impl<K, V, Q, const SZ: usize> MapQuery<K, V, Q> for InlineEytzingerSearchMap<K, V, SZ>

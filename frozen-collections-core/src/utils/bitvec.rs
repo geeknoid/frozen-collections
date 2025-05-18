@@ -15,22 +15,14 @@ impl BitVec {
         }
     }
 
-    pub fn fill(&mut self, value: bool) {
-        if value {
-            self.bits.fill(0xffff_ffff_ffff_ffff);
-        } else {
-            self.bits.fill(0);
-        }
+    pub fn clear_all(&mut self) {
+        self.bits.fill(0);
     }
 
-    pub fn set(&mut self, index: usize, value: bool) {
+    pub fn set(&mut self, index: usize) {
         debug_assert!(index < self.len, "Out of bounds");
 
-        if value {
-            self.bits[index / 64] |= 1 << (index % 64);
-        } else {
-            self.bits[index / 64] &= !(1 << (index % 64));
-        }
+        self.bits[index / 64] |= 1 << (index % 64);
     }
 
     pub fn get(&self, index: usize) -> bool {
@@ -51,25 +43,14 @@ mod tests {
         let mut bitvec = BitVec::with_capacity(LEN);
         assert_eq!(2, bitvec.bits.len());
 
-        bitvec.fill(false);
+        bitvec.clear_all();
         for i in 0..LEN {
             assert!(!bitvec.get(i));
         }
 
-        bitvec.fill(true);
         for i in 0..LEN {
-            assert!(bitvec.get(i));
-        }
-
-        for i in 0..LEN {
-            bitvec.set(i, false);
-            bitvec.set(i, false);
-            assert!(!bitvec.get(i));
-        }
-
-        for i in 0..LEN {
-            bitvec.set(i, true);
-            bitvec.set(i, true);
+            bitvec.set(i);
+            bitvec.set(i);
             assert!(bitvec.get(i));
         }
     }
@@ -83,10 +64,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    #[allow(clippy::should_panic_without_expect)]
+    #[should_panic(expected = "Out of bounds")]
     fn set_panic() {
         let mut bitvec = BitVec::with_capacity(12);
-        bitvec.set(12, false);
+        bitvec.set(12);
     }
 }

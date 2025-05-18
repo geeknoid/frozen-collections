@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Added the get_disjoint_unchecked_mut function to the Map trait to match what HashMap has.
+
+### Changed
+
+- The get_many_mut function on the Map trait has been renamed to get_disjoint_mut to match the stable name
+used in HashMap.
+
 ## 0.5.0 - 2025-04-17
 
 ### Added
@@ -26,8 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Completed conversion from ahash to foldhash which gave some good performance gains in specific scenarios.
 
 - Added missing ?Sized to the definition of the Q generic in a few
-  collection types. This missing annotation would lead to compilation
-  errors depending on the collection used and the type of the key
+collection types. This missing annotation would lead to compilation
+errors depending on the collection used and the type of the key
 
 - Update to latest Rust version and dependencies.
 
@@ -36,9 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The `emit` cargo feature controls the availability of the `emit` module, which provides
-  a way to emit frozen collections from a cargo build script.
+a way to emit frozen collections from a cargo build script.
 
-- Added the `DefaultHashBuilder` alias for the hash builder used by default in the
+- Added the `DefaultHashBuilder` alias for the hash builder used by default in the 
 crate.
 
 ### Removed

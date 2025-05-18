@@ -6,12 +6,13 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::hash::Hash;
 use std::ops::Index;
+use std::panic;
 
 pub fn test_map<MT, K, V>(map: &MT, reference: &HashbrownMap<K, V>, other: &HashbrownMap<K, V>)
 where
     K: Hash + Eq + Clone + Debug + Default,
     V: Hash + Eq + Clone + Debug + Default,
-    MT: Map<K, V> + Debug + Clone + Eq + Serialize,
+    MT: Map<K, V> + Debug + Clone + Eq + Serialize + std::panic::RefUnwindSafe,
 {
     assert_eq_map(map, reference);
 
@@ -81,14 +82,38 @@ where
     if map.len() >= 2 {
         let keys: Vec<_> = map.keys().collect();
         let mut cloned_map = map.clone();
-        let values_from_map = cloned_map.get_many_mut([keys[0], keys[1]]).unwrap();
+        let mut values_from_map = cloned_map.get_disjoint_mut([keys[0], keys[1]]);
 
-        assert_eq!(values_from_map[0], &reference[keys[0]]);
-        assert_eq!(values_from_map[1], &reference[keys[1]]);
+        let v0 = values_from_map[0].take().unwrap();
+        let v1 = values_from_map[1].take().unwrap();
 
-        let mut cloned_map = map.clone();
-        let r = cloned_map.get_many_mut([keys[0], keys[0]]);
-        assert!(r.is_none());
+        assert_eq!(v0, &reference[keys[0]]);
+        assert_eq!(v1, &reference[keys[1]]);
+
+        let h = panic::take_hook();
+        panic::set_hook(Box::new(|_info| {
+            // do nothing
+        }));
+
+        let err = panic::catch_unwind(|| {
+            let keys: Vec<_> = map.keys().collect();
+            let mut cloned_map = map.clone();
+            _ = cloned_map.get_disjoint_mut([keys[0], keys[0]]);
+        })
+        .unwrap_err();
+
+        panic::set_hook(h);
+
+        assert_eq!(
+            err.downcast_ref::<&'static str>().unwrap(),
+            &"duplicate keys found"
+        );
+
+        {
+            let keys: Vec<_> = map.keys().collect();
+            let mut cloned_map = map.clone();
+            unsafe { _ = cloned_map.get_disjoint_unchecked_mut([keys[0], keys[0]]) };
+        }
     }
 }
 

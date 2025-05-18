@@ -1,14 +1,34 @@
 use crate::traits::{Len, MapIteration, MapQuery};
-use crate::utils::has_duplicates;
 use core::borrow::Borrow;
 use core::hash::{BuildHasher, Hash};
+
+#[cfg(feature = "std")]
 use core::mem::MaybeUninit;
+
+#[cfg(feature = "std")]
+use crate::utils::cold;
 
 /// Common abstractions for maps.
 pub trait Map<K, V, Q: ?Sized = K>: MapQuery<K, V, Q> + MapIteration<K, V> + Len {
     /// Gets multiple mutable values from the map.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the same key is specified multiple times.
     #[must_use]
-    fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]>;
+    fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N];
+
+    /// Gets multiple mutable values from the map.
+    ///
+    /// # Safety
+    ///     
+    /// Calling this method with overlapping keys is [undefined behavior](https://doc.rust-lang.org/reference/behavior-considered-undefined.html)
+    /// even if the resulting references are not used.
+    #[must_use]
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
+        &mut self,
+        keys: [&Q; N],
+    ) -> [Option<&mut V>; N];
 }
 
 #[cfg(feature = "std")]
@@ -18,21 +38,15 @@ where
     Q: ?Sized + Hash + Eq,
     BH: BuildHasher,
 {
-    fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
-        if has_duplicates(keys.iter()) {
-            return None;
-        }
+    fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
+        Self::get_disjoint_mut(self, keys)
+    }
 
-        let mut result: MaybeUninit<[&mut V; N]> = MaybeUninit::uninit();
-        let p = result.as_mut_ptr();
-        let x: *mut Self = self;
-        unsafe {
-            for (i, key) in keys.iter().enumerate() {
-                (*p)[i] = (*x).get_mut(key)?;
-            }
-
-            Some(result.assume_init())
-        }
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
+        &mut self,
+        keys: [&Q; N],
+    ) -> [Option<&mut V>; N] {
+        unsafe { Self::get_disjoint_unchecked_mut(self, keys) }
     }
 }
 
@@ -42,20 +56,28 @@ where
     K: Ord + Borrow<Q>,
     Q: Ord,
 {
-    fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
+    fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
         if crate::utils::has_duplicates_slow(&keys) {
-            return None;
+            cold();
+            panic!("duplicate keys found");
         }
 
-        let mut result: MaybeUninit<[&mut V; N]> = MaybeUninit::uninit();
+        unsafe { self.get_disjoint_unchecked_mut(keys) }
+    }
+
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
+        &mut self,
+        keys: [&Q; N],
+    ) -> [Option<&mut V>; N] {
+        let mut result: MaybeUninit<[Option<&mut V>; N]> = MaybeUninit::uninit();
         let p = result.as_mut_ptr();
         let x: *mut Self = self;
         unsafe {
             for (i, key) in keys.iter().enumerate() {
-                (*p)[i] = (*x).get_mut(key)?;
+                (*p)[i] = (*x).get_mut(key);
             }
 
-            Some(result.assume_init())
+            result.assume_init()
         }
     }
 }
@@ -66,20 +88,14 @@ where
     Q: Hash + Eq,
     BH: BuildHasher,
 {
-    fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
-        if has_duplicates(keys.iter()) {
-            return None;
-        }
+    fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
+        Self::get_many_mut(self, keys)
+    }
 
-        let mut result: MaybeUninit<[&mut V; N]> = MaybeUninit::uninit();
-        let p = result.as_mut_ptr();
-        let x: *mut Self = self;
-        unsafe {
-            for (i, key) in keys.iter().enumerate() {
-                (*p)[i] = (*x).get_mut(*key)?;
-            }
-
-            Some(result.assume_init())
-        }
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
+        &mut self,
+        keys: [&Q; N],
+    ) -> [Option<&mut V>; N] {
+        unsafe { Self::get_many_unchecked_mut(self, keys) }
     }
 }
