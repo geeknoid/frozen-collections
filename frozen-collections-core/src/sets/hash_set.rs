@@ -1,8 +1,7 @@
 use crate::hashers::BridgeHasher;
 use crate::maps::HashMap;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
-    set_iteration_funcs, sub_fn,
+    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn, set_iteration_funcs, sub_fn,
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{CollectionMagnitude, Len, SetOps, SetQuery, SmallCollection};
@@ -53,9 +52,7 @@ where
     H: Default,
 {
     fn default() -> Self {
-        Self {
-            map: HashMap::default(),
-        }
+        Self { map: HashMap::default() }
     }
 }
 

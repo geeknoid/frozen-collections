@@ -1,9 +1,7 @@
 use crate::DefaultHashBuilder;
 use crate::analyzers::{SliceKeyAnalysisResult, analyze_slice_keys};
 use crate::hashers::{BridgeHasher, LeftRangeHasher, RightRangeHasher};
-use crate::maps::{
-    HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut,
-};
+use crate::maps::{HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Hasher, LargeCollection, Len, Map, MapIteration, MapQuery};
 use crate::utils::dedup_by_keep_last;
 use alloc::string::String;
@@ -134,9 +132,7 @@ where
 {
     fn default() -> Self {
         Self {
-            map_impl: MapTypes::Hash(
-                HashMap::<&str, V, LargeCollection, BridgeHasher<BH>>::default(),
-            ),
+            map_impl: MapTypes::Hash(HashMap::<&str, V, LargeCollection, BridgeHasher<BH>>::default()),
         }
     }
 }
@@ -147,9 +143,7 @@ where
 {
     fn default() -> Self {
         Self {
-            map_impl: MapTypes::Hash(
-                HashMap::<String, V, LargeCollection, BridgeHasher<BH>>::default(),
-            ),
+            map_impl: MapTypes::Hash(HashMap::<String, V, LargeCollection, BridgeHasher<BH>>::default()),
         }
     }
 }
@@ -205,10 +199,7 @@ where
         }
     }
 
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&Q; N],
-    ) -> [Option<&mut V>; N] {
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
         unsafe {
             match &mut self.map_impl {
                 MapTypes::LeftRange(m) => m.get_disjoint_unchecked_mut(keys),
@@ -417,8 +408,7 @@ where
             return false;
         }
 
-        self.iter()
-            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
+        self.iter().all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
     }
 }
 
@@ -464,9 +454,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(StrMapVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_map(StrMapVisitor { marker: PhantomData })
     }
 }
 
@@ -479,9 +467,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(StringMapVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_map(StringMapVisitor { marker: PhantomData })
     }
 }
 

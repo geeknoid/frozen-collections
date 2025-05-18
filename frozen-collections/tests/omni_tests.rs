@@ -500,9 +500,7 @@ fn test_set_empties() {
     test_set_empty(&hashbrown::HashSet::<i32>::from_iter(vec![]));
 
     test_set_empty(&EytzingerSearchSet::<i32>::default());
-    test_set_empty(&EytzingerSearchSet::<i32>::new(EytzingerSearchMap::new(
-        vec![],
-    )));
+    test_set_empty(&EytzingerSearchSet::<i32>::new(EytzingerSearchMap::new(vec![])));
 
     test_set_empty(&BinarySearchSet::<i32>::default());
     test_set_empty(&BinarySearchSet::<i32>::new(BinarySearchMap::new(vec![])));
@@ -511,19 +509,13 @@ fn test_set_empties() {
     test_set_empty(&ScanSet::<i32>::new(ScanMap::new(vec![])));
 
     test_set_empty(&DenseScalarLookupSet::<i32>::default());
-    test_set_empty(&DenseScalarLookupSet::<i32>::new(
-        DenseScalarLookupMap::new(vec![]).unwrap(),
-    ));
+    test_set_empty(&DenseScalarLookupSet::<i32>::new(DenseScalarLookupMap::new(vec![]).unwrap()));
 
     test_set_empty(&SparseScalarLookupSet::<i32>::default());
-    test_set_empty(&SparseScalarLookupSet::<i32>::new(
-        SparseScalarLookupMap::new(vec![]),
-    ));
+    test_set_empty(&SparseScalarLookupSet::<i32>::new(SparseScalarLookupMap::new(vec![])));
 
     test_set_empty(&HashSet::<i32>::default());
-    test_set_empty(&HashSet::<i32>::new(
-        HashMap::with_hasher(vec![], BridgeHasher::default()).unwrap(),
-    ));
+    test_set_empty(&HashSet::<i32>::new(HashMap::with_hasher(vec![], BridgeHasher::default()).unwrap()));
 
     test_set_empty(&FzHashSet::<i32>::default());
     test_set_empty(&FzHashSet::<i32>::from(FzHashMap::new(vec![])));

@@ -131,21 +131,11 @@ where
         // If any is above our threshold, we're done.
         let mut subslice_index = prefix_len;
         while subslice_index <= min_len - subslice_len {
-            if is_sufficiently_unique(
-                keys,
-                subslice_index,
-                subslice_len,
-                true,
-                &mut set,
-                acceptable_duplicates,
-                bh,
-            ) {
+            if is_sufficiently_unique(keys, subslice_index, subslice_len, true, &mut set, acceptable_duplicates, bh) {
                 return if subslice_len == max_len {
                     SliceKeyAnalysisResult::General
                 } else {
-                    SliceKeyAnalysisResult::LeftHandSubslice(
-                        subslice_index..subslice_index + subslice_len,
-                    )
+                    SliceKeyAnalysisResult::LeftHandSubslice(subslice_index..subslice_index + subslice_len)
                 };
             }
 
@@ -161,18 +151,8 @@ where
             // If any is above our threshold, we're done.
             subslice_index = suffix_len;
             while subslice_index <= min_len - subslice_len {
-                if is_sufficiently_unique(
-                    keys,
-                    subslice_index,
-                    subslice_len,
-                    false,
-                    &mut set,
-                    acceptable_duplicates,
-                    bh,
-                ) {
-                    return SliceKeyAnalysisResult::RightHandSubslice(
-                        subslice_index..subslice_index + subslice_len,
-                    );
+                if is_sufficiently_unique(keys, subslice_index, subslice_len, false, &mut set, acceptable_duplicates, bh) {
+                    return SliceKeyAnalysisResult::RightHandSubslice(subslice_index..subslice_index + subslice_len);
                 }
 
                 subslice_index += 1;
@@ -237,8 +217,8 @@ mod tests {
         const ANALYSIS_TEST_CASES: [AnalysisTestCase; 9] = [
             AnalysisTestCase {
                 slices: &[
-                    "AAA", "ABB", "ACC", "ADD", "AEE", "AFF", "AGG", "AHH", "AII", "AJJ", "AKK",
-                    "ALL", "AMM", "ANN", "AOO", "APP", "AQQ", "ARR", "ASS", "ATT", "AUU",
+                    "AAA", "ABB", "ACC", "ADD", "AEE", "AFF", "AGG", "AHH", "AII", "AJJ", "AKK", "ALL", "AMM", "ANN", "AOO", "APP", "AQQ",
+                    "ARR", "ASS", "ATT", "AUU",
                 ],
                 expected: SliceKeyAnalysisResult::LeftHandSubslice(1..2),
             },
@@ -267,9 +247,7 @@ mod tests {
                 expected: SliceKeyAnalysisResult::Length,
             },
             AnalysisTestCase {
-                slices: &[
-                    "ABC", "DEFG", "HIJKL", "MNOPQR", "STUVWX", "YZ", "D2", "D3", "D4",
-                ],
+                slices: &["ABC", "DEFG", "HIJKL", "MNOPQR", "STUVWX", "YZ", "D2", "D3", "D4"],
                 expected: SliceKeyAnalysisResult::LeftHandSubslice(1..2),
             },
             AnalysisTestCase {
@@ -280,10 +258,7 @@ mod tests {
 
         for case in &ANALYSIS_TEST_CASES {
             let keys = case.slices.iter().map(|x| x.as_bytes());
-            assert_eq!(
-                case.expected,
-                analyze_slice_keys(keys, &RandomState::default())
-            );
+            assert_eq!(case.expected, analyze_slice_keys(keys, &RandomState::default()));
         }
     }
 

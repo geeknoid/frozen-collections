@@ -1,6 +1,4 @@
-use crate::analyzers::{
-    ScalarKeyAnalysisResult, SliceKeyAnalysisResult, analyze_scalar_keys, analyze_slice_keys,
-};
+use crate::analyzers::{ScalarKeyAnalysisResult, SliceKeyAnalysisResult, analyze_scalar_keys, analyze_slice_keys};
 use crate::emit::collection_entry::CollectionEntry;
 use crate::emit::generator::{Generator, Output};
 use crate::hashers::{LeftRangeHasher, PassthroughHasher, RightRangeHasher};
@@ -224,19 +222,12 @@ impl CollectionEmitter {
     /// # Errors
     ///
     /// This function fails if the emitter was misconfigured.
-    pub fn emit_hash_collection<K>(
-        &self,
-        mut entries: Vec<CollectionEntry<K>>,
-    ) -> Result<TokenStream, String>
+    pub fn emit_hash_collection<K>(&self, mut entries: Vec<CollectionEntry<K>>) -> Result<TokenStream, String>
     where
         K: core::hash::Hash + Eq,
     {
         let hasher = RandomState::default();
-        crate::utils::dedup_by_hash_keep_last(
-            &mut entries,
-            |x| hasher.hash_one(&x.key),
-            |x, y| x.key == y.key,
-        );
+        crate::utils::dedup_by_hash_keep_last(&mut entries, |x| hasher.hash_one(&x.key), |x, y| x.key == y.key);
 
         self.clean_values(&mut entries);
 
@@ -258,10 +249,7 @@ impl CollectionEmitter {
     ///
     /// This function fails if the emitter was misconfigured.
     #[cfg(feature = "emit")]
-    pub fn emit_ordered_collection<K>(
-        &self,
-        mut entries: Vec<CollectionEntry<K>>,
-    ) -> Result<TokenStream, String>
+    pub fn emit_ordered_collection<K>(&self, mut entries: Vec<CollectionEntry<K>>) -> Result<TokenStream, String>
     where
         K: Ord,
     {
@@ -286,10 +274,7 @@ impl CollectionEmitter {
     /// # Errors
     ///
     /// This function fails if the emitter was misconfigured.
-    pub fn emit_scalar_collection<K>(
-        &self,
-        mut entries: Vec<CollectionEntry<K>>,
-    ) -> Result<TokenStream, String>
+    pub fn emit_scalar_collection<K>(&self, mut entries: Vec<CollectionEntry<K>>) -> Result<TokenStream, String>
     where
         K: Scalar,
     {
@@ -302,12 +287,8 @@ impl CollectionEmitter {
 
         let generator = self.preflight(entries.len())?;
         let output = match analysis {
-            ScalarKeyAnalysisResult::DenseRange => {
-                generator.gen_inline_dense_scalar_lookup(entries)
-            }
-            ScalarKeyAnalysisResult::SparseRange => {
-                generator.gen_inline_sparse_scalar_lookup(entries)
-            }
+            ScalarKeyAnalysisResult::DenseRange => generator.gen_inline_dense_scalar_lookup(entries),
+            ScalarKeyAnalysisResult::SparseRange => generator.gen_inline_sparse_scalar_lookup(entries),
             ScalarKeyAnalysisResult::General => {
                 if entries.len() < 8 {
                     generator.gen_inline_scan(entries)
@@ -327,10 +308,7 @@ impl CollectionEmitter {
     /// # Errors
     ///
     /// This function fails if the emitter was misconfigured.
-    pub fn emit_string_collection(
-        self,
-        mut entries: Vec<CollectionEntry<String>>,
-    ) -> Result<TokenStream, String> {
+    pub fn emit_string_collection(self, mut entries: Vec<CollectionEntry<String>>) -> Result<TokenStream, String> {
         entries.sort_by(|x, y| x.key.cmp(&y.key));
         dedup_by_keep_last(&mut entries, |x, y| x.key == y.key);
 
@@ -348,27 +326,15 @@ impl CollectionEmitter {
             match analysis {
                 SliceKeyAnalysisResult::LeftHandSubslice(range) => {
                     let hasher = LeftRangeHasher::new(bh, range.clone());
-                    generator.gen_inline_hash_with_range(
-                        entries,
-                        range,
-                        &quote!(InlineLeftRangeHasher),
-                        &hasher,
-                    )
+                    generator.gen_inline_hash_with_range(entries, range, &quote!(InlineLeftRangeHasher), &hasher)
                 }
 
                 SliceKeyAnalysisResult::RightHandSubslice(range) => {
                     let hasher = RightRangeHasher::new(bh, range.clone());
-                    generator.gen_inline_hash_with_range(
-                        entries,
-                        range,
-                        &quote!(InlineRightRangeHasher),
-                        &hasher,
-                    )
+                    generator.gen_inline_hash_with_range(entries, range, &quote!(InlineRightRangeHasher), &hasher)
                 }
 
-                SliceKeyAnalysisResult::Length => {
-                    generator.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new())
-                }
+                SliceKeyAnalysisResult::Length => generator.gen_inline_hash_with_passthrough(entries, &PassthroughHasher::new()),
 
                 SliceKeyAnalysisResult::General => generator.gen_inline_hash_with_bridge(entries),
             }
@@ -378,10 +344,7 @@ impl CollectionEmitter {
     }
 
     #[cfg(feature = "macros")]
-    pub(crate) fn emit_hash_collection_expr(
-        self,
-        entries: Vec<CollectionEntry<NonLiteralKey>>,
-    ) -> Result<TokenStream, String> {
+    pub(crate) fn emit_hash_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
             generator.gen_inline_scan(entries)
@@ -393,10 +356,7 @@ impl CollectionEmitter {
     }
 
     #[cfg(feature = "macros")]
-    pub(crate) fn emit_ordered_collection_expr(
-        self,
-        entries: Vec<CollectionEntry<NonLiteralKey>>,
-    ) -> Result<TokenStream, String> {
+    pub(crate) fn emit_ordered_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
             generator.gen_inline_scan(entries)
@@ -408,10 +368,7 @@ impl CollectionEmitter {
     }
 
     #[cfg(feature = "macros")]
-    pub(crate) fn emit_scalar_collection_expr(
-        self,
-        entries: Vec<CollectionEntry<NonLiteralKey>>,
-    ) -> Result<TokenStream, String> {
+    pub(crate) fn emit_scalar_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 8 {
             generator.gen_inline_scan(entries)
@@ -423,10 +380,7 @@ impl CollectionEmitter {
     }
 
     #[cfg(feature = "macros")]
-    pub(crate) fn emit_string_collection_expr(
-        self,
-        entries: Vec<CollectionEntry<NonLiteralKey>>,
-    ) -> Result<TokenStream, String> {
+    pub(crate) fn emit_string_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
             generator.gen_inline_scan(entries)
@@ -455,11 +409,7 @@ impl CollectionEmitter {
         } else if self.alias_name.is_some() && self.symbol_name.is_none() {
             Err("alias_name cannot be used without symbol_name".to_string())
         } else {
-            Ok(Generator::new(
-                &self.key_type,
-                self.value_type.as_ref(),
-                len,
-            ))
+            Ok(Generator::new(&self.key_type, self.value_type.as_ref(), len))
         }
     }
 
@@ -496,11 +446,7 @@ impl CollectionEmitter {
             }
         } else if let Some(symbol_name) = self.symbol_name.as_ref() {
             let symbol_name = format_ident!("{}", symbol_name);
-            let mutable = if self.is_mutable {
-                quote!(mut)
-            } else {
-                quote!()
-            };
+            let mutable = if self.is_mutable { quote!(mut) } else { quote!() };
 
             if let Some(alias_name) = self.alias_name.as_ref() {
                 let alias_name = format_ident!("{}", alias_name);
@@ -526,15 +472,10 @@ mod tests {
 
     #[test]
     fn test_preflight_static_and_mutable() {
-        let emitter = CollectionEmitter::new(&parse_quote! { i32 })
-            .static_instance(true)
-            .mutable(true);
+        let emitter = CollectionEmitter::new(&parse_quote! { i32 }).static_instance(true).mutable(true);
         let result = emitter.preflight(10);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err(),
-            "mutable is not allowed for static collections"
-        );
+        assert_eq!(result.unwrap_err(), "mutable is not allowed for static collections");
     }
 
     #[test]
@@ -542,10 +483,7 @@ mod tests {
         let emitter = CollectionEmitter::new(&parse_quote! { i32 }).static_instance(true);
         let result = emitter.preflight(10);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err(),
-            "symbol_name is required for static collections"
-        );
+        assert_eq!(result.unwrap_err(), "symbol_name is required for static collections");
     }
 
     #[test]
@@ -553,10 +491,7 @@ mod tests {
         let emitter = CollectionEmitter::new(&parse_quote! { i32 }).mutable(true);
         let result = emitter.preflight(10);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err(),
-            "symbol_name is required for mutable collections"
-        );
+        assert_eq!(result.unwrap_err(), "symbol_name is required for mutable collections");
     }
 
     #[test]
@@ -564,10 +499,7 @@ mod tests {
         let emitter = CollectionEmitter::new(&parse_quote! { i32 }).alias_name("Alias");
         let result = emitter.preflight(10);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err(),
-            "alias_name cannot be used without symbol_name"
-        );
+        assert_eq!(result.unwrap_err(), "alias_name cannot be used without symbol_name");
     }
 
     #[test]
@@ -581,9 +513,7 @@ mod tests {
 
     #[test]
     fn test_preflight_valid_mutable() {
-        let emitter = CollectionEmitter::new(&parse_quote! { i32 })
-            .symbol_name("SYMBOL")
-            .mutable(true);
+        let emitter = CollectionEmitter::new(&parse_quote! { i32 }).symbol_name("SYMBOL").mutable(true);
         let result = emitter.preflight(10);
         assert!(result.is_ok());
     }

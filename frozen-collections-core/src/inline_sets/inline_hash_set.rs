@@ -1,14 +1,10 @@
 use crate::hashers::BridgeHasher;
 use crate::inline_maps::InlineHashMap;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
-    set_iteration_funcs, sub_fn,
+    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn, set_iteration_funcs, sub_fn,
 };
 use crate::sets::{IntoIter, Iter};
-use crate::traits::{
-    CollectionMagnitude, Hasher, Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery,
-    SmallCollection,
-};
+use crate::traits::{CollectionMagnitude, Hasher, Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery, SmallCollection};
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
@@ -35,13 +31,7 @@ use {
 /// - `NHS`: The number of hash table slots.
 /// - `H`: The hasher to generate hash codes.
 #[derive(Clone)]
-pub struct InlineHashSet<
-    T,
-    const SZ: usize,
-    const NHS: usize,
-    CM = SmallCollection,
-    H = BridgeHasher,
-> {
+pub struct InlineHashSet<T, const SZ: usize, const NHS: usize, CM = SmallCollection, H = BridgeHasher> {
     map: InlineHashMap<T, (), SZ, NHS, CM, H>,
 }
 
@@ -65,8 +55,7 @@ where
 {
 }
 
-impl<T, Q, const SZ: usize, const NHS: usize, CM, H> SetQuery<T, Q>
-    for InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, Q, const SZ: usize, const NHS: usize, CM, H> SetQuery<T, Q> for InlineHashSet<T, SZ, NHS, CM, H>
 where
     Q: ?Sized + Eq + Equivalent<T>,
     CM: CollectionMagnitude,
@@ -78,9 +67,7 @@ where
     }
 }
 
-impl<T, const SZ: usize, const NHS: usize, CM, H> SetIteration<T>
-    for InlineHashSet<T, SZ, NHS, CM, H>
-{
+impl<T, const SZ: usize, const NHS: usize, CM, H> SetIteration<T> for InlineHashSet<T, SZ, NHS, CM, H> {
     type Iterator<'a>
         = Iter<'a, T>
     where
@@ -97,8 +84,7 @@ impl<T, const SZ: usize, const NHS: usize, CM, H> Len for InlineHashSet<T, SZ, N
     }
 }
 
-impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitOr<&ST>
-    for &InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitOr<&ST> for &InlineHashSet<T, SZ, NHS, CM, H>
 where
     T: Hash + Eq + Clone,
     ST: Set<T>,
@@ -108,8 +94,7 @@ where
     bitor_fn!();
 }
 
-impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitAnd<&ST>
-    for &InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitAnd<&ST> for &InlineHashSet<T, SZ, NHS, CM, H>
 where
     T: Hash + Eq + Clone,
     ST: Set<T>,
@@ -119,8 +104,7 @@ where
     bitand_fn!();
 }
 
-impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitXor<&ST>
-    for &InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitXor<&ST> for &InlineHashSet<T, SZ, NHS, CM, H>
 where
     T: Hash + Eq + Clone,
     ST: Set<T>,
@@ -140,20 +124,15 @@ where
     sub_fn!();
 }
 
-impl<T, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for InlineHashSet<T, SZ, NHS, CM, H>
-{
+impl<T, const SZ: usize, const NHS: usize, CM, H> IntoIterator for InlineHashSet<T, SZ, NHS, CM, H> {
     into_iter_fn!();
 }
 
-impl<'a, T, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for &'a InlineHashSet<T, SZ, NHS, CM, H>
-{
+impl<'a, T, const SZ: usize, const NHS: usize, CM, H> IntoIterator for &'a InlineHashSet<T, SZ, NHS, CM, H> {
     into_iter_ref_fn!();
 }
 
-impl<T, ST, const SZ: usize, const NHS: usize, CM, H> PartialEq<ST>
-    for InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, ST, const SZ: usize, const NHS: usize, CM, H> PartialEq<ST> for InlineHashSet<T, SZ, NHS, CM, H>
 where
     T: Eq,
     ST: Set<T>,

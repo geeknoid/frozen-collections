@@ -4,9 +4,7 @@
 use crate::emit::collection_entry::CollectionEntry;
 use crate::hash_tables::HashTable;
 use crate::hashers::BridgeHasher;
-use crate::traits::{
-    CollectionMagnitude, Hasher, LargeCollection, MediumCollection, Scalar, SmallCollection,
-};
+use crate::traits::{CollectionMagnitude, Hasher, LargeCollection, MediumCollection, Scalar, SmallCollection};
 use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
@@ -169,10 +167,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_dense_scalar_lookup<K>(
-        &self,
-        sorted_entries: Vec<CollectionEntry<K>>,
-    ) -> Output
+    pub fn gen_inline_dense_scalar_lookup<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output
     where
         K: Scalar,
     {
@@ -180,12 +175,7 @@ impl Generator {
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
         let min_key = Self::inject_underscores(sorted_entries[0].key.index().to_token_stream());
-        let max_key = Self::inject_underscores(
-            sorted_entries[sorted_entries.len() - 1]
-                .key
-                .index()
-                .to_token_stream(),
-        );
+        let max_key = Self::inject_underscores(sorted_entries[sorted_entries.len() - 1].key.index().to_token_stream());
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineDenseScalarLookupMap);
         let mut generics = quote!(<#key_type, #value_type, #len>);
@@ -207,10 +197,7 @@ impl Generator {
     }
 
     #[cfg(feature = "emit")]
-    pub fn gen_inline_eytzinger_search<K>(
-        &self,
-        sorted_entries: Vec<CollectionEntry<K>>,
-    ) -> Output {
+    pub fn gen_inline_eytzinger_search<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
@@ -241,10 +228,8 @@ impl Generator {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
-        let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(
-            entries,
-            &BridgeHasher::new(FixedState::with_seed(self.seed)),
-        );
+        let (ht, magnitude, num_slots) =
+            self.gen_inline_hash_table_components(entries, &BridgeHasher::new(FixedState::with_seed(self.seed)));
         let seed = Self::inject_underscores(self.seed.to_token_stream());
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
@@ -262,11 +247,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_hash_with_passthrough<K, H>(
-        &self,
-        entries: Vec<CollectionEntry<K>>,
-        hasher: &H,
-    ) -> Output
+    pub fn gen_inline_hash_with_passthrough<K, H>(&self, entries: Vec<CollectionEntry<K>>, hasher: &H) -> Output
     where
         H: Hasher<K>,
     {
@@ -347,10 +328,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_sparse_scalar_lookup<K>(
-        &self,
-        sorted_entries: Vec<CollectionEntry<K>>,
-    ) -> Output
+    pub fn gen_inline_sparse_scalar_lookup<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output
     where
         K: Scalar,
     {
@@ -495,11 +473,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    fn gen_inline_hash_table_components<K, H>(
-        &self,
-        entries: Vec<CollectionEntry<K>>,
-        hasher: &H,
-    ) -> (TokenStream, TokenStream, Literal)
+    fn gen_inline_hash_table_components<K, H>(&self, entries: Vec<CollectionEntry<K>>, hasher: &H) -> (TokenStream, TokenStream, Literal)
     where
         H: Hasher<K>,
     {

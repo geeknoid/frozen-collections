@@ -183,10 +183,7 @@ mod tests {
             (3, "three last"),
         ];
         dedup_by_keep_last_slow(&mut vec, |x, y| x.0.eq(&y.0));
-        assert_eq!(
-            vec,
-            vec![(1, "one"), (2, "two duplicate"), (3, "three last")]
-        );
+        assert_eq!(vec, vec![(1, "one"), (2, "two duplicate"), (3, "three last")]);
     }
 
     #[test]

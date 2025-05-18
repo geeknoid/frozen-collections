@@ -38,9 +38,7 @@ where
     let needed_count = max - min + 1;
     if needed_count == count {
         ScalarKeyAnalysisResult::DenseRange
-    } else if needed_count <= ALWAYS_SPARSE_THRESHOLD
-        || needed_count < count.saturating_mul(MAX_SPARSE_MULTIPLIER)
-    {
+    } else if needed_count <= ALWAYS_SPARSE_THRESHOLD || needed_count < count.saturating_mul(MAX_SPARSE_MULTIPLIER) {
         ScalarKeyAnalysisResult::SparseRange
     } else {
         ScalarKeyAnalysisResult::General
@@ -62,19 +60,13 @@ mod tests {
     #[test]
     fn test_analyze_scalar_keys_dense_range() {
         let keys = 1..=5;
-        assert_eq!(
-            analyze_scalar_keys(keys),
-            ScalarKeyAnalysisResult::DenseRange
-        );
+        assert_eq!(analyze_scalar_keys(keys), ScalarKeyAnalysisResult::DenseRange);
     }
 
     #[test]
     fn test_analyze_scalar_keys_sparse_range() {
         let keys = vec![1, 3, 5, 7, 128].into_iter();
-        assert_eq!(
-            analyze_scalar_keys(keys),
-            ScalarKeyAnalysisResult::SparseRange
-        );
+        assert_eq!(analyze_scalar_keys(keys), ScalarKeyAnalysisResult::SparseRange);
     }
 
     #[test]

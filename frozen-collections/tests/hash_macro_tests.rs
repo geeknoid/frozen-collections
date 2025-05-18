@@ -123,11 +123,7 @@ macro_rules! test_hash {
 #[test]
 fn hash_complex() {
     test_hash!(Person, Person { name: "A", age: 1 },);
-    test_hash!(
-        Person,
-        Person { name: "A", age: 1 },
-        Person { name: "B", age: 2 },
-    );
+    test_hash!(Person, Person { name: "A", age: 1 }, Person { name: "B", age: 2 },);
     test_hash!(
         Person,
         Person { name: "A", age: 1 },
@@ -454,64 +450,10 @@ fn hash_string() {
     test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6");
     test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7");
     test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
-    test_hash!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9"
-    );
-    test_hash!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10"
-    );
-    test_hash!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11"
-    );
-    test_hash!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12"
-    );
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
     test_hash!(
         &'static str,
         "0",

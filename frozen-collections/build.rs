@@ -54,11 +54,7 @@ where
     literal_producer(file, size);
     writeln!(file, "    }});").unwrap();
 
-    writeln!(
-        file,
-        "    let input: Vec<i32> = frozen.clone().into_iter().collect();"
-    )
-    .unwrap();
+    writeln!(file, "    let input: Vec<i32> = frozen.clone().into_iter().collect();").unwrap();
     writeln!(file, "    let size = input.len();").unwrap();
     writeln!(file, "    let mut probe = Vec::new();").unwrap();
     writeln!(file, "    for i in &input {{").unwrap();
@@ -66,7 +62,11 @@ where
     writeln!(file, "        probe.push(-(*i));").unwrap();
     writeln!(file, "    }}").unwrap();
 
-    writeln!(file, "    let s = std::collections::HashSet::<_, std::hash::RandomState>::from_iter(input.clone());").unwrap();
+    writeln!(
+        file,
+        "    let s = std::collections::HashSet::<_, std::hash::RandomState>::from_iter(input.clone());"
+    )
+    .unwrap();
     emit_loop(file, "HashSet(classic)");
 
     writeln!(
@@ -115,7 +115,11 @@ where
     writeln!(file, "    }}").unwrap();
     writeln!(file, "    let probe = tmp;").unwrap();
 
-    writeln!(file, "    let s = std::collections::HashSet::<_, std::hash::RandomState>::from_iter(input.clone());").unwrap();
+    writeln!(
+        file,
+        "    let s = std::collections::HashSet::<_, std::hash::RandomState>::from_iter(input.clone());"
+    )
+    .unwrap();
     emit_loop(file, "HashSet(classic)");
 
     writeln!(
@@ -140,27 +144,19 @@ where
     literal_producer(file, size);
     writeln!(file, "    }});").unwrap();
 
-    writeln!(
-        file,
-        "    let input: Vec<_> = frozen.clone().into_iter().collect();"
-    )
-    .unwrap();
+    writeln!(file, "    let input: Vec<_> = frozen.clone().into_iter().collect();").unwrap();
     writeln!(file, "    let size = input.len();").unwrap();
     writeln!(file, "    let mut probe = Vec::new();").unwrap();
     writeln!(file, "    for i in &input {{").unwrap();
-    writeln!(
-        file,
-        "        probe.push(Record {{ name: (*i).name.clone(), age: (*i).age }});"
-    )
-    .unwrap();
-    writeln!(
-        file,
-        "        probe.push(Record {{ name: (*i).name.clone(), age: -(*i).age }});"
-    )
-    .unwrap();
+    writeln!(file, "        probe.push(Record {{ name: (*i).name.clone(), age: (*i).age }});").unwrap();
+    writeln!(file, "        probe.push(Record {{ name: (*i).name.clone(), age: -(*i).age }});").unwrap();
     writeln!(file, "    }}").unwrap();
 
-    writeln!(file, "    let s = std::collections::HashSet::<_, std::hash::RandomState>::from_iter(input.clone());").unwrap();
+    writeln!(
+        file,
+        "    let s = std::collections::HashSet::<_, std::hash::RandomState>::from_iter(input.clone());"
+    )
+    .unwrap();
     emit_loop(file, "HashSet(classic)");
 
     writeln!(
@@ -185,31 +181,15 @@ where
     literal_producer(file, size);
     writeln!(file, "    }});").unwrap();
 
-    writeln!(
-        file,
-        "    let input: Vec<_> = frozen.clone().into_iter().collect();"
-    )
-    .unwrap();
+    writeln!(file, "    let input: Vec<_> = frozen.clone().into_iter().collect();").unwrap();
     writeln!(file, "    let size = input.len();").unwrap();
     writeln!(file, "    let mut probe = Vec::new();").unwrap();
     writeln!(file, "    for i in &input {{").unwrap();
-    writeln!(
-        file,
-        "        probe.push(Record {{ name: (*i).name.clone(), age: (*i).age }});"
-    )
-    .unwrap();
-    writeln!(
-        file,
-        "        probe.push(Record {{ name: (*i).name.clone(), age: -(*i).age }});"
-    )
-    .unwrap();
+    writeln!(file, "        probe.push(Record {{ name: (*i).name.clone(), age: (*i).age }});").unwrap();
+    writeln!(file, "        probe.push(Record {{ name: (*i).name.clone(), age: -(*i).age }});").unwrap();
     writeln!(file, "    }}").unwrap();
 
-    writeln!(
-        file,
-        "    let s = std::collections::BTreeSet::<_>::from_iter(input.clone());"
-    )
-    .unwrap();
+    writeln!(file, "    let s = std::collections::BTreeSet::<_>::from_iter(input.clone());").unwrap();
     emit_loop(file, "BTreeSet");
 
     writeln!(file, "    let s = FzOrderedSet::new(input);").unwrap();
@@ -345,11 +325,7 @@ fn emit_hashed_benchmark() {
             }
 
             let age: i32 = rng.random();
-            writeln!(
-                file,
-                "        Record {{ name: \"{s}\".to_string(), age: {age} }},"
-            )
-            .unwrap();
+            writeln!(file, "        Record {{ name: \"{s}\".to_string(), age: {age} }},").unwrap();
         }
     }
 
@@ -384,21 +360,13 @@ fn emit_ordered_benchmark() {
             }
 
             let age: i32 = rng.random();
-            writeln!(
-                file,
-                "        Record {{ name: \"{s}\".to_string(), age: {age} }},"
-            )
-            .unwrap();
+            writeln!(file, "        Record {{ name: \"{s}\".to_string(), age: {age} }},").unwrap();
         }
     }
 
     let mut file = emit_benchmark_preamble("ordered");
 
-    writeln!(
-        file,
-        "#[derive(Clone, Debug, Eq, Ord, PartialOrd, PartialEq)]"
-    )
-    .unwrap();
+    writeln!(file, "#[derive(Clone, Debug, Eq, Ord, PartialOrd, PartialEq)]").unwrap();
     writeln!(file, "struct Record {{").unwrap();
     writeln!(file, "    name: String,").unwrap();
     writeln!(file, "    age: i32,").unwrap();

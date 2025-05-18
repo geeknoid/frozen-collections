@@ -1,7 +1,6 @@
 use crate::inline_maps::InlineEytzingerSearchMap;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn,
-    partial_eq_fn, set_iteration_funcs, sub_fn,
+    bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn, set_iteration_funcs, sub_fn,
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
@@ -40,10 +39,7 @@ impl<T, const SZ: usize> InlineEytzingerSearchSet<T, SZ> {
     }
 }
 
-impl<T, Q, const SZ: usize> Set<T, Q> for InlineEytzingerSearchSet<T, SZ> where
-    Q: ?Sized + Ord + Comparable<T>
-{
-}
+impl<T, Q, const SZ: usize> Set<T, Q> for InlineEytzingerSearchSet<T, SZ> where Q: ?Sized + Ord + Comparable<T> {}
 
 impl<T, Q, const SZ: usize> SetQuery<T, Q> for InlineEytzingerSearchSet<T, SZ>
 where

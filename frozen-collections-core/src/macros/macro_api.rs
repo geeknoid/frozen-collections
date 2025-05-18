@@ -151,10 +151,7 @@ mod tests {
             { 123iXXX, 234iXXX }
         ));
 
-        assert_eq!(
-            "unknown suffix iXXX for scalar value",
-            r.unwrap_err().to_string()
-        );
+        assert_eq!("unknown suffix iXXX for scalar value", r.unwrap_err().to_string());
     }
 
     #[test]
@@ -163,10 +160,7 @@ mod tests {
             { 1i8, 2i16 }
         ));
 
-        assert_eq!(
-            "incompatible scalar literal type",
-            r.unwrap_err().to_string()
-        );
+        assert_eq!("incompatible scalar literal type", r.unwrap_err().to_string());
     }
 
     #[test]
@@ -175,28 +169,19 @@ mod tests {
             { 123.0, 234.0 }
         ));
 
-        assert_eq!(
-            "invalid literal, expecting a scalar or string value",
-            r.unwrap_err().to_string()
-        );
+        assert_eq!("invalid literal, expecting a scalar or string value", r.unwrap_err().to_string());
 
         let r = fz_string_set_macro(quote!(
             { 1, 2 }
         ));
 
-        assert_eq!(
-            "string macro cannot contain scalar keys",
-            r.unwrap_err().to_string()
-        );
+        assert_eq!("string macro cannot contain scalar keys", r.unwrap_err().to_string());
 
         let r = fz_scalar_set_macro(quote!(
             { "1", "2" }
         ));
 
-        assert_eq!(
-            "scalar macro cannot contain string keys",
-            r.unwrap_err().to_string()
-        );
+        assert_eq!("scalar macro cannot contain string keys", r.unwrap_err().to_string());
     }
 
     #[test]
@@ -240,10 +225,7 @@ mod tests {
         check_impl(":: InlineScanSet", quote!({ "1", "2", "3", }));
         check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4" }));
 
-        check_impl(
-            ":: BridgeHasher",
-            quote!({ "1", "2", "3", "4", "5", "6", "7" }),
-        );
+        check_impl(":: BridgeHasher", quote!({ "1", "2", "3", "4", "5", "6", "7" }));
 
         check_impl(
             ":: PassthroughHasher",
@@ -271,10 +253,7 @@ mod tests {
         check_impl(":: InlineDenseScalarLookupSet", quote!({ 1, 2, 3, }));
         check_impl(":: InlineSparseScalarLookupSet", quote!({ 1, 2, 3, 4, 6 }));
         check_impl(":: InlineScanSet", quote!({ 1, 2, 3, 4, 5, 60000, 70000 }));
-        check_impl(
-            ":: InlineHashSet",
-            quote!({ 1, 2, 3, 4, 5, 60000, 70000, 80000 }),
-        );
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 60000, 70000, 80000 }));
 
         check_impl(":: InlineScanSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7, 8 }));
@@ -290,19 +269,13 @@ mod tests {
         check_impl(":: InlineDenseScalarLookupSet", quote!({ 1, 2, 3, }));
         check_impl(":: InlineSparseScalarLookupSet", quote!({ 1, 2, 3, 4, 6 }));
         check_impl(":: InlineScanSet", quote!({ 1, 2, 3, 4, 5, 60000, 70000 }));
-        check_impl(
-            ":: InlineHashSet",
-            quote!({ 1, 2, 3, 4, 5, 60000, 70000, 80000 }),
-        );
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 60000, 70000, 80000 }));
 
         check_impl(":: InlineScanSet", quote!({ "1", "2", "3", }));
         check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4" }));
 
         check_impl(":: InlineScanSet", quote!({ Foo(1), Foo(2), Foo(3),}));
-        check_impl(
-            ":: EytzingerSearchSet",
-            quote!({ Foo(1), Foo(2), Foo(3), Foo(4) }),
-        );
+        check_impl(":: EytzingerSearchSet", quote!({ Foo(1), Foo(2), Foo(3), Foo(4) }));
 
         check_impl(":: InlineScanSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7, 8 }));
@@ -321,10 +294,7 @@ mod tests {
         check_impl(":: InlineDenseScalarLookupSet", quote!({ 1, 2, 3, }));
         check_impl(":: InlineSparseScalarLookupSet", quote!({ 1, 2, 3, 4, 6 }));
         check_impl(":: InlineScanSet", quote!({ 1, 2, 3, 4, 5, 60000, 70000 }));
-        check_impl(
-            ":: InlineHashSet",
-            quote!({ 1, 2, 3, 4, 5, 60000, 70000, 80000 }),
-        );
+        check_impl(":: InlineHashSet", quote!({ 1, 2, 3, 4, 5, 60000, 70000, 80000 }));
 
         check_impl(":: InlineScanSet", quote!({ "1", "2", "3", }));
         check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4" }));
@@ -341,14 +311,10 @@ mod tests {
 
     #[test]
     fn test_scalar_suffixes() {
-        let r = fz_scalar_set_macro(quote!({ 1i8, 2, 3, 4, 5, 6 }))
-            .unwrap()
-            .to_string();
+        let r = fz_scalar_set_macro(quote!({ 1i8, 2, 3, 4, 5, 6 })).unwrap().to_string();
         assert!(r.contains("1i8"));
 
-        let r = fz_scalar_set_macro(quote!({ 1, 2, 3, 4, 5, 6 }))
-            .unwrap()
-            .to_string();
+        let r = fz_scalar_set_macro(quote!({ 1, 2, 3, 4, 5, 6 })).unwrap().to_string();
         assert!(!r.contains("1i8"));
         assert!(r.contains("1i32"));
     }

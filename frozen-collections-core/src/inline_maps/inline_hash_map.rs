@@ -1,14 +1,11 @@
 use crate::hash_tables::InlineHashTable;
 use crate::hashers::BridgeHasher;
 use crate::maps::decl_macros::{
-    get_disjoint_mut_fn, get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn,
-    hash_query_funcs, index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn,
-    map_iteration_funcs, partial_eq_fn,
+    get_disjoint_mut_fn, get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn, hash_query_funcs, index_fn, into_iter_fn,
+    into_iter_mut_ref_fn, into_iter_ref_fn, map_iteration_funcs, partial_eq_fn,
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
-use crate::traits::{
-    CollectionMagnitude, Hasher, Len, Map, MapIteration, MapQuery, SmallCollection,
-};
+use crate::traits::{CollectionMagnitude, Hasher, Len, Map, MapIteration, MapQuery, SmallCollection};
 use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
@@ -36,14 +33,7 @@ use {
 /// - `NHS`: The number of hash table slots.
 /// - `H`: The hasher to generate hash codes.
 #[derive(Clone)]
-pub struct InlineHashMap<
-    K,
-    V,
-    const SZ: usize,
-    const NHS: usize,
-    CM = SmallCollection,
-    H = BridgeHasher,
-> {
+pub struct InlineHashMap<K, V, const SZ: usize, const NHS: usize, CM = SmallCollection, H = BridgeHasher> {
     table: InlineHashTable<(K, V), SZ, NHS, CM>,
     hasher: H,
 }
@@ -61,8 +51,7 @@ where
     }
 }
 
-impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> Map<K, V, Q>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> Map<K, V, Q> for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     CM: CollectionMagnitude,
     Q: ?Sized + Eq + Equivalent<K>,
@@ -72,8 +61,7 @@ where
     get_disjoint_unchecked_mut_fn!("Hash");
 }
 
-impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> MapQuery<K, V, Q>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> MapQuery<K, V, Q> for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     CM: CollectionMagnitude,
     Q: ?Sized + Eq + Equivalent<K>,
@@ -82,9 +70,7 @@ where
     hash_query_funcs!();
 }
 
-impl<K, V, const SZ: usize, const NHS: usize, CM, H> MapIteration<K, V>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
-{
+impl<K, V, const SZ: usize, const NHS: usize, CM, H> MapIteration<K, V> for InlineHashMap<K, V, SZ, NHS, CM, H> {
     type Iterator<'a>
         = Iter<'a, K, V>
     where
@@ -134,8 +120,7 @@ impl<K, V, const SZ: usize, const NHS: usize, CM, H> Len for InlineHashMap<K, V,
     }
 }
 
-impl<Q, K, V, const SZ: usize, const NHS: usize, CM, H> Index<&Q>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<Q, K, V, const SZ: usize, const NHS: usize, CM, H> Index<&Q> for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     CM: CollectionMagnitude,
     Q: ?Sized + Eq + Equivalent<K>,
@@ -144,26 +129,19 @@ where
     index_fn!();
 }
 
-impl<K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
-{
+impl<K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator for InlineHashMap<K, V, SZ, NHS, CM, H> {
     into_iter_fn!(table entries);
 }
 
-impl<'a, K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for &'a InlineHashMap<K, V, SZ, NHS, CM, H>
-{
+impl<'a, K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator for &'a InlineHashMap<K, V, SZ, NHS, CM, H> {
     into_iter_ref_fn!();
 }
 
-impl<'a, K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for &'a mut InlineHashMap<K, V, SZ, NHS, CM, H>
-{
+impl<'a, K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator for &'a mut InlineHashMap<K, V, SZ, NHS, CM, H> {
     into_iter_mut_ref_fn!();
 }
 
-impl<K, V, MT, const SZ: usize, const NHS: usize, CM, H> PartialEq<MT>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, MT, const SZ: usize, const NHS: usize, CM, H> PartialEq<MT> for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     K: Eq,
     CM: CollectionMagnitude,
@@ -195,8 +173,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<K, V, const SZ: usize, const NHS: usize, CM, H> Serialize
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, const SZ: usize, const NHS: usize, CM, H> Serialize for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     K: Serialize,
     V: Serialize,

@@ -8,25 +8,18 @@ use core::hash::{BuildHasher, Hash};
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone, Debug)]
-pub struct InlineLeftRangeHasher<
-    const RANGE_START: usize,
-    const RANGE_END: usize,
-    BH = DefaultHashBuilder,
-> {
+pub struct InlineLeftRangeHasher<const RANGE_START: usize, const RANGE_END: usize, BH = DefaultHashBuilder> {
     bh: BH,
 }
 
-impl<const RANGE_START: usize, const RANGE_END: usize, BH>
-    InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
-{
+impl<const RANGE_START: usize, const RANGE_END: usize, BH> InlineLeftRangeHasher<RANGE_START, RANGE_END, BH> {
     #[must_use]
     pub const fn new(bh: BH) -> Self {
         Self { bh }
     }
 }
 
-impl<T, const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<[T]>
-    for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
+impl<T, const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<[T]> for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
 where
     T: Hash,
     BH: BuildHasher,
@@ -42,8 +35,7 @@ where
     }
 }
 
-impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<String>
-    for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
+impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<String> for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
 where
     BH: BuildHasher,
 {
@@ -59,8 +51,7 @@ where
     }
 }
 
-impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<&str>
-    for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
+impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<&str> for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
 where
     BH: BuildHasher,
 {
@@ -76,8 +67,7 @@ where
     }
 }
 
-impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<str>
-    for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
+impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<str> for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
 where
     BH: BuildHasher,
 {

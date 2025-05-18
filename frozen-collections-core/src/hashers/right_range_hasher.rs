@@ -108,10 +108,7 @@ mod tests {
     #[test]
     fn test_right_range_hasher_hash_slice() {
         let hasher = RightRangeHasher::new(RandomState::default(), 1..3);
-        assert_eq!(
-            hasher.hash(vec![1, 2, 3, 4].as_slice()),
-            hasher.bh.hash_one(vec![2, 3].as_slice())
-        );
+        assert_eq!(hasher.hash(vec![1, 2, 3, 4].as_slice()), hasher.bh.hash_one(vec![2, 3].as_slice()));
         assert_eq!(
             hasher.hash(vec![1, 2, 3, 4, 5, 6].as_slice()),
             hasher.bh.hash_one(vec![4, 5].as_slice())
@@ -122,14 +119,8 @@ mod tests {
     #[test]
     fn test_right_range_hasher_hash_string() {
         let hasher = RightRangeHasher::new(RandomState::default(), 3..5);
-        assert_eq!(
-            hasher.hash(&"abcdef".to_string()),
-            hasher.bh.hash_one(b"bc")
-        );
-        assert_eq!(
-            hasher.hash(&"abcdefghijklmn".to_string()),
-            hasher.bh.hash_one(b"jk")
-        );
+        assert_eq!(hasher.hash(&"abcdef".to_string()), hasher.bh.hash_one(b"bc"));
+        assert_eq!(hasher.hash(&"abcdefghijklmn".to_string()), hasher.bh.hash_one(b"jk"));
         assert_eq!(hasher.hash(&"a".to_string()), 0);
     }
 
