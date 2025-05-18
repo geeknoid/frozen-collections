@@ -5,7 +5,7 @@ use core::ops::Range;
 use hashbrown::HashMap as HashbrownMap;
 use hashbrown::HashSet as HashbrownSet;
 
-/// How to treat keys which are slices for best performance.
+/// How to treat keys which are slices for the best performance.
 #[derive(PartialEq, Eq, Debug)]
 pub enum SliceKeyAnalysisResult {
     /// No special optimization possible.
@@ -17,7 +17,7 @@ pub enum SliceKeyAnalysisResult {
     /// Hash right-justified subslices
     RightHandSubslice(Range<usize>),
 
-    /// Use the length of the slices as hash codes, instead of hashing the slices
+    /// Use the length of the slices as hash codes instead of hashing the slices
     Length,
 }
 
@@ -31,7 +31,7 @@ pub enum SliceKeyAnalysisResult {
 /// enough uniqueness factor. We look at all the slices both left-justified and right-justified as this maximizes
 /// the opportunities to find unique subslices, especially in the case of many slices with the same prefix or suffix.
 ///
-/// We also analyze the length of the input slices. If the length of the slices are sufficiently unique,
+/// We also analyze the length of the input slices. If the lengths of the slices are sufficiently unique,
 /// we can totally skip hashing and just use their lengths as hash codes.
 pub fn analyze_slice_keys<'a, K, I, BH>(keys: I, bh: &BH) -> SliceKeyAnalysisResult
 where
@@ -65,9 +65,9 @@ fn analyze_lengths<T>(keys: &Vec<&[T]>) -> SliceKeyAnalysisResult {
                 return SliceKeyAnalysisResult::General;
             }
 
-            lengths.insert(s.len(), count + 1);
+            _ = lengths.insert(s.len(), count + 1);
         } else {
-            lengths.insert(s.len(), 1);
+            _ = lengths.insert(s.len(), 1);
         }
     }
 
@@ -116,7 +116,7 @@ where
         }
     }
 
-    // tolerate a certain amount of duplicate subslices
+    // tolerate a certain number of duplicate subslices
     let acceptable_duplicates = keys.len() / ACCEPTABLE_DUPLICATE_RATIO;
 
     // this set is reused for each call to is_sufficiently_unique
@@ -298,7 +298,7 @@ mod tests {
 
         let x = v.iter().map(String::as_bytes);
         let y = &RandomState::default();
-        analyze_slice_keys(x, y);
+        _ = analyze_slice_keys(x, y);
     }
 
     #[test]

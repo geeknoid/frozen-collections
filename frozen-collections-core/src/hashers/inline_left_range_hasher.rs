@@ -7,7 +7,7 @@ use core::hash::{BuildHasher, Hash};
 /// Hashes a portion of a left-aligned slice.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct InlineLeftRangeHasher<
     const RANGE_START: usize,
     const RANGE_END: usize,

@@ -367,6 +367,7 @@ where
 }
 
 /// A consuming iterator over the keys in a map.
+#[derive(Debug)]
 pub struct IntoKeys<K, V> {
     inner: IntoIter<K, V>,
 }
@@ -412,6 +413,7 @@ impl<K, V> ExactSizeIterator for IntoKeys<K, V> {
 impl<K, V> FusedIterator for IntoKeys<K, V> {}
 
 /// A consuming iterator over the values in a map.
+#[derive(Debug)]
 pub struct IntoValues<K, V> {
     inner: IntoIter<K, V>,
 }

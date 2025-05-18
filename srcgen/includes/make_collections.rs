@@ -1,4 +1,4 @@
-use frozen_collections::emit::*;
+use frozen_collections::emit::{CollectionEmitter, CollectionEntry};
 use proc_macro2::TokenStream;
 use syn::parse_quote;
 

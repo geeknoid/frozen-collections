@@ -67,6 +67,7 @@ where
 }
 
 /// A consuming iterator over the values of a set.
+#[derive(Debug)]
 pub struct IntoIter<T> {
     inner: crate::maps::IntoIter<T, ()>,
 }

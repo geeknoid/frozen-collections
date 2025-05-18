@@ -39,10 +39,10 @@ pub trait SetOps<T> {
     /// Visits the values representing the intersection,
     /// i.e., the values that are both in `self` and `other`.
     ///
-    /// When an equal element is present in `self` and `other`
+    /// When an equal element is present in `self` and `other`,
     /// then the resulting `Intersection` may yield references to
     /// one or the other. This can be relevant if `T` contains fields which
-    /// are not compared by its `Eq` implementation, and may hold different
+    /// are not compared by its `Eq` implementation and may hold different
     /// value between the two equal copies of `T` in the two sets.
     #[must_use]
     fn intersection<'a, ST>(&'a self, other: &'a ST) -> Intersection<'a, Self, ST, T>

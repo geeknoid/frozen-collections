@@ -53,7 +53,7 @@ where
     let s2 = set.clone();
     let mut r2 = reference.clone();
     for value in s2 {
-        r2.remove(&value);
+        _ = r2.remove(&value);
     }
 
     assert!(r2.is_empty());

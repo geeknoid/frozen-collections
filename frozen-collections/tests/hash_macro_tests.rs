@@ -33,7 +33,7 @@ macro_rules! test_hash {
 
             let mut s2 = HashbrownSet::new();
             for x in v.into_iter() {
-                s2.insert(x);
+                _ = s2.insert(x);
             }
 
             _ = fz_hash_set_macro(quote!(static _S3: Foo< $type >, {
@@ -86,7 +86,7 @@ macro_rules! test_hash {
 
             let mut m2 = HashbrownMap::new();
             for x in v.into_iter() {
-                m2.insert(x.0, x.1);
+                _ = m2.insert(x.0, x.1);
             }
 
             _ = fz_hash_map_macro(quote!(static _M3: Foo< $type, i32 >, {

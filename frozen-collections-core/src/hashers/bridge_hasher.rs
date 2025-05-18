@@ -5,7 +5,7 @@ use core::hash::{BuildHasher, Hash};
 /// Wraps a normal [`BuildHasher`].
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BridgeHasher<BH = DefaultHashBuilder> {
     bh: BH,
 }

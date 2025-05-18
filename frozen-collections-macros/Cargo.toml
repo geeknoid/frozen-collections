@@ -10,7 +10,6 @@ keywords.workspace = true
 repository.workspace = true
 license.workspace = true
 rust-version.workspace = true
-resolver = "2"
 
 [lib]
 name = "frozen_collections_macros"
@@ -18,8 +17,8 @@ path = "src/lib.rs"
 proc-macro = true
 
 [dependencies]
-proc-macro-error2 = "2.0.1"
-frozen-collections-core = { version = "0.5.0", path = "../frozen-collections-core", features = ["macros"], default-features = false }
+proc-macro-error2 = { workspace = true }
+frozen-collections-core = { workspace = true, features = ["macros"] }
 
 [lints]
 workspace = true

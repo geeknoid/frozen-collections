@@ -3,11 +3,11 @@
 //! <div class="warning">
 //! This crate is an implementation detail of the `frozen_collections` crate.
 //! This crate's API is therefore not stable and may change at any time. Please do not
-//! use this crate directly, and instead use the public API provided by the
+//! use this crate directly and instead use the public API provided by the
 //! `frozen_collections` crate.
 //! </div>
 
-#![cfg_attr(not(any(feature = "std")), no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 extern crate core;

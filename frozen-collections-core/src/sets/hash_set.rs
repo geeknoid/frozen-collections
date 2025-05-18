@@ -19,7 +19,7 @@ use {
     serde::{Serialize, Serializer},
 };
 
-/// A general purpose set implemented using a hash table.
+/// A general-purpose set implemented using a hash table.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]

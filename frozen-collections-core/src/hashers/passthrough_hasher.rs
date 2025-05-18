@@ -4,7 +4,7 @@ use alloc::string::String;
 /// A hasher that simply returns the value as the hash.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PassthroughHasher {}
 
 impl PassthroughHasher {

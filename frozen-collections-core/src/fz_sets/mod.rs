@@ -1,4 +1,4 @@
-//! Wrappers around other set types allowing runtime selection of implementation type based on input.
+//! Wrappers around other set types allowing runtime selection of implementation types based on input.
 
 pub use fz_hash_set::FzHashSet;
 pub use fz_ordered_set::FzOrderedSet;

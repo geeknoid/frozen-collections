@@ -1,4 +1,4 @@
-//! Wrappers around other map types allowing runtime selection of implementation type based on input.
+//! Wrappers around other map types allowing runtime selection of implementation types based on input.
 
 pub use fz_hash_map::FzHashMap;
 pub use fz_ordered_map::FzOrderedMap;

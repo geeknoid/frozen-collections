@@ -17,7 +17,7 @@ use {
     serde::{Serialize, Serializer},
 };
 
-/// A general purpose set implemented using binary search.
+/// A general-purpose set implemented using binary search.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[doc = include_str!("../doc_snippets/about.md")]

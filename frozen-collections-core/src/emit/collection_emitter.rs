@@ -80,7 +80,7 @@ use crate::emit::NonLiteralKey;
 ///     println!("{MY_MAP:?}");
 /// }
 /// ```
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct CollectionEmitter {
     key_type: Type,
@@ -170,7 +170,7 @@ impl CollectionEmitter {
 
     /// Specifies the name of the alias type that will be generated for the collection.
     ///
-    /// This is the name that is used as an alias to the generated collection type. If
+    /// This is the name used as an alias to the generated collection type. If
     /// an alias name is not provided, no alias is created. Note that setting an alias also
     /// requires setting a symbol name.
     #[must_use]
@@ -247,7 +247,7 @@ impl CollectionEmitter {
             generator.gen_inline_hash_with_bridge(entries)
         };
 
-        self.postflight(output)
+        Ok(self.postflight(output))
     }
 
     /// Emits a frozen ordered collection.
@@ -276,7 +276,7 @@ impl CollectionEmitter {
             generator.gen_inline_eytzinger_search(entries)
         };
 
-        self.postflight(output)
+        Ok(self.postflight(output))
     }
 
     /// Emits a frozen scalar collection.
@@ -317,7 +317,7 @@ impl CollectionEmitter {
             }
         };
 
-        self.postflight(output)
+        Ok(self.postflight(output))
     }
 
     /// Emits a frozen string collection.
@@ -374,7 +374,7 @@ impl CollectionEmitter {
             }
         };
 
-        self.postflight(output)
+        Ok(self.postflight(output))
     }
 
     #[cfg(feature = "macros")]
@@ -389,7 +389,7 @@ impl CollectionEmitter {
             generator.gen_hash_with_bridge(entries)
         };
 
-        self.postflight(output)
+        Ok(self.postflight(output))
     }
 
     #[cfg(feature = "macros")]
@@ -404,7 +404,7 @@ impl CollectionEmitter {
             generator.gen_eytzinger_search(entries)
         };
 
-        self.postflight(output)
+        Ok(self.postflight(output))
     }
 
     #[cfg(feature = "macros")]
@@ -419,7 +419,7 @@ impl CollectionEmitter {
             generator.gen_fz_scalar(entries)
         };
 
-        self.postflight(output)
+        Ok(self.postflight(output))
     }
 
     #[cfg(feature = "macros")]
@@ -434,7 +434,7 @@ impl CollectionEmitter {
             generator.gen_fz_string(entries)
         };
 
-        self.postflight(output)
+        Ok(self.postflight(output))
     }
 
     fn clean_values<K>(&self, entries: &mut [CollectionEntry<K>]) {
@@ -464,12 +464,12 @@ impl CollectionEmitter {
     }
 
     #[allow(clippy::option_if_let_else)]
-    fn postflight(&self, output: Output) -> Result<TokenStream, String> {
+    fn postflight(&self, output: Output) -> TokenStream {
         let type_sig = output.type_sig;
         let ctor = output.ctor;
         let visibility = &self.visibility;
 
-        Ok(if self.is_static {
+        if self.is_static {
             let symbol_name = format_ident!("{}", self.symbol_name.as_ref().unwrap());
             if self.const_keys && self.const_values {
                 if let Some(alias_name) = self.alias_name.as_ref() {
@@ -515,7 +515,7 @@ impl CollectionEmitter {
             }
         } else {
             ctor
-        })
+        }
     }
 }
 

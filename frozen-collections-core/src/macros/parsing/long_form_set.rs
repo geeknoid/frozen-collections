@@ -18,14 +18,14 @@ impl Parse for LongFormSet {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         // var_name: type_name
         let var_name = input.parse::<Ident>()?;
-        input.parse::<Token![:]>()?;
+        _ = input.parse::<Token![:]>()?;
         let type_name = input.parse::<Ident>()?;
 
         // <value_type>
-        input.parse::<Token![<]>()?;
+        _ = input.parse::<Token![<]>()?;
         let value_type = input.parse()?;
-        input.parse::<Token![>]>()?;
-        input.parse::<Token![,]>()?;
+        _ = input.parse::<Token![>]>()?;
+        _ = input.parse::<Token![,]>()?;
 
         Ok(Self {
             var_name,
@@ -33,7 +33,7 @@ impl Parse for LongFormSet {
             value_type,
             payload: parse_set_payload(input)?,
 
-            // these will be overridden by the caller
+            // these get overridden by the caller
             visibility: Visibility::Inherited,
             is_static: false,
             is_mutable: false,

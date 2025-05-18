@@ -2,7 +2,7 @@
 ///
 /// This provides a hashing mechanism which is orthogonal to the normal
 /// [`Hash`] trait. This allows for the creation of hashers that are
-/// specialized for specific types, and can be used in contexts where the
+/// specialized for specific types and can be used in contexts where the
 /// standard `Hash` trait is not desirable.
 pub trait Hasher<T>
 where
