@@ -85,8 +85,15 @@ impl<K, V, Q> Map<K, V, Q> for FzOrderedMap<K, V>
 where
     Q: ?Sized + Eq + Comparable<K>,
 {
-    fn get_many_mut<const N: usize>(&mut self, keys: [&Q; N]) -> Option<[&mut V; N]> {
-        self.map_impl.get_many_mut(keys)
+    fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
+        self.map_impl.get_disjoint_mut(keys)
+    }
+
+    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
+        &mut self,
+        keys: [&Q; N],
+    ) -> [Option<&mut V>; N] {
+        unsafe { self.map_impl.get_disjoint_unchecked_mut(keys) }
     }
 }
 

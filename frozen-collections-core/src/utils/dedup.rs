@@ -115,21 +115,6 @@ where
     });
 }
 
-/// Look for the first duplicate value, if any.
-pub fn has_duplicates<I>(values: I) -> bool
-where
-    I: Iterator<Item: Hash + Eq>,
-{
-    let mut s = HashbrownSet::new();
-    for v in values {
-        if !s.insert(v) {
-            return true;
-        }
-    }
-
-    false
-}
-
 #[derive(PartialEq, Eq)]
 struct Wrapper<T> {
     value: T,
@@ -216,30 +201,6 @@ mod tests {
         let mut vec = vec![(1, "one"), (1, "one duplicate"), (1, "one last")];
         dedup_by_keep_last_slow(&mut vec, |x, y| x.0.eq(&y.0));
         assert_eq!(vec, vec![(1, "one last")]);
-    }
-
-    #[test]
-    fn test_find_duplicate_no_duplicates() {
-        let vec = [1, 2, 3];
-        assert!(!has_duplicates(vec.iter()));
-    }
-
-    #[test]
-    fn test_find_duplicate_with_duplicates() {
-        let vec = [1, 2, 2, 3];
-        assert!(has_duplicates(vec.iter()));
-    }
-
-    #[test]
-    fn test_find_duplicate_empty_slice() {
-        let vec: Vec<i32> = Vec::new();
-        assert!(!has_duplicates(vec.iter()));
-    }
-
-    #[test]
-    fn test_find_duplicate_all_same_entries() {
-        let vec = [1, 1, 1];
-        assert!(has_duplicates(vec.iter()));
     }
 
     #[test]
