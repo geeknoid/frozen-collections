@@ -14,29 +14,20 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        toolchain:
-          - stable
-          - beta
-          - nightly
-
+    env:
+      CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
-        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-      - name: Build - no features
-        run: cargo build --verbose --all-targets --no-default-features
-      - name: Build - std
-        run: cargo build --verbose --all-targets --no-default-features --features std
-      - name: Build - serde
-        run: cargo build --verbose --all-targets --no-default-features --features serde
-      - name: Build - macros
-        run: cargo build --verbose --all-targets --no-default-features --features macros
-      - name: Build - emit
-        run: cargo build --verbose --all-targets --no-default-features --features emit
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Install cargo-hack
+        run: rustup component add cargo-hack
+      - name: Build
+        run: cargo hack build --each-feature --all-targets --verbose
       - name: Tests
-        run: cargo test --verbose
+        run: cargo hack test --verbose --each-feature
       - name: Doc Tests
         run: cargo test --doc --verbose
       - name: Delete Cargo.lock
@@ -50,16 +41,24 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust
-        run: rustup update stable
+      - name: Install Rust Stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Install Rust Nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
       - name: Install Clippy
         run: rustup component add clippy
       - name: Install RustFmt
         run: rustup component add rustfmt
       - name: Install cargo-audit
         run: cargo install cargo-audit
-      - name: Check
-        run: cargo check --all-targets --all-features
+      - name: Install Miri
+        run: |
+          rustup toolchain install nightly --component miri
+          cargo miri setup
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
       - name: Audit
@@ -68,6 +67,8 @@ jobs:
         run: cargo fmt -- --check
       - name: Docs
         run: RUSTDOCFLAGS='--deny warnings' cargo doc --no-deps --all-features
+      - name: Miri
+        run: cargo +nightly miri test
 
   coverage:
     runs-on: ubuntu-latest
