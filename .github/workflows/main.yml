@@ -14,27 +14,18 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        toolchain:
-          - stable
-          - beta
-          - nightly
-
+    env:
+      CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
-        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-      - name: Build - no features
-        run: cargo build --verbose --all-targets --no-default-features
-      - name: Build - std
-        run: cargo build --verbose --all-targets --no-default-features --features std
-      - name: Build - serde
-        run: cargo build --verbose --all-targets --no-default-features --features serde
-      - name: Build - macros
-        run: cargo build --verbose --all-targets --no-default-features --features macros
-      - name: Build - emit
-        run: cargo build --verbose --all-targets --no-default-features --features emit
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Install cargo-hack
+        run: cargo install cargo-hack
+      - name: Build
+        run: cargo hack build --each-feature --verbose
       - name: Tests
         run: cargo test --verbose
       - name: Doc Tests
@@ -51,15 +42,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
-        run: rustup update stable
-      - name: Install Clippy
-        run: rustup component add clippy
-      - name: Install RustFmt
-        run: rustup component add rustfmt
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
       - name: Install cargo-audit
         run: cargo install cargo-audit
-      - name: Check
-        run: cargo check --all-targets --all-features
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
       - name: Audit
@@ -76,7 +64,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
-        run: rustup update stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage

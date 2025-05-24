@@ -21,7 +21,7 @@ rand = { workspace = true }
 quote = { workspace = true }
 hashbrown = { workspace = true, features = ["serde"] }
 criterion = { workspace = true }
-frozen-collections-core = { workspace = true, features = ["std", "serde"] }
+frozen-collections-core = { workspace = true, features = ["std", "serde", "macros", "emit" ] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 

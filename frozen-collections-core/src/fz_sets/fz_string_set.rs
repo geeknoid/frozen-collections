@@ -353,7 +353,7 @@ where
     {
         let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
         while let Some(x) = access.next_element::<&str>()? {
-            v.push((x.to_string(), ()));
+            v.push((::alloc::string::String::from(x), ()));
         }
 
         Ok(FzStringSet::from(FzStringMap::with_strings_and_hasher(v, BH::default())))
