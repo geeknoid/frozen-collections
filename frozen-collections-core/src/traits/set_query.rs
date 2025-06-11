@@ -3,16 +3,15 @@ use core::hash::{BuildHasher, Hash};
 
 /// Common query abstractions for sets.
 pub trait SetQuery<T, Q: ?Sized = T> {
-    /// Checks whether a particular value is present in the set.
+    #[doc = include_str!("../doc_snippets/get_from_set.md")]
     #[must_use]
-    #[inline]
+    fn get(&self, value: &Q) -> Option<&T>;
+
+    #[doc = include_str!("../doc_snippets/contains.md")]
+    #[must_use]
     fn contains(&self, value: &Q) -> bool {
         self.get(value).is_some()
     }
-
-    /// Gets a reference to a value in the set.
-    #[must_use]
-    fn get(&self, value: &Q) -> Option<&T>;
 }
 
 #[cfg(feature = "std")]

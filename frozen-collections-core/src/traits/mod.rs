@@ -1,8 +1,6 @@
 //! Traits to support frozen collections.
 
-pub use crate::traits::collection_magnitude::{
-    CollectionMagnitude, LargeCollection, MediumCollection, SmallCollection,
-};
+pub use crate::traits::collection_magnitude::{CollectionMagnitude, LargeCollection, MediumCollection, SmallCollection};
 pub use crate::traits::hasher::Hasher;
 pub use crate::traits::len::Len;
 pub use crate::traits::map::Map;

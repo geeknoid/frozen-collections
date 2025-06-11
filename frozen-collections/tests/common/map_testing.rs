@@ -27,22 +27,11 @@ where
     assert_eq_map(&m2, &r2);
 
     let v1: HashbrownMap<K, V> = map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-    let v2: HashbrownMap<K, V> = reference
-        .iter()
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect();
+    let v2: HashbrownMap<K, V> = reference.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
     assert_eq!(v1, v2);
 
-    let v1: HashbrownMap<K, V> = map
-        .clone()
-        .iter_mut()
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect();
-    let v2: HashbrownMap<K, V> = reference
-        .clone()
-        .iter_mut()
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect();
+    let v1: HashbrownMap<K, V> = map.clone().iter_mut().map(|(k, v)| (k.clone(), v.clone())).collect();
+    let v2: HashbrownMap<K, V> = reference.clone().iter_mut().map(|(k, v)| (k.clone(), v.clone())).collect();
     assert_eq!(v1, v2);
 
     let v1: HashbrownMap<K, V> = map.clone().into_iter().collect();
@@ -73,10 +62,7 @@ where
         assert_eq!(map.contains_key(pair.0), reference.contains_key(pair.0));
         assert_eq!(map.get(pair.0), reference.get(pair.0));
         assert_eq!(map.get_key_value(pair.0), reference.get_key_value(pair.0));
-        assert_eq!(
-            map.clone().get_mut(pair.0),
-            reference.clone().get_mut(pair.0)
-        );
+        assert_eq!(map.clone().get_mut(pair.0), reference.clone().get_mut(pair.0));
     }
 
     if map.len() >= 2 {
@@ -104,14 +90,13 @@ where
 
         panic::set_hook(h);
 
-        assert_eq!(
-            err.downcast_ref::<&'static str>().unwrap(),
-            &"duplicate keys found"
-        );
+        assert_eq!(err.downcast_ref::<&'static str>().unwrap(), &"duplicate keys found");
 
         {
             let keys: Vec<_> = map.keys().collect();
             let mut cloned_map = map.clone();
+
+            // SAFETY: This is an unsafe operation, but we are testing it here
             unsafe { _ = cloned_map.get_disjoint_unchecked_mut([keys[0], keys[0]]) };
         }
     }

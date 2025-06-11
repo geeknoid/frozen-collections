@@ -1,16 +1,16 @@
-use alloc::boxed::Box;
 use alloc::collections::VecDeque;
 use alloc::rc::Rc;
-use alloc::string::String;
 use alloc::sync::Arc;
-use alloc::vec::Vec;
+
+#[cfg(not(feature = "std"))]
+use {alloc::boxed::Box, alloc::string::String, alloc::vec::Vec};
 
 /// Types that can return a length.
 pub trait Len {
-    /// Returns the length of the value.
+    #[doc = include_str!("../doc_snippets/len.md")]
     fn len(&self) -> usize;
 
-    /// Returns whether the value is empty.
+    #[doc = include_str!("../doc_snippets/is_empty.md")]
     fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -154,13 +154,10 @@ impl Len for std::ffi::OsString {
 #[cfg(test)]
 mod tests {
     use crate::traits::Len;
-    use alloc::boxed::Box;
     use alloc::collections::VecDeque;
     use alloc::rc::Rc;
-    use alloc::string::String;
     use alloc::sync::Arc;
     use alloc::vec;
-    use alloc::vec::Vec;
 
     fn get_len<T: Len + ?Sized>(value: &T) -> usize {
         value.len()

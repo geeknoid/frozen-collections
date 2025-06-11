@@ -1,4 +1,6 @@
 use crate::utils::BitVec;
+
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
 /// How to treat a collection of hash codes for the best performance.
@@ -7,12 +9,11 @@ pub struct HashCodeAnalysisResult {
     pub num_hash_slots: usize,
 
     /// The number of collisions when using the recommended table size.
-    #[allow(dead_code)]
+    #[allow(dead_code, reason = "used in tests")]
     pub num_hash_collisions: usize,
 }
 
 /// Look for an "optimal" hash table size for a given set of hash codes.
-#[allow(clippy::cast_possible_truncation)]
 #[mutants::skip]
 pub fn analyze_hash_codes<I>(hash_codes: I) -> HashCodeAnalysisResult
 where
@@ -71,7 +72,9 @@ where
         let mut num_collisions = 0;
 
         for code in &hash_codes {
+            #[expect(clippy::cast_possible_truncation, reason = "Truncation ok on 32-bit systems")]
             let slot = (code % (num_slots as u64)) as usize;
+
             if use_table.get(slot) {
                 num_collisions += 1;
                 if num_collisions >= best_num_collisions {
@@ -98,8 +101,7 @@ where
             // The larger the table, the fewer collisions we tolerate. The idea
             // here is to reduce the risk of a table getting very big and still
             // having a relatively high count of collisions.
-            acceptable_collisions =
-                (acceptable_collisions / 100) * ACCEPTABLE_COLLISION_PERCENTAGE_OF_REDUCTION;
+            acceptable_collisions = (acceptable_collisions / 100) * ACCEPTABLE_COLLISION_PERCENTAGE_OF_REDUCTION;
         }
 
         num_slots = (num_slots + 1).next_power_of_two();
@@ -177,10 +179,7 @@ mod tests {
             let result = analyze_hash_codes(hash_codes.iter().copied());
 
             assert_eq!(case.expected_num_hash_slots, result.num_hash_slots);
-            assert_eq!(
-                case.expected_num_hash_collisions,
-                result.num_hash_collisions
-            );
+            assert_eq!(case.expected_num_hash_collisions, result.num_hash_collisions);
         }
     }
 }

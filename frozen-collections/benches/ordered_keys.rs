@@ -1,6 +1,8 @@
+#![expect(missing_docs, reason = "Benchmark")]
+
 use core::hint::black_box;
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-use frozen_collections::{FzOrderedSet, SetQuery, fz_ordered_set};
+use frozen_collections::{FzOrderedSet, fz_ordered_set};
 
 include!(concat!(env!("OUT_DIR"), "/ordered.rs"));
 

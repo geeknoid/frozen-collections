@@ -242,14 +242,10 @@
 
 extern crate alloc;
 
-pub use frozen_collections_core::traits::{
-    Map, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery,
-};
+pub use frozen_collections_core::traits::{Map, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery};
 
 #[doc(hidden)]
-pub use frozen_collections_core::traits::{
-    CollectionMagnitude, Hasher, LargeCollection, Len, MediumCollection, SmallCollection,
-};
+pub use frozen_collections_core::traits::{CollectionMagnitude, Hasher, LargeCollection, Len, MediumCollection, SmallCollection};
 
 /// Creates an efficient map with a fixed set of hashable keys.
 ///
