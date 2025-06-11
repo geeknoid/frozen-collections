@@ -1,22 +1,21 @@
 use crate::hashers::BridgeHasher;
 use crate::inline_maps::InlineHashMap;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
-    set_iteration_funcs, sub_fn,
+    bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, common_primary_funcs, debug_trait_funcs, hash_primary_funcs,
+    into_iterator_ref_trait_funcs, into_iterator_trait_funcs, partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs,
+    set_query_trait_funcs, sub_trait_funcs,
 };
 use crate::sets::{IntoIter, Iter};
-use crate::traits::{
-    CollectionMagnitude, Hasher, Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery,
-    SmallCollection,
-};
+use crate::traits::{CollectionMagnitude, Hasher, Len, Set, SetExtras, SetIteration, SetOps, SetQuery, SmallCollection};
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
 
+use crate::maps::decl_macros::len_trait_funcs;
 #[cfg(feature = "serde")]
 use {
-    crate::sets::decl_macros::serialize_fn,
+    crate::sets::decl_macros::serialize_trait_funcs,
     serde::ser::SerializeSeq,
     serde::{Serialize, Serializer},
 };
@@ -35,51 +34,53 @@ use {
 /// - `NHS`: The number of hash table slots.
 /// - `H`: The hasher to generate hash codes.
 #[derive(Clone)]
-pub struct InlineHashSet<
-    T,
-    const SZ: usize,
-    const NHS: usize,
-    CM = SmallCollection,
-    H = BridgeHasher,
-> {
+pub struct InlineHashSet<T, const SZ: usize, const NHS: usize, CM = SmallCollection, H = BridgeHasher> {
     map: InlineHashMap<T, (), SZ, NHS, CM, H>,
 }
 
 impl<T, const SZ: usize, const NHS: usize, CM, H> InlineHashSet<T, SZ, NHS, CM, H>
 where
     CM: CollectionMagnitude,
-    H: Hasher<T>,
 {
     /// Creates a frozen set.
     #[must_use]
     pub const fn new(map: InlineHashMap<T, (), SZ, NHS, CM, H>) -> Self {
         Self { map }
     }
+
+    hash_primary_funcs!();
+    common_primary_funcs!(const_len);
 }
 
 impl<T, Q, const SZ: usize, const NHS: usize, CM, H> Set<T, Q> for InlineHashSet<T, SZ, NHS, CM, H>
 where
-    Q: ?Sized + Eq + Equivalent<T>,
+    Q: ?Sized + Equivalent<T>,
     CM: CollectionMagnitude,
     H: Hasher<Q>,
 {
 }
 
-impl<T, Q, const SZ: usize, const NHS: usize, CM, H> SetQuery<T, Q>
-    for InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, Q, const SZ: usize, const NHS: usize, CM, H> SetExtras<T, Q> for InlineHashSet<T, SZ, NHS, CM, H>
 where
-    Q: ?Sized + Eq + Equivalent<T>,
+    Q: ?Sized + Equivalent<T>,
     CM: CollectionMagnitude,
     H: Hasher<Q>,
 {
-    #[inline]
-    fn get(&self, value: &Q) -> Option<&T> {
-        Some(self.map.get_key_value(value)?.0)
-    }
+    set_extras_trait_funcs!();
 }
 
-impl<T, const SZ: usize, const NHS: usize, CM, H> SetIteration<T>
-    for InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, Q, const SZ: usize, const NHS: usize, CM, H> SetQuery<Q> for InlineHashSet<T, SZ, NHS, CM, H>
+where
+    Q: ?Sized + Equivalent<T>,
+    CM: CollectionMagnitude,
+    H: Hasher<Q>,
+{
+    set_query_trait_funcs!();
+}
+
+impl<T, const SZ: usize, const NHS: usize, CM, H> SetIteration<T> for InlineHashSet<T, SZ, NHS, CM, H>
+where
+    CM: CollectionMagnitude,
 {
     type Iterator<'a>
         = Iter<'a, T>
@@ -88,46 +89,44 @@ impl<T, const SZ: usize, const NHS: usize, CM, H> SetIteration<T>
         CM: 'a,
         H: 'a;
 
-    set_iteration_funcs!();
+    set_iteration_trait_funcs!();
 }
 
-impl<T, const SZ: usize, const NHS: usize, CM, H> Len for InlineHashSet<T, SZ, NHS, CM, H> {
-    fn len(&self) -> usize {
-        SZ
-    }
+impl<T, const SZ: usize, const NHS: usize, CM, H> Len for InlineHashSet<T, SZ, NHS, CM, H>
+where
+    CM: CollectionMagnitude,
+{
+    len_trait_funcs!();
 }
 
-impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitOr<&ST>
-    for &InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitOr<&ST> for &InlineHashSet<T, SZ, NHS, CM, H>
 where
     T: Hash + Eq + Clone,
     ST: Set<T>,
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitor_fn!();
+    bitor_trait_funcs!();
 }
 
-impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitAnd<&ST>
-    for &InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitAnd<&ST> for &InlineHashSet<T, SZ, NHS, CM, H>
 where
     T: Hash + Eq + Clone,
     ST: Set<T>,
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitand_fn!();
+    bitand_trait_funcs!();
 }
 
-impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitXor<&ST>
-    for &InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, ST, const SZ: usize, const NHS: usize, CM, H> BitXor<&ST> for &InlineHashSet<T, SZ, NHS, CM, H>
 where
     T: Hash + Eq + Clone,
     ST: Set<T>,
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitxor_fn!();
+    bitxor_trait_funcs!();
 }
 
 impl<T, ST, const SZ: usize, const NHS: usize, CM, H> Sub<&ST> for &InlineHashSet<T, SZ, NHS, CM, H>
@@ -137,30 +136,31 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    sub_fn!();
+    sub_trait_funcs!();
 }
 
-impl<T, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for InlineHashSet<T, SZ, NHS, CM, H>
-{
-    into_iter_fn!();
-}
-
-impl<'a, T, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for &'a InlineHashSet<T, SZ, NHS, CM, H>
-{
-    into_iter_ref_fn!();
-}
-
-impl<T, ST, const SZ: usize, const NHS: usize, CM, H> PartialEq<ST>
-    for InlineHashSet<T, SZ, NHS, CM, H>
+impl<T, const SZ: usize, const NHS: usize, CM, H> IntoIterator for InlineHashSet<T, SZ, NHS, CM, H>
 where
-    T: Eq,
-    ST: Set<T>,
+    CM: CollectionMagnitude,
+{
+    into_iterator_trait_funcs!();
+}
+
+impl<'a, T, const SZ: usize, const NHS: usize, CM, H> IntoIterator for &'a InlineHashSet<T, SZ, NHS, CM, H>
+where
+    CM: CollectionMagnitude,
+{
+    into_iterator_ref_trait_funcs!();
+}
+
+impl<T, ST, const SZ: usize, const NHS: usize, CM, H> PartialEq<ST> for InlineHashSet<T, SZ, NHS, CM, H>
+where
+    T: PartialEq,
+    ST: SetQuery<T>,
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<T, const SZ: usize, const NHS: usize, CM, H> Eq for InlineHashSet<T, SZ, NHS, CM, H>
@@ -173,17 +173,18 @@ where
 
 impl<T, const SZ: usize, const NHS: usize, CM, H> Debug for InlineHashSet<T, SZ, NHS, CM, H>
 where
-    T: Eq + Debug,
+    T: Debug,
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
 impl<T, const SZ: usize, const NHS: usize, CM, H> Serialize for InlineHashSet<T, SZ, NHS, CM, H>
 where
     T: Serialize,
+    CM: CollectionMagnitude,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }

@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "Tests")]
+
 use frozen_collections::*;
 use frozen_collections_core::macros::{fz_scalar_map_macro, fz_scalar_set_macro};
 use quote::quote;
@@ -116,210 +118,210 @@ macro_rules! test_scalar {
 
 #[test]
 fn scalar_i8() {
-    test_scalar!(i8, 0i8);
-    test_scalar!(i8, 0i8, 1,);
-    test_scalar!(i8, 0i8, 1, 2,);
-    test_scalar!(i8, 0i8, 1, 2, 3,);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4,);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5,);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(i8, 0_i8);
+    test_scalar!(i8, 0_i8, 1,);
+    test_scalar!(i8, 0_i8, 1, 2,);
+    test_scalar!(i8, 0_i8, 1, 2, 3,);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4,);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5,);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 
     // test duplicate logic
-    test_scalar!(i8, 0i8, 1, 2, 1, 1);
+    test_scalar!(i8, 0_i8, 1, 2, 1, 1);
 }
 
 #[test]
 fn scalar_u8() {
-    test_scalar!(u8, 0u8);
-    test_scalar!(u8, 0u8, 1,);
-    test_scalar!(u8, 0u8, 1, 2,);
-    test_scalar!(u8, 0u8, 1, 2, 3,);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4,);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5,);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(u8, 0_u8);
+    test_scalar!(u8, 0_u8, 1,);
+    test_scalar!(u8, 0_u8, 1, 2,);
+    test_scalar!(u8, 0_u8, 1, 2, 3,);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4,);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5,);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_i16() {
-    test_scalar!(i16, 0i16);
-    test_scalar!(i16, 0i16, 1,);
-    test_scalar!(i16, 0i16, 1, 2,);
-    test_scalar!(i16, 0i16, 1, 2, 3,);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4,);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5,);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(i16, 0_i16);
+    test_scalar!(i16, 0_i16, 1,);
+    test_scalar!(i16, 0_i16, 1, 2,);
+    test_scalar!(i16, 0_i16, 1, 2, 3,);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4,);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5,);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_u16() {
-    test_scalar!(u16, 0u16);
-    test_scalar!(u16, 0u16, 1,);
-    test_scalar!(u16, 0u16, 1, 2,);
-    test_scalar!(u16, 0u16, 1, 2, 3,);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4,);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5,);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(u16, 0_u16);
+    test_scalar!(u16, 0_u16, 1,);
+    test_scalar!(u16, 0_u16, 1, 2,);
+    test_scalar!(u16, 0_u16, 1, 2, 3,);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4,);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5,);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_i32() {
-    test_scalar!(i32, 0i32);
-    test_scalar!(i32, 0i32, 1,);
-    test_scalar!(i32, 0i32, 1, 2,);
-    test_scalar!(i32, 0i32, 1, 2, 3,);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4,);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5,);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(i32, 0_i32);
+    test_scalar!(i32, 0_i32, 1,);
+    test_scalar!(i32, 0_i32, 1, 2,);
+    test_scalar!(i32, 0_i32, 1, 2, 3,);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4,);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5,);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_u32() {
-    test_scalar!(u32, 0u32);
-    test_scalar!(u32, 0u32, 1,);
-    test_scalar!(u32, 0u32, 1, 2,);
-    test_scalar!(u32, 0u32, 1, 2, 3,);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4,);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5,);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(u32, 0_u32);
+    test_scalar!(u32, 0_u32, 1,);
+    test_scalar!(u32, 0_u32, 1, 2,);
+    test_scalar!(u32, 0_u32, 1, 2, 3,);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4,);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5,);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_i64() {
-    test_scalar!(i64, 0i64);
-    test_scalar!(i64, 0i64, 1,);
-    test_scalar!(i64, 0i64, 1, 2,);
-    test_scalar!(i64, 0i64, 1, 2, 3,);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4,);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5,);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(i64, 0_i64);
+    test_scalar!(i64, 0_i64, 1,);
+    test_scalar!(i64, 0_i64, 1, 2,);
+    test_scalar!(i64, 0_i64, 1, 2, 3,);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4,);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5,);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_u64() {
-    test_scalar!(u64, 0u64);
-    test_scalar!(u64, 0u64, 1,);
-    test_scalar!(u64, 0u64, 1, 2,);
-    test_scalar!(u64, 0u64, 1, 2, 3,);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4,);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5,);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(u64, 0_u64);
+    test_scalar!(u64, 0_u64, 1,);
+    test_scalar!(u64, 0_u64, 1, 2,);
+    test_scalar!(u64, 0_u64, 1, 2, 3,);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4,);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5,);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_isize() {
-    test_scalar!(isize, 0isize);
-    test_scalar!(isize, 0isize, 1,);
-    test_scalar!(isize, 0isize, 1, 2,);
-    test_scalar!(isize, 0isize, 1, 2, 3,);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4,);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5,);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(isize, 0_isize);
+    test_scalar!(isize, 0_isize, 1,);
+    test_scalar!(isize, 0_isize, 1, 2,);
+    test_scalar!(isize, 0_isize, 1, 2, 3,);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4,);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5,);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_usize() {
-    test_scalar!(usize, 0usize);
-    test_scalar!(usize, 0usize, 1,);
-    test_scalar!(usize, 0usize, 1, 2,);
-    test_scalar!(usize, 0usize, 1, 2, 3,);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4,);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5,);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5, 6,);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(usize, 0_usize);
+    test_scalar!(usize, 0_usize, 1,);
+    test_scalar!(usize, 0_usize, 1, 2,);
+    test_scalar!(usize, 0_usize, 1, 2, 3,);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4,);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5,);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5, 6,);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn scalar_extra() {
     // test sparse case
-    test_scalar!(u64, 0u64);
-    test_scalar!(u64, 0u64, 1,);
-    test_scalar!(u64, 0u64, 2,);
-    test_scalar!(u64, 0u64, 2, 3,);
-    test_scalar!(u64, 0u64, 2, 3, 4,);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5,);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5, 6,);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5, 6, 7,);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5, 6, 7, 8,);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_scalar!(u64, 0u64, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_scalar!(u64, 0_u64);
+    test_scalar!(u64, 0_u64, 1,);
+    test_scalar!(u64, 0_u64, 2,);
+    test_scalar!(u64, 0_u64, 2, 3,);
+    test_scalar!(u64, 0_u64, 2, 3, 4,);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5,);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5, 6,);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5, 6, 7,);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5, 6, 7, 8,);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_scalar!(u64, 0_u64, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 
     // test defaulting to hash table
-    test_scalar!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1500);
+    test_scalar!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1500);
 
     // test default to scan
-    test_scalar!(u64, 0u64, 1500);
+    test_scalar!(u64, 0_u64, 1500);
 }
 
 #[test]

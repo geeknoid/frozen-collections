@@ -1,12 +1,14 @@
 use crate::hashers::BridgeHasher;
 use crate::maps::HashMap;
+use crate::maps::decl_macros::len_trait_funcs;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
-    set_iteration_funcs, sub_fn,
+    bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, common_primary_funcs, debug_trait_funcs, hash_primary_funcs,
+    into_iterator_ref_trait_funcs, into_iterator_trait_funcs, partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs,
+    set_query_trait_funcs, sub_trait_funcs,
 };
 use crate::sets::{IntoIter, Iter};
-use crate::traits::{CollectionMagnitude, Len, SetOps, SetQuery, SmallCollection};
-use crate::traits::{Hasher, MapIteration, MapQuery, Set, SetIteration};
+use crate::traits::{CollectionMagnitude, Len, SetExtras, SetOps, SetQuery, SmallCollection};
+use crate::traits::{Hasher, Set, SetIteration};
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
@@ -14,7 +16,7 @@ use equivalent::Equivalent;
 
 #[cfg(feature = "serde")]
 use {
-    crate::sets::decl_macros::serialize_fn,
+    crate::sets::decl_macros::serialize_trait_funcs,
     serde::ser::SerializeSeq,
     serde::{Serialize, Serializer},
 };
@@ -32,8 +34,7 @@ pub struct HashSet<T, CM = SmallCollection, H = BridgeHasher> {
 
 impl<T, CM, H> HashSet<T, CM, H>
 where
-    T: Eq,
-    H: Hasher<T>,
+    CM: CollectionMagnitude,
 {
     /// Creates a frozen set.
     ///
@@ -45,6 +46,9 @@ where
     pub const fn new(map: HashMap<T, (), CM, H>) -> Self {
         Self { map }
     }
+
+    hash_primary_funcs!();
+    common_primary_funcs!(non_const_len);
 }
 
 impl<T, CM, H> Default for HashSet<T, CM, H>
@@ -53,9 +57,7 @@ where
     H: Default,
 {
     fn default() -> Self {
-        Self {
-            map: HashMap::default(),
-        }
+        Self { map: HashMap::default() }
     }
 }
 
@@ -67,19 +69,28 @@ where
 {
 }
 
-impl<T, Q, CM, H> SetQuery<T, Q> for HashSet<T, CM, H>
+impl<T, Q, CM, H> SetExtras<T, Q> for HashSet<T, CM, H>
 where
-    Q: ?Sized + Eq + Equivalent<T>,
+    Q: ?Sized + Equivalent<T>,
     CM: CollectionMagnitude,
     H: Hasher<Q>,
 {
-    #[inline]
-    fn get(&self, value: &Q) -> Option<&T> {
-        Some(self.map.get_key_value(value)?.0)
-    }
+    set_extras_trait_funcs!();
 }
 
-impl<T, CM, H> SetIteration<T> for HashSet<T, CM, H> {
+impl<T, Q, CM, H> SetQuery<Q> for HashSet<T, CM, H>
+where
+    Q: ?Sized + Equivalent<T>,
+    CM: CollectionMagnitude,
+    H: Hasher<Q>,
+{
+    set_query_trait_funcs!();
+}
+
+impl<T, CM, H> SetIteration<T> for HashSet<T, CM, H>
+where
+    CM: CollectionMagnitude,
+{
     type Iterator<'a>
         = Iter<'a, T>
     where
@@ -87,13 +98,14 @@ impl<T, CM, H> SetIteration<T> for HashSet<T, CM, H> {
         CM: 'a,
         H: 'a;
 
-    set_iteration_funcs!();
+    set_iteration_trait_funcs!();
 }
 
-impl<T, CM, H> Len for HashSet<T, CM, H> {
-    fn len(&self) -> usize {
-        self.map.len()
-    }
+impl<T, CM, H> Len for HashSet<T, CM, H>
+where
+    CM: CollectionMagnitude,
+{
+    len_trait_funcs!();
 }
 
 impl<T, ST, CM, H> BitOr<&ST> for &HashSet<T, CM, H>
@@ -103,7 +115,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitor_fn!();
+    bitor_trait_funcs!();
 }
 
 impl<T, ST, CM, H> BitAnd<&ST> for &HashSet<T, CM, H>
@@ -113,7 +125,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitand_fn!();
+    bitand_trait_funcs!();
 }
 
 impl<T, ST, CM, H> BitXor<&ST> for &HashSet<T, CM, H>
@@ -123,7 +135,7 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    bitxor_fn!();
+    bitxor_trait_funcs!();
 }
 
 impl<T, ST, CM, H> Sub<&ST> for &HashSet<T, CM, H>
@@ -133,25 +145,31 @@ where
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    sub_fn!();
+    sub_trait_funcs!();
 }
 
-impl<T, CM, H> IntoIterator for HashSet<T, CM, H> {
-    into_iter_fn!();
+impl<T, CM, H> IntoIterator for HashSet<T, CM, H>
+where
+    CM: CollectionMagnitude,
+{
+    into_iterator_trait_funcs!();
 }
 
-impl<'a, T, CM, H> IntoIterator for &'a HashSet<T, CM, H> {
-    into_iter_ref_fn!();
+impl<'a, T, CM, H> IntoIterator for &'a HashSet<T, CM, H>
+where
+    CM: CollectionMagnitude,
+{
+    into_iterator_ref_trait_funcs!();
 }
 
 impl<T, ST, CM, H> PartialEq<ST> for HashSet<T, CM, H>
 where
-    T: Eq,
-    ST: Set<T>,
+    T: PartialEq,
+    ST: SetQuery<T>,
     CM: CollectionMagnitude,
     H: Hasher<T>,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<T, CM, H> Eq for HashSet<T, CM, H>
@@ -165,14 +183,16 @@ where
 impl<T, CM, H> Debug for HashSet<T, CM, H>
 where
     T: Debug,
+    CM: CollectionMagnitude,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
 impl<T, CM, H> Serialize for HashSet<T, CM, H>
 where
     T: Serialize,
+    CM: CollectionMagnitude,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }

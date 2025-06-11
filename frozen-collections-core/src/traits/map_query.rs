@@ -1,107 +1,51 @@
+use crate::maps::decl_macros::map_query_trait_funcs;
+use crate::traits::Len;
 use core::hash::{BuildHasher, Hash};
 
-/// Common query abstractions for maps.
-pub trait MapQuery<K, V, Q: ?Sized = K> {
-    /// Checks whether a particular value is present in the map.
-    #[inline]
-    #[must_use]
-    fn contains_key(&self, key: &Q) -> bool {
-        self.get(key).is_some()
-    }
+#[cfg(feature = "std")]
+use core::borrow::Borrow;
 
-    /// Gets a value from the map.
+/// Common query abstractions for maps.
+pub trait MapQuery<Q: ?Sized, V>: Len {
+    #[doc = include_str!("../doc_snippets/get.md")]
     #[must_use]
     fn get(&self, key: &Q) -> Option<&V>;
 
-    /// Gets a key and value from the map.
-    #[must_use]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)>;
-
-    /// Gets a mutable value from the map.
+    #[doc = include_str!("../doc_snippets/get_mut.md")]
     #[must_use]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V>;
+
+    #[doc = include_str!("../doc_snippets/contains_key.md")]
+    #[must_use]
+    fn contains_key(&self, key: &Q) -> bool;
 }
 
 #[cfg(feature = "std")]
-impl<K, V, Q, BH> MapQuery<K, V, Q> for std::collections::HashMap<K, V, BH>
+impl<K, V, Q, BH> MapQuery<Q, V> for std::collections::HashMap<K, V, BH>
 where
-    K: Hash + Eq + core::borrow::Borrow<Q>,
+    K: Hash + Eq + Borrow<Q>,
     Q: ?Sized + Hash + Eq,
     BH: BuildHasher,
 {
-    #[inline]
-    fn contains_key(&self, key: &Q) -> bool {
-        Self::contains_key(self, key)
-    }
-
-    #[inline]
-    fn get(&self, key: &Q) -> Option<&V> {
-        Self::get(self, key)
-    }
-
-    #[inline]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        Self::get_key_value(self, key)
-    }
-
-    #[inline]
-    fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        Self::get_mut(self, key)
-    }
+    map_query_trait_funcs!();
 }
 
 #[cfg(feature = "std")]
-impl<K, V, Q> MapQuery<K, V, Q> for std::collections::BTreeMap<K, V>
+impl<K, V, Q> MapQuery<Q, V> for alloc::collections::BTreeMap<K, V>
 where
-    K: Ord + core::borrow::Borrow<Q>,
-    Q: Ord,
+    K: Ord + Borrow<Q>,
+    Q: ?Sized + Ord,
 {
-    #[inline]
-    fn contains_key(&self, key: &Q) -> bool {
-        Self::contains_key(self, key)
-    }
-
-    #[inline]
-    fn get(&self, key: &Q) -> Option<&V> {
-        Self::get(self, key)
-    }
-
-    #[inline]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        Self::get_key_value(self, key)
-    }
-
-    #[inline]
-    fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        Self::get_mut(self, key)
-    }
+    map_query_trait_funcs!();
 }
 
-impl<K, V, Q, BH> MapQuery<K, V, Q> for hashbrown::HashMap<K, V, BH>
+impl<K, V, Q, BH> MapQuery<Q, V> for hashbrown::HashMap<K, V, BH>
 where
-    K: Hash + Eq + core::borrow::Borrow<Q>,
-    Q: Hash + Eq,
+    K: Hash + Eq,
+    Q: ?Sized + Hash + Eq + hashbrown::Equivalent<K>,
     BH: BuildHasher,
 {
-    #[inline]
-    fn contains_key(&self, key: &Q) -> bool {
-        Self::contains_key(self, key)
-    }
-
-    #[inline]
-    fn get(&self, key: &Q) -> Option<&V> {
-        Self::get(self, key)
-    }
-
-    #[inline]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        Self::get_key_value(self, key)
-    }
-
-    #[inline]
-    fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        Self::get_mut(self, key)
-    }
+    map_query_trait_funcs!();
 }
 
 #[cfg(test)]
@@ -111,7 +55,7 @@ mod tests {
 
     #[test]
     fn test_object_safe() {
-        let m: &dyn MapQuery<_, _, _> = &HashMap::from([(1, 1), (2, 2), (3, 3)]);
+        let m: &dyn MapQuery<_, _> = &HashMap::from([(1, 1), (2, 2), (3, 3)]);
 
         assert!(m.contains_key(&1));
     }

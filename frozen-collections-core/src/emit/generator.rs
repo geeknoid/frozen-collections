@@ -1,15 +1,11 @@
-#![allow(clippy::needless_pass_by_value)]
-#![allow(unexpected_cfgs)]
+#![expect(clippy::needless_pass_by_value, reason = "Expected in syn-related code")]
+#![expect(unexpected_cfgs, reason = "Not a real problem")]
 
 use crate::emit::collection_entry::CollectionEntry;
 use crate::hash_tables::HashTable;
 use crate::hashers::BridgeHasher;
-use crate::traits::{
-    CollectionMagnitude, Hasher, LargeCollection, MediumCollection, Scalar, SmallCollection,
-};
-use alloc::string::{String, ToString};
+use crate::traits::{CollectionMagnitude, Hasher, LargeCollection, MediumCollection, Scalar, SmallCollection};
 use alloc::vec;
-use alloc::vec::Vec;
 use const_random::const_random;
 use core::hash::Hash;
 use core::ops::Range;
@@ -18,8 +14,11 @@ use proc_macro2::{Literal, TokenStream};
 use quote::{ToTokens, quote};
 use syn::{Type, parse_quote, parse_str};
 
+#[cfg(not(feature = "std"))]
+use {alloc::string::String, alloc::string::ToString, alloc::vec::Vec};
+
 #[derive(Debug)]
-pub struct Generator {
+pub(super) struct Generator {
     key_type: Type,
     value_type: Type,
     pub seed: u64,
@@ -27,21 +26,16 @@ pub struct Generator {
     gen_set: bool,
 }
 
-pub struct Output {
+pub(super) struct Output {
     pub ctor: TokenStream,
     pub type_sig: TokenStream,
 }
 
 impl Generator {
-    #[allow(clippy::option_if_let_else)]
-    pub fn new(key_type: &Type, value_type: Option<&Type>, len: usize) -> Self {
+    pub(super) fn new(key_type: &Type, value_type: Option<&Type>, len: usize) -> Self {
         Self {
             key_type: (*key_type).clone(),
-            value_type: if let Some(value_type) = value_type {
-                value_type.clone()
-            } else {
-                parse_quote!(())
-            },
+            value_type: value_type.map_or_else(|| parse_quote!(()), Clone::clone),
             seed: const_random!(u64),
             len: Literal::usize_unsuffixed(len),
             gen_set: value_type.is_none(),
@@ -97,7 +91,7 @@ impl Generator {
     }
 
     #[cfg(feature = "macros")]
-    pub fn gen_fz_scalar<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+    pub(super) fn gen_fz_scalar<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
 
@@ -121,7 +115,7 @@ impl Generator {
     }
 
     #[cfg(feature = "macros")]
-    pub fn gen_fz_string<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+    pub(super) fn gen_fz_string<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
 
@@ -169,10 +163,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_dense_scalar_lookup<K>(
-        &self,
-        sorted_entries: Vec<CollectionEntry<K>>,
-    ) -> Output
+    pub(super) fn gen_inline_dense_scalar_lookup<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output
     where
         K: Scalar,
     {
@@ -180,12 +171,7 @@ impl Generator {
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
         let min_key = Self::inject_underscores(sorted_entries[0].key.index().to_token_stream());
-        let max_key = Self::inject_underscores(
-            sorted_entries[sorted_entries.len() - 1]
-                .key
-                .index()
-                .to_token_stream(),
-        );
+        let max_key = Self::inject_underscores(sorted_entries[sorted_entries.len() - 1].key.index().to_token_stream());
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineDenseScalarLookupMap);
         let mut generics = quote!(<#key_type, #value_type, #len>);
@@ -207,10 +193,7 @@ impl Generator {
     }
 
     #[cfg(feature = "emit")]
-    pub fn gen_inline_eytzinger_search<K>(
-        &self,
-        sorted_entries: Vec<CollectionEntry<K>>,
-    ) -> Output {
+    pub(super) fn gen_inline_eytzinger_search<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
@@ -234,17 +217,15 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_hash_with_bridge<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output
+    pub(super) fn gen_inline_hash_with_bridge<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output
     where
         K: Hash + Eq,
     {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
-        let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(
-            entries,
-            &BridgeHasher::new(FixedState::with_seed(self.seed)),
-        );
+        let (ht, magnitude, num_slots) =
+            self.gen_inline_hash_table_components(entries, &BridgeHasher::new(FixedState::with_seed(self.seed)));
         let seed = Self::inject_underscores(self.seed.to_token_stream());
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
@@ -262,11 +243,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_hash_with_passthrough<K, H>(
-        &self,
-        entries: Vec<CollectionEntry<K>>,
-        hasher: &H,
-    ) -> Output
+    pub(super) fn gen_inline_hash_with_passthrough<K, H>(&self, entries: Vec<CollectionEntry<K>>, hasher: &H) -> Output
     where
         H: Hasher<K>,
     {
@@ -278,7 +255,7 @@ impl Generator {
         let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
         let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::PassthroughHasher>);
         let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::PassthroughHasher::new()));
+        let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::PassthroughHasher {}));
 
         if self.gen_set {
             ty = quote!(::frozen_collections::inline_sets::InlineHashSet);
@@ -290,7 +267,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_hash_with_range<K, H>(
+    pub(super) fn gen_inline_hash_with_range<K, H>(
         &self,
         entries: Vec<CollectionEntry<K>>,
         hash_range: Range<usize>,
@@ -323,7 +300,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
+    pub(super) fn gen_inline_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
@@ -347,10 +324,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_inline_sparse_scalar_lookup<K>(
-        &self,
-        sorted_entries: Vec<CollectionEntry<K>>,
-    ) -> Output
+    pub(super) fn gen_inline_sparse_scalar_lookup<K>(&self, sorted_entries: Vec<CollectionEntry<K>>) -> Output
     where
         K: Scalar,
     {
@@ -422,7 +396,7 @@ impl Generator {
     }
 
     #[cfg(feature = "macros")]
-    pub fn gen_eytzinger_search<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
+    pub(super) fn gen_eytzinger_search<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
 
@@ -446,7 +420,7 @@ impl Generator {
     }
 
     #[cfg(feature = "macros")]
-    pub fn gen_hash_with_bridge<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
+    pub(super) fn gen_hash_with_bridge<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let magnitude = Self::collection_magnitude(entries.len());
@@ -495,11 +469,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    fn gen_inline_hash_table_components<K, H>(
-        &self,
-        entries: Vec<CollectionEntry<K>>,
-        hasher: &H,
-    ) -> (TokenStream, TokenStream, Literal)
+    fn gen_inline_hash_table_components<K, H>(&self, entries: Vec<CollectionEntry<K>>, hasher: &H) -> (TokenStream, TokenStream, Literal)
     where
         H: Hasher<K>,
     {

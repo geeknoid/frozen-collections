@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "Tests")]
+
 use frozen_collections::*;
 use frozen_collections_core::macros::{fz_hash_map_macro, fz_hash_set_macro};
 use hashbrown::HashMap as HashbrownMap;
@@ -123,11 +125,7 @@ macro_rules! test_hash {
 #[test]
 fn hash_complex() {
     test_hash!(Person, Person { name: "A", age: 1 },);
-    test_hash!(
-        Person,
-        Person { name: "A", age: 1 },
-        Person { name: "B", age: 2 },
-    );
+    test_hash!(Person, Person { name: "A", age: 1 }, Person { name: "B", age: 2 },);
     test_hash!(
         Person,
         Person { name: "A", age: 1 },
@@ -262,185 +260,185 @@ fn hash_complex() {
 
 #[test]
 fn hash_i8() {
-    test_hash!(i8, 0i8);
-    test_hash!(i8, 0i8, 1,);
-    test_hash!(i8, 0i8, 1, 2,);
-    test_hash!(i8, 0i8, 1, 2, 3,);
-    test_hash!(i8, 0i8, 1, 2, 3, 4,);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5,);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5, 6,);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(i8, 0i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(i8, 0_i8);
+    test_hash!(i8, 0_i8, 1,);
+    test_hash!(i8, 0_i8, 1, 2,);
+    test_hash!(i8, 0_i8, 1, 2, 3,);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4,);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5,);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5, 6,);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(i8, 0_i8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 
     // test duplicate logic
-    test_hash!(i8, 0i8, 1, 2, 1, 1);
+    test_hash!(i8, 0_i8, 1, 2, 1, 1);
 }
 
 #[test]
 fn hash_u8() {
-    test_hash!(u8, 0u8);
-    test_hash!(u8, 0u8, 1,);
-    test_hash!(u8, 0u8, 1, 2,);
-    test_hash!(u8, 0u8, 1, 2, 3,);
-    test_hash!(u8, 0u8, 1, 2, 3, 4,);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5,);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5, 6,);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(u8, 0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(u8, 0_u8);
+    test_hash!(u8, 0_u8, 1,);
+    test_hash!(u8, 0_u8, 1, 2,);
+    test_hash!(u8, 0_u8, 1, 2, 3,);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4,);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5,);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5, 6,);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(u8, 0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn hash_i16() {
-    test_hash!(i16, 0i16);
-    test_hash!(i16, 0i16, 1,);
-    test_hash!(i16, 0i16, 1, 2,);
-    test_hash!(i16, 0i16, 1, 2, 3,);
-    test_hash!(i16, 0i16, 1, 2, 3, 4,);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5,);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5, 6,);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(i16, 0i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(i16, 0_i16);
+    test_hash!(i16, 0_i16, 1,);
+    test_hash!(i16, 0_i16, 1, 2,);
+    test_hash!(i16, 0_i16, 1, 2, 3,);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4,);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5,);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5, 6,);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(i16, 0_i16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn hash_u16() {
-    test_hash!(u16, 0u16);
-    test_hash!(u16, 0u16, 1,);
-    test_hash!(u16, 0u16, 1, 2,);
-    test_hash!(u16, 0u16, 1, 2, 3,);
-    test_hash!(u16, 0u16, 1, 2, 3, 4,);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5,);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5, 6,);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(u16, 0u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(u16, 0_u16);
+    test_hash!(u16, 0_u16, 1,);
+    test_hash!(u16, 0_u16, 1, 2,);
+    test_hash!(u16, 0_u16, 1, 2, 3,);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4,);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5,);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5, 6,);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(u16, 0_u16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn hash_i32() {
-    test_hash!(i32, 0i32);
-    test_hash!(i32, 0i32, 1,);
-    test_hash!(i32, 0i32, 1, 2,);
-    test_hash!(i32, 0i32, 1, 2, 3,);
-    test_hash!(i32, 0i32, 1, 2, 3, 4,);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5,);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5, 6,);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(i32, 0i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(i32, 0_i32);
+    test_hash!(i32, 0_i32, 1,);
+    test_hash!(i32, 0_i32, 1, 2,);
+    test_hash!(i32, 0_i32, 1, 2, 3,);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4,);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5,);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5, 6,);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(i32, 0_i32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn hash_u32() {
-    test_hash!(u32, 0u32);
-    test_hash!(u32, 0u32, 1,);
-    test_hash!(u32, 0u32, 1, 2,);
-    test_hash!(u32, 0u32, 1, 2, 3,);
-    test_hash!(u32, 0u32, 1, 2, 3, 4,);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5,);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5, 6,);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(u32, 0u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(u32, 0_u32);
+    test_hash!(u32, 0_u32, 1,);
+    test_hash!(u32, 0_u32, 1, 2,);
+    test_hash!(u32, 0_u32, 1, 2, 3,);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4,);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5,);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5, 6,);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(u32, 0_u32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn hash_i64() {
-    test_hash!(i64, 0i64);
-    test_hash!(i64, 0i64, 1,);
-    test_hash!(i64, 0i64, 1, 2,);
-    test_hash!(i64, 0i64, 1, 2, 3,);
-    test_hash!(i64, 0i64, 1, 2, 3, 4,);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5,);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5, 6,);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(i64, 0i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(i64, 0_i64);
+    test_hash!(i64, 0_i64, 1,);
+    test_hash!(i64, 0_i64, 1, 2,);
+    test_hash!(i64, 0_i64, 1, 2, 3,);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4,);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5,);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5, 6,);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(i64, 0_i64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn hash_u64() {
-    test_hash!(u64, 0u64);
-    test_hash!(u64, 0u64, 1,);
-    test_hash!(u64, 0u64, 1, 2,);
-    test_hash!(u64, 0u64, 1, 2, 3,);
-    test_hash!(u64, 0u64, 1, 2, 3, 4,);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5,);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5, 6,);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(u64, 0u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(u64, 0_u64);
+    test_hash!(u64, 0_u64, 1,);
+    test_hash!(u64, 0_u64, 1, 2,);
+    test_hash!(u64, 0_u64, 1, 2, 3,);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4,);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5,);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5, 6,);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(u64, 0_u64, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn hash_isize() {
-    test_hash!(isize, 0isize);
-    test_hash!(isize, 0isize, 1,);
-    test_hash!(isize, 0isize, 1, 2,);
-    test_hash!(isize, 0isize, 1, 2, 3,);
-    test_hash!(isize, 0isize, 1, 2, 3, 4,);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5,);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5, 6,);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(isize, 0isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(isize, 0_isize);
+    test_hash!(isize, 0_isize, 1,);
+    test_hash!(isize, 0_isize, 1, 2,);
+    test_hash!(isize, 0_isize, 1, 2, 3,);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4,);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5,);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5, 6,);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(isize, 0_isize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
 fn hash_usize() {
-    test_hash!(usize, 0usize);
-    test_hash!(usize, 0usize, 1,);
-    test_hash!(usize, 0usize, 1, 2,);
-    test_hash!(usize, 0usize, 1, 2, 3,);
-    test_hash!(usize, 0usize, 1, 2, 3, 4,);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5,);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5, 6,);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7,);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8,);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-    test_hash!(usize, 0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    test_hash!(usize, 0_usize);
+    test_hash!(usize, 0_usize, 1,);
+    test_hash!(usize, 0_usize, 1, 2,);
+    test_hash!(usize, 0_usize, 1, 2, 3,);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4,);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5,);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5, 6,);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7,);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8,);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9,);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    test_hash!(usize, 0_usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
 }
 
 #[test]
@@ -454,64 +452,10 @@ fn hash_string() {
     test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6");
     test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7");
     test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
-    test_hash!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9"
-    );
-    test_hash!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10"
-    );
-    test_hash!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11"
-    );
-    test_hash!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12"
-    );
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
+    test_hash!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
     test_hash!(
         &'static str,
         "0",

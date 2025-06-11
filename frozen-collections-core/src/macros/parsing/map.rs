@@ -3,7 +3,7 @@ use crate::macros::parsing::short_form_map::ShortFormMap;
 use syn::parse::Parse;
 use syn::{Token, Visibility};
 
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant, reason = "This is fine")]
 pub enum Map {
     Short(ShortFormMap),
     Long(LongFormMap),

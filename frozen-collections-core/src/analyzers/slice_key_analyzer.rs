@@ -1,9 +1,11 @@
-use alloc::vec::Vec;
 use core::cmp::{max, min};
 use core::hash::{BuildHasher, Hash};
 use core::ops::Range;
 use hashbrown::HashMap as HashbrownMap;
 use hashbrown::HashSet as HashbrownSet;
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 /// How to treat keys which are slices for the best performance.
 #[derive(PartialEq, Eq, Debug)]
@@ -75,6 +77,7 @@ fn analyze_lengths<T>(keys: &Vec<&[T]>) -> SliceKeyAnalysisResult {
 }
 
 /// See if we can use subslices to reduce the time spent hashing
+#[expect(clippy::missing_asserts_for_indexing, reason = "There is in fact an assert present")]
 fn analyze_subslices<T, BH>(keys: &[&[T]], bh: &BH) -> SliceKeyAnalysisResult
 where
     T: Hash + Eq,
@@ -100,6 +103,8 @@ where
         if s.len() < suffix_len {
             suffix_len = s.len();
         }
+
+        assert!(!keys.is_empty());
 
         for i in 0..prefix_len {
             if s[i] != keys[0][i] {
@@ -131,21 +136,11 @@ where
         // If any is above our threshold, we're done.
         let mut subslice_index = prefix_len;
         while subslice_index <= min_len - subslice_len {
-            if is_sufficiently_unique(
-                keys,
-                subslice_index,
-                subslice_len,
-                true,
-                &mut set,
-                acceptable_duplicates,
-                bh,
-            ) {
+            if is_sufficiently_unique(keys, subslice_index, subslice_len, true, &mut set, acceptable_duplicates, bh) {
                 return if subslice_len == max_len {
                     SliceKeyAnalysisResult::General
                 } else {
-                    SliceKeyAnalysisResult::LeftHandSubslice(
-                        subslice_index..subslice_index + subslice_len,
-                    )
+                    SliceKeyAnalysisResult::LeftHandSubslice(subslice_index..subslice_index + subslice_len)
                 };
             }
 
@@ -161,18 +156,8 @@ where
             // If any is above our threshold, we're done.
             subslice_index = suffix_len;
             while subslice_index <= min_len - subslice_len {
-                if is_sufficiently_unique(
-                    keys,
-                    subslice_index,
-                    subslice_len,
-                    false,
-                    &mut set,
-                    acceptable_duplicates,
-                    bh,
-                ) {
-                    return SliceKeyAnalysisResult::RightHandSubslice(
-                        subslice_index..subslice_index + subslice_len,
-                    );
+                if is_sufficiently_unique(keys, subslice_index, subslice_len, false, &mut set, acceptable_duplicates, bh) {
+                    return SliceKeyAnalysisResult::RightHandSubslice(subslice_index..subslice_index + subslice_len);
                 }
 
                 subslice_index += 1;
@@ -224,7 +209,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::string::{String, ToString};
     use foldhash::fast::RandomState;
 
     struct AnalysisTestCase<'a> {
@@ -237,8 +221,8 @@ mod tests {
         const ANALYSIS_TEST_CASES: [AnalysisTestCase; 9] = [
             AnalysisTestCase {
                 slices: &[
-                    "AAA", "ABB", "ACC", "ADD", "AEE", "AFF", "AGG", "AHH", "AII", "AJJ", "AKK",
-                    "ALL", "AMM", "ANN", "AOO", "APP", "AQQ", "ARR", "ASS", "ATT", "AUU",
+                    "AAA", "ABB", "ACC", "ADD", "AEE", "AFF", "AGG", "AHH", "AII", "AJJ", "AKK", "ALL", "AMM", "ANN", "AOO", "APP", "AQQ",
+                    "ARR", "ASS", "ATT", "AUU",
                 ],
                 expected: SliceKeyAnalysisResult::LeftHandSubslice(1..2),
             },
@@ -267,9 +251,7 @@ mod tests {
                 expected: SliceKeyAnalysisResult::Length,
             },
             AnalysisTestCase {
-                slices: &[
-                    "ABC", "DEFG", "HIJKL", "MNOPQR", "STUVWX", "YZ", "D2", "D3", "D4",
-                ],
+                slices: &["ABC", "DEFG", "HIJKL", "MNOPQR", "STUVWX", "YZ", "D2", "D3", "D4"],
                 expected: SliceKeyAnalysisResult::LeftHandSubslice(1..2),
             },
             AnalysisTestCase {
@@ -280,10 +262,7 @@ mod tests {
 
         for case in &ANALYSIS_TEST_CASES {
             let keys = case.slices.iter().map(|x| x.as_bytes());
-            assert_eq!(
-                case.expected,
-                analyze_slice_keys(keys, &RandomState::default())
-            );
+            assert_eq!(case.expected, analyze_slice_keys(keys, &RandomState::default()));
         }
     }
 

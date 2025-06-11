@@ -1,3 +1,5 @@
+//! Builds source generation tests
+
 use std::env;
 use std::fs::File;
 use std::io::{BufWriter, Write};

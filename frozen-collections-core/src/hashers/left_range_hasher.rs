@@ -1,7 +1,6 @@
 use crate::DefaultHashBuilder;
 use crate::traits::Hasher;
 use crate::utils::cold;
-use alloc::string::String;
 use core::hash::{BuildHasher, Hash};
 use core::ops::Range;
 
@@ -15,6 +14,7 @@ pub struct LeftRangeHasher<BH = DefaultHashBuilder> {
 }
 
 impl<BH> LeftRangeHasher<BH> {
+    /// Creates a new `LeftRangeHasher` with the specified hash builder and range.
     #[must_use]
     pub const fn new(bh: BH, range: Range<usize>) -> Self {
         Self { bh, range }
@@ -36,38 +36,6 @@ where
     }
 }
 
-impl<BH> Hasher<String> for LeftRangeHasher<BH>
-where
-    BH: BuildHasher,
-{
-    #[inline]
-    fn hash(&self, value: &String) -> u64 {
-        let b = value.as_bytes();
-        if b.len() < self.range.end {
-            cold();
-            return 0;
-        }
-
-        self.bh.hash_one(&b[self.range.clone()])
-    }
-}
-
-impl<BH> Hasher<&str> for LeftRangeHasher<BH>
-where
-    BH: BuildHasher,
-{
-    #[inline]
-    fn hash(&self, value: &&str) -> u64 {
-        let b = value.as_bytes();
-        if b.len() < self.range.end {
-            cold();
-            return 0;
-        }
-
-        self.bh.hash_one(&b[self.range.clone()])
-    }
-}
-
 impl<BH> Hasher<str> for LeftRangeHasher<BH>
 where
     BH: BuildHasher,
@@ -75,6 +43,23 @@ where
     #[inline]
     fn hash(&self, value: &str) -> u64 {
         let b = value.as_bytes();
+        if b.len() < self.range.end {
+            cold();
+            return 0;
+        }
+
+        self.bh.hash_one(&b[self.range.clone()])
+    }
+}
+
+impl<AR, BH> Hasher<AR> for LeftRangeHasher<BH>
+where
+    BH: BuildHasher,
+    AR: AsRef<str>,
+{
+    #[inline]
+    fn hash(&self, value: &AR) -> u64 {
+        let b = value.as_ref().as_bytes();
         if b.len() < self.range.end {
             cold();
             return 0;
@@ -96,7 +81,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::string::ToString;
     use alloc::vec;
     use foldhash::fast::RandomState;
 

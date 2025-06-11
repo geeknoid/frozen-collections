@@ -1,17 +1,20 @@
 use crate::maps::DenseScalarLookupMap;
+use crate::maps::decl_macros::len_trait_funcs;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn,
-    partial_eq_fn, set_iteration_funcs, sub_fn,
+    bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, common_primary_funcs, debug_trait_funcs, dense_scalar_lookup_primary_funcs,
+    into_iterator_ref_trait_funcs, into_iterator_trait_funcs, partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs,
+    set_query_trait_funcs, sub_trait_funcs,
 };
 use crate::sets::{IntoIter, Iter};
-use crate::traits::{Len, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery};
+use crate::traits::{Len, Scalar, Set, SetExtras, SetIteration, SetOps, SetQuery};
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
+use equivalent::Comparable;
 
 #[cfg(feature = "serde")]
 use {
-    crate::sets::decl_macros::serialize_fn,
+    crate::sets::decl_macros::serialize_trait_funcs,
     serde::ser::SerializeSeq,
     serde::{Serialize, Serializer},
 };
@@ -26,10 +29,7 @@ pub struct DenseScalarLookupSet<T> {
     map: DenseScalarLookupMap<T, ()>,
 }
 
-impl<T> DenseScalarLookupSet<T>
-where
-    T: Scalar,
-{
+impl<T> DenseScalarLookupSet<T> {
     /// Creates a frozen set.
     ///
     /// # Errors
@@ -40,12 +40,12 @@ where
     pub const fn new(map: DenseScalarLookupMap<T, ()>) -> Self {
         Self { map }
     }
+
+    dense_scalar_lookup_primary_funcs!();
+    common_primary_funcs!(non_const_len);
 }
 
-impl<T> Default for DenseScalarLookupSet<T>
-where
-    T: Scalar,
-{
+impl<T> Default for DenseScalarLookupSet<T> {
     fn default() -> Self {
         Self {
             map: DenseScalarLookupMap::default(),
@@ -53,13 +53,20 @@ where
     }
 }
 
-impl<T> Set<T, T> for DenseScalarLookupSet<T> where T: Scalar {}
+impl<T, Q> Set<T, Q> for DenseScalarLookupSet<T> where Q: Comparable<T> + Scalar {}
 
-impl<T> SetQuery<T, T> for DenseScalarLookupSet<T>
+impl<T, Q> SetExtras<T, Q> for DenseScalarLookupSet<T>
 where
-    T: Scalar,
+    Q: Scalar + Comparable<T>,
 {
-    get_fn!("Scalar");
+    set_extras_trait_funcs!();
+}
+
+impl<T, Q> SetQuery<Q> for DenseScalarLookupSet<T>
+where
+    Q: Scalar + Comparable<T>,
+{
+    set_query_trait_funcs!();
 }
 
 impl<T> SetIteration<T> for DenseScalarLookupSet<T> {
@@ -68,13 +75,11 @@ impl<T> SetIteration<T> for DenseScalarLookupSet<T> {
     where
         T: 'a;
 
-    set_iteration_funcs!();
+    set_iteration_trait_funcs!();
 }
 
 impl<T> Len for DenseScalarLookupSet<T> {
-    fn len(&self) -> usize {
-        self.map.len()
-    }
+    len_trait_funcs!();
 }
 
 impl<T, ST> BitOr<&ST> for &DenseScalarLookupSet<T>
@@ -82,7 +87,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitor_fn!();
+    bitor_trait_funcs!();
 }
 
 impl<T, ST> BitAnd<&ST> for &DenseScalarLookupSet<T>
@@ -90,7 +95,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitand_fn!();
+    bitand_trait_funcs!();
 }
 
 impl<T, ST> BitXor<&ST> for &DenseScalarLookupSet<T>
@@ -98,7 +103,7 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    bitxor_fn!();
+    bitxor_trait_funcs!();
 }
 
 impl<T, ST> Sub<&ST> for &DenseScalarLookupSet<T>
@@ -106,23 +111,23 @@ where
     T: Scalar + Hash,
     ST: Set<T>,
 {
-    sub_fn!();
+    sub_trait_funcs!();
 }
 
 impl<T> IntoIterator for DenseScalarLookupSet<T> {
-    into_iter_fn!();
+    into_iterator_trait_funcs!();
 }
 
 impl<'a, T> IntoIterator for &'a DenseScalarLookupSet<T> {
-    into_iter_ref_fn!();
+    into_iterator_ref_trait_funcs!();
 }
 
 impl<T, ST> PartialEq<ST> for DenseScalarLookupSet<T>
 where
     T: Scalar,
-    ST: Set<T>,
+    ST: SetQuery<T>,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<T> Eq for DenseScalarLookupSet<T> where T: Scalar {}
@@ -131,7 +136,7 @@ impl<T> Debug for DenseScalarLookupSet<T>
 where
     T: Debug,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -139,5 +144,5 @@ impl<T> Serialize for DenseScalarLookupSet<T>
 where
     T: Serialize,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }

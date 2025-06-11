@@ -1,11 +1,13 @@
+//! Validates quality of generated code
+
 #![no_std]
 extern crate alloc;
 
 use alloc::string::{String, ToString};
 use alloc::vec;
 use core::hint::black_box;
+use frozen_collections::FzOrderedMap;
 use frozen_collections::maps::{BinarySearchMap, EytzingerSearchMap};
-use frozen_collections::{FzOrderedMap, MapQuery};
 
 #[derive(Ord, PartialOrd, PartialEq, Eq, Clone)]
 struct MyKey {

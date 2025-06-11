@@ -3,16 +3,17 @@ use crate::macros::parsing::entry::Entry;
 use crate::macros::parsing::payload::Payload;
 use crate::traits::Scalar;
 use alloc::format;
-use alloc::string::ToString;
-use alloc::vec::Vec;
 use core::fmt::Display;
 use core::str::FromStr;
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn::{Expr, ExprLit, Lit, LitInt, LitStr, parse_str, parse2};
 
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+
 #[derive(Clone, Copy, Eq, PartialEq)]
-pub enum MacroKind {
+pub(super) enum MacroKind {
     Scalar,
     String,
     Hashed,
@@ -50,18 +51,11 @@ enum EffectiveKeyKind {
     Ordered,
 }
 
-pub fn process(
-    payload: Payload,
-    emitter: CollectionEmitter,
-    macro_kind: MacroKind,
-) -> syn::Result<TokenStream> {
+pub(super) fn process(payload: Payload, emitter: CollectionEmitter, macro_kind: MacroKind) -> syn::Result<TokenStream> {
     let entries = payload.entries;
     if entries.is_empty() {
         return if emitter.inferred_key_type {
-            Err(syn::Error::new(
-                Span::call_site(),
-                "no collection entries supplied",
-            ))
+            Err(syn::Error::new(Span::call_site(), "no collection entries supplied"))
         } else {
             emitter
                 .const_keys(true)
@@ -72,46 +66,20 @@ pub fn process(
     }
 
     match assess_keys(&entries, macro_kind)? {
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::I8) => {
-            handle_literal_scalar_keys::<i8>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::I16) => {
-            handle_literal_scalar_keys::<i16>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::I32) => {
-            handle_literal_scalar_keys::<i32>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::I64) => {
-            handle_literal_scalar_keys::<i64>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::ISize) => {
-            handle_literal_scalar_keys::<isize>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::U8) => {
-            handle_literal_scalar_keys::<u8>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::U16) => {
-            handle_literal_scalar_keys::<u16>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::U32) => {
-            handle_literal_scalar_keys::<u32>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::U64) => {
-            handle_literal_scalar_keys::<u64>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::USize) => {
-            handle_literal_scalar_keys::<usize>(emitter, entries, "")
-        }
-        EffectiveKeyKind::AllLiteralScalars(ScalarType::Undecided) => {
-            handle_literal_scalar_keys::<i32>(emitter, entries, "i32")
-        }
-        EffectiveKeyKind::LiteralAndExpressionScalars => {
-            handle_non_literal_scalar_keys(emitter, entries)
-        }
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::I8) => handle_literal_scalar_keys::<i8>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::I16) => handle_literal_scalar_keys::<i16>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::I32) => handle_literal_scalar_keys::<i32>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::I64) => handle_literal_scalar_keys::<i64>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::ISize) => handle_literal_scalar_keys::<isize>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::U8) => handle_literal_scalar_keys::<u8>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::U16) => handle_literal_scalar_keys::<u16>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::U32) => handle_literal_scalar_keys::<u32>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::U64) => handle_literal_scalar_keys::<u64>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::USize) => handle_literal_scalar_keys::<usize>(emitter, entries, ""),
+        EffectiveKeyKind::AllLiteralScalars(ScalarType::Undecided) => handle_literal_scalar_keys::<i32>(emitter, entries, "i32"),
+        EffectiveKeyKind::LiteralAndExpressionScalars => handle_non_literal_scalar_keys(emitter, entries),
         EffectiveKeyKind::AllLiteralStrings => handle_literal_string_keys(emitter, entries),
-        EffectiveKeyKind::LiteralAndExpressionStrings => {
-            handle_non_literal_string_keys(emitter, entries)
-        }
+        EffectiveKeyKind::LiteralAndExpressionStrings => handle_non_literal_string_keys(emitter, entries),
         EffectiveKeyKind::Hashed => handle_hashed_keys(emitter, entries),
         EffectiveKeyKind::Ordered => handle_ordered_keys(emitter, entries),
     }
@@ -132,21 +100,13 @@ fn assess_keys(entries: &[Entry], macro_kind: MacroKind) -> syn::Result<Effectiv
             _ => DiscoveredKeyKind::Expression,
         };
 
-        if macro_kind == MacroKind::Scalar
-            && discovered_key_kind == DiscoveredKeyKind::LiteralString
-        {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "scalar macro cannot contain string keys",
-            ));
+        if macro_kind == MacroKind::Scalar && discovered_key_kind == DiscoveredKeyKind::LiteralString {
+            return Err(syn::Error::new(Span::call_site(), "scalar macro cannot contain string keys"));
         } else if macro_kind == MacroKind::String
             && discovered_key_kind != DiscoveredKeyKind::LiteralString
             && discovered_key_kind != DiscoveredKeyKind::Expression
         {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "string macro cannot contain scalar keys",
-            ));
+            return Err(syn::Error::new(Span::call_site(), "string macro cannot contain scalar keys"));
         }
 
         match discovered_key_kind {
@@ -156,10 +116,7 @@ fn assess_keys(entries: &[Entry], macro_kind: MacroKind) -> syn::Result<Effectiv
                 if scalar_type == ScalarType::Undecided {
                     scalar_type = discovered_scalar_type;
                 } else if discovered_scalar_type != scalar_type {
-                    return Err(syn::Error::new(
-                        Span::call_site(),
-                        "incompatible scalar literal type",
-                    ));
+                    return Err(syn::Error::new(Span::call_site(), "incompatible scalar literal type"));
                 }
             }
 
@@ -209,21 +166,14 @@ fn eval_literal_expr(expr: &ExprLit) -> syn::Result<DiscoveredKeyKind> {
             }
         },
         _ => {
-            return Err(syn::Error::new_spanned(
-                expr,
-                "invalid literal, expecting a scalar or string value",
-            ));
+            return Err(syn::Error::new_spanned(expr, "invalid literal, expecting a scalar or string value"));
         }
     };
 
     Ok(kind)
 }
 
-fn handle_literal_scalar_keys<K>(
-    emitter: CollectionEmitter,
-    entries: Vec<Entry>,
-    suffix: &str,
-) -> syn::Result<TokenStream>
+fn handle_literal_scalar_keys<K>(emitter: CollectionEmitter, entries: Vec<Entry>, suffix: &str) -> syn::Result<TokenStream>
 where
     K: Scalar + Ord + FromStr,
     K::Err: Display,
@@ -253,25 +203,15 @@ where
         .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
 }
 
-fn handle_literal_string_keys(
-    emitter: CollectionEmitter,
-    entries: Vec<Entry>,
-) -> syn::Result<TokenStream> {
+fn handle_literal_string_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
         let ls = parse2::<LitStr>(entry.key.to_token_stream())?;
 
         if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(
-                ls.value().to_string(),
-                entry.key,
-                entry.value.unwrap(),
-            ));
+            coll_entries.push(CollectionEntry::map_entry(ls.value(), entry.key, entry.value.unwrap()));
         } else {
-            coll_entries.push(CollectionEntry::set_entry(
-                ls.value().to_string(),
-                entry.key,
-            ));
+            coll_entries.push(CollectionEntry::set_entry(ls.value(), entry.key));
         }
     }
 
@@ -282,18 +222,11 @@ fn handle_literal_string_keys(
         .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
 }
 
-fn handle_non_literal_scalar_keys(
-    emitter: CollectionEmitter,
-    entries: Vec<Entry>,
-) -> syn::Result<TokenStream> {
+fn handle_non_literal_scalar_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
         if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(
-                NonLiteralKey {},
-                entry.key,
-                entry.value.unwrap(),
-            ));
+            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, entry.value.unwrap()));
         } else {
             coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
         }
@@ -306,18 +239,11 @@ fn handle_non_literal_scalar_keys(
         .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
 }
 
-fn handle_non_literal_string_keys(
-    emitter: CollectionEmitter,
-    entries: Vec<Entry>,
-) -> syn::Result<TokenStream> {
+fn handle_non_literal_string_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
         if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(
-                NonLiteralKey {},
-                entry.key,
-                entry.value.unwrap(),
-            ));
+            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, entry.value.unwrap()));
         } else {
             coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
         }
@@ -334,11 +260,7 @@ fn handle_hashed_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::R
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
         if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(
-                NonLiteralKey {},
-                entry.key,
-                entry.value.unwrap(),
-            ));
+            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, entry.value.unwrap()));
         } else {
             coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
         }
@@ -351,18 +273,11 @@ fn handle_hashed_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::R
         .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
 }
 
-fn handle_ordered_keys(
-    emitter: CollectionEmitter,
-    entries: Vec<Entry>,
-) -> syn::Result<TokenStream> {
+fn handle_ordered_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
         if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(
-                NonLiteralKey {},
-                entry.key,
-                entry.value.unwrap(),
-            ));
+            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, entry.value.unwrap()));
         } else {
             coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
         }

@@ -6,7 +6,6 @@
 use core::cmp::Ordering;
 
 /// Sorts the slice in-place using the Eytzinger layout.
-#[allow(clippy::module_name_repetitions)]
 pub fn eytzinger_sort<T>(data: &mut [T]) {
     const fn get_eytzinger_index(original_index: usize, slice_len: usize) -> usize {
         let ipk = (original_index + 2).next_power_of_two().trailing_zeros() as usize;
@@ -44,7 +43,6 @@ pub fn eytzinger_sort<T>(data: &mut [T]) {
 ///
 /// The slice must have been previously sorted with the `eytzinger` method.
 #[inline]
-#[allow(clippy::module_name_repetitions)]
 pub fn eytzinger_search_by<'a, T: 'a, F>(data: &'a [T], mut f: F) -> Option<usize>
 where
     F: FnMut(&'a T) -> Ordering,
@@ -72,7 +70,7 @@ where
 //const NUM_PREFETCH_LEVELS: usize = 3;
 
 #[inline]
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, "This is fine")]
 pub fn eytzinger_search_by<'a, T: 'a, F>(data: &'a [T], mut f: F) -> Option<usize>
 where
     F: FnMut(&'a T) -> Ordering,

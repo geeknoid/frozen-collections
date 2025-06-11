@@ -51,9 +51,7 @@ impl<T> FusedIterator for Iter<'_, T> {}
 
 impl<T> Clone for Iter<'_, T> {
     fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
+        Self { inner: self.inner.clone() }
     }
 }
 
@@ -148,7 +146,6 @@ where
 {
     type Item = &'a T;
 
-    #[allow(clippy::needless_borrow)]
     #[mutants::skip]
     fn next(&mut self) -> Option<Self::Item> {
         if self.s1.len() > self.s2.len() {
@@ -159,7 +156,7 @@ where
 
             loop {
                 let item = self.s2_iter.next()?;
-                if !self.s1.contains(&item) {
+                if !self.s1.contains(item) {
                     return Some(item);
                 }
             }
@@ -171,7 +168,7 @@ where
 
             loop {
                 let item = self.s1_iter.next()?;
-                if !self.s2.contains(&item) {
+                if !self.s2.contains(item) {
                     return Some(item);
                 }
             }
@@ -283,9 +280,7 @@ where
     <S2 as SetIteration<T>>::Iterator<'a>: Clone,
 {
     fn clone(&self) -> Self {
-        Self {
-            iter: self.iter.clone(),
-        }
+        Self { iter: self.iter.clone() }
     }
 }
 
@@ -342,11 +337,10 @@ where
 {
     type Item = &'a T;
 
-    #[allow(clippy::needless_borrow)]
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             let item = self.s1_iter.next()?;
-            if !self.s2.contains(&item) {
+            if !self.s2.contains(item) {
                 return Some(item);
             }
         }
@@ -429,20 +423,19 @@ where
 {
     type Item = &'a T;
 
-    #[allow(clippy::needless_borrow)]
     #[mutants::skip]
     fn next(&mut self) -> Option<Self::Item> {
         if self.s1.len() < self.s2.len() {
             loop {
                 let item = self.s1_iter.next()?;
-                if self.s2.contains(&item) {
+                if self.s2.contains(item) {
                     return Some(item);
                 }
             }
         } else {
             loop {
                 let item = self.s2_iter.next()?;
-                if self.s1.contains(&item) {
+                if self.s1.contains(item) {
                     return Some(item);
                 }
             }
@@ -495,8 +488,6 @@ where
 mod tests {
     use super::*;
     use crate::maps::{IntoIter as MapIntoIter, Iter as MapIter};
-    use alloc::string::String;
-    use alloc::vec::Vec;
     use alloc::{format, vec};
     use hashbrown::HashSet as HashbrownSet;
 
@@ -580,12 +571,8 @@ mod tests {
 
     #[test]
     fn test_union() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let union = Union::new(&set1, &set2);
 
         assert_eq!((2, Some(4)), union.size_hint());
@@ -607,12 +594,8 @@ mod tests {
 
     #[test]
     fn test_symmetric_difference() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let symmetric_difference = SymmetricDifference::new(&set1, &set2);
 
         assert_eq!((0, Some(4)), symmetric_difference.size_hint());
@@ -633,12 +616,8 @@ mod tests {
 
     #[test]
     fn test_difference() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let difference = Difference::new(&set1, &set2);
 
         assert_eq!((0, Some(2)), difference.size_hint());
@@ -659,12 +638,8 @@ mod tests {
 
     #[test]
     fn test_intersection() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let intersection = Intersection::new(&set1, &set2);
 
         assert_eq!((0, Some(2)), intersection.size_hint());
@@ -685,12 +660,8 @@ mod tests {
 
     #[test]
     fn test_difference_clone() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let difference = Difference::new(&set1, &set2);
         let difference_clone = difference.clone();
 
@@ -700,12 +671,8 @@ mod tests {
 
     #[test]
     fn test_intersection_clone() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let intersection = Intersection::new(&set1, &set2);
         let intersection_clone = intersection.clone();
 
@@ -715,12 +682,8 @@ mod tests {
 
     #[test]
     fn test_symmetric_difference_clone() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let symmetric_difference = SymmetricDifference::new(&set1, &set2);
         let symmetric_difference_clone = symmetric_difference.clone();
 
@@ -730,12 +693,8 @@ mod tests {
 
     #[test]
     fn test_union_clone() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let union = Union::new(&set1, &set2);
         let union_clone = union.clone();
 
@@ -746,12 +705,8 @@ mod tests {
 
     #[test]
     fn test_union_fmt() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let union = Union::new(&set1, &set2);
 
         let debug_str = format!("{union:?}");
@@ -762,12 +717,8 @@ mod tests {
 
     #[test]
     fn test_symmetric_difference_fmt() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let symmetric_difference = SymmetricDifference::new(&set1, &set2);
 
         let debug_str = format!("{symmetric_difference:?}");
@@ -777,12 +728,8 @@ mod tests {
 
     #[test]
     fn test_difference_fmt() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let difference = Difference::new(&set1, &set2);
 
         let debug_str = format!("{difference:?}");
@@ -791,12 +738,8 @@ mod tests {
 
     #[test]
     fn test_intersection_fmt() {
-        let set1 = vec!["Alice", "Bob"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
-        let set2 = vec!["Bob", "Charlie"]
-            .into_iter()
-            .collect::<HashbrownSet<_>>();
+        let set1 = vec!["Alice", "Bob"].into_iter().collect::<HashbrownSet<_>>();
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
         let intersection = Intersection::new(&set1, &set2);
 
         let debug_str = format!("{intersection:?}");

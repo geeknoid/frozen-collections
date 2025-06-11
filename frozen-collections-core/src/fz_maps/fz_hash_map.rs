@@ -1,20 +1,24 @@
 use crate::DefaultHashBuilder;
 use crate::hashers::BridgeHasher;
-use crate::maps::{
-    HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut,
+use crate::maps::decl_macros::{
+    debug_trait_funcs, index_trait_funcs, into_iterator_trait_funcs, into_iterator_trait_mut_ref_funcs, into_iterator_trait_ref_funcs,
+    len_trait_funcs, map_extras_trait_funcs, map_iteration_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs,
 };
-use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery};
+use crate::maps::{HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
+use crate::traits::{LargeCollection, Len, Map, MapExtras, MapIteration, MapQuery};
 use crate::utils::dedup_by_hash_keep_last;
-use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};
-use core::iter::FromIterator;
 use core::ops::Index;
 use equivalent::Equivalent;
 use foldhash::fast::RandomState;
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+
 #[cfg(feature = "serde")]
 use {
-    crate::maps::decl_macros::serialize_fn,
+    crate::maps::decl_macros::serialize_trait_funcs,
     core::marker::PhantomData,
     serde::de::{MapAccess, Visitor},
     serde::ser::SerializeMap,
@@ -39,31 +43,156 @@ pub struct FzHashMap<K, V, BH = DefaultHashBuilder> {
     map_impl: HashMap<K, V, LargeCollection, BridgeHasher<BH>>,
 }
 
-impl<K, V> FzHashMap<K, V, DefaultHashBuilder>
-where
-    K: Eq + Hash,
-{
+impl<K, V> FzHashMap<K, V, DefaultHashBuilder> {
     /// Creates a frozen map.
     #[must_use]
-    pub fn new(entries: Vec<(K, V)>) -> Self {
+    pub fn new(entries: Vec<(K, V)>) -> Self
+    where
+        K: Eq + Hash,
+    {
         Self::with_hasher(entries, RandomState::default())
     }
 }
 
 impl<K, V, BH> FzHashMap<K, V, BH>
 where
-    K: Eq + Hash,
     BH: BuildHasher,
 {
     /// Creates a frozen map which uses the given hash builder to hash keys.
     #[must_use]
-    #[allow(clippy::missing_panics_doc)]
-    pub fn with_hasher(mut entries: Vec<(K, V)>, bh: BH) -> Self {
+    #[expect(
+        clippy::missing_panics_doc,
+        reason = "Guaranteed not to panic because the map is a LargeCollection"
+    )]
+    pub fn with_hasher(mut entries: Vec<(K, V)>, bh: BH) -> Self
+    where
+        K: Eq + Hash,
+    {
         dedup_by_hash_keep_last(&mut entries, |x| bh.hash_one(&x.0), |x, y| x.0 == y.0);
 
         Self {
             map_impl: HashMap::with_hasher_half_baked(entries, BridgeHasher::new(bh)).unwrap(),
         }
+    }
+
+    #[doc = include_str!("../doc_snippets/get.md")]
+    #[inline]
+    #[must_use]
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        Q: ?Sized + Hash + Equivalent<K>,
+    {
+        self.map_impl.get(key)
+    }
+
+    #[doc = include_str!("../doc_snippets/get_mut.md")]
+    #[inline]
+    #[must_use]
+    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
+    where
+        Q: ?Sized + Hash + Equivalent<K>,
+    {
+        self.map_impl.get_mut(key)
+    }
+
+    #[doc = include_str!("../doc_snippets/get_key_value.md")]
+    #[inline]
+    #[must_use]
+    pub fn get_key_value<Q>(&self, key: &Q) -> Option<(&K, &V)>
+    where
+        Q: ?Sized + Hash + Equivalent<K>,
+    {
+        self.map_impl.get_key_value(key)
+    }
+
+    #[doc = include_str!("../doc_snippets/contains_key.md")]
+    #[inline]
+    #[must_use]
+    pub fn contains_key<Q>(&self, key: &Q) -> bool
+    where
+        Q: ?Sized + Hash + Equivalent<K>,
+    {
+        self.map_impl.contains_key(key)
+    }
+
+    #[doc = include_str!("../doc_snippets/get_disjoint_mut.md")]
+    #[must_use]
+    pub fn get_disjoint_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
+    where
+        Q: ?Sized + Hash + Eq + Equivalent<K>,
+    {
+        self.map_impl.get_disjoint_mut(keys)
+    }
+
+    #[doc = include_str!("../doc_snippets/get_disjoint_unchecked_mut.md")]
+    #[must_use]
+    pub unsafe fn get_disjoint_unchecked_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
+    where
+        Q: ?Sized + Hash + Equivalent<K>,
+    {
+        // SAFETY: The caller must ensure that the keys are disjoint and valid for the map.
+        unsafe { self.map_impl.get_disjoint_unchecked_mut(keys) }
+    }
+
+    #[doc = include_str!("../doc_snippets/len.md")]
+    #[inline]
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.map_impl.len()
+    }
+
+    #[doc = include_str!("../doc_snippets/is_empty.md")]
+    #[inline]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.map_impl.is_empty()
+    }
+
+    #[doc = include_str!("../doc_snippets/iter.md")]
+    #[must_use]
+    pub fn iter(&self) -> Iter<'_, K, V> {
+        self.map_impl.iter()
+    }
+
+    #[doc = include_str!("../doc_snippets/iter_mut.md")]
+    #[must_use]
+    pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
+        self.map_impl.iter_mut()
+    }
+
+    #[must_use]
+    fn into_iter(self) -> IntoIter<K, V> {
+        self.map_impl.into_iter()
+    }
+
+    #[doc = include_str!("../doc_snippets/keys.md")]
+    #[must_use]
+    pub fn keys(&self) -> Keys<'_, K, V> {
+        self.map_impl.keys()
+    }
+
+    #[doc = include_str!("../doc_snippets/into_keys.md")]
+    #[must_use]
+    pub fn into_keys(self) -> IntoKeys<K, V> {
+        self.map_impl.into_keys()
+    }
+
+    #[doc = include_str!("../doc_snippets/values.md")]
+    #[must_use]
+    pub fn values(&self) -> Values<'_, K, V> {
+        self.map_impl.values()
+    }
+
+    #[doc = include_str!("../doc_snippets/values_mut.md")]
+    #[must_use]
+    pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
+        self.map_impl.values_mut()
+    }
+
+    #[doc = include_str!("../doc_snippets/into_values.md")]
+    #[must_use]
+    pub fn into_values(self) -> IntoValues<K, V> {
+        self.map_impl.into_values()
     }
 }
 
@@ -100,43 +229,31 @@ where
 
 impl<K, V, Q, BH> Map<K, V, Q> for FzHashMap<K, V, BH>
 where
-    Q: ?Sized + Hash + Eq + Equivalent<K>,
+    Q: ?Sized + Hash + Equivalent<K>,
     BH: BuildHasher,
 {
-    fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
-        self.map_impl.get_disjoint_mut(keys)
-    }
-
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&Q; N],
-    ) -> [Option<&mut V>; N] {
-        unsafe { self.map_impl.get_disjoint_unchecked_mut(keys) }
-    }
 }
 
-impl<K, V, Q, BH> MapQuery<K, V, Q> for FzHashMap<K, V, BH>
+impl<K, V, Q, BH> MapExtras<K, V, Q> for FzHashMap<K, V, BH>
 where
-    Q: ?Sized + Hash + Eq + Equivalent<K>,
+    Q: ?Sized + Hash + Equivalent<K>,
     BH: BuildHasher,
 {
-    #[inline]
-    fn get(&self, key: &Q) -> Option<&V> {
-        self.map_impl.get(key)
-    }
-
-    #[inline]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        self.map_impl.get_key_value(key)
-    }
-
-    #[inline]
-    fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        self.map_impl.get_mut(key)
-    }
+    map_extras_trait_funcs!();
 }
 
-impl<K, V, BH> MapIteration<K, V> for FzHashMap<K, V, BH> {
+impl<K, V, Q, BH> MapQuery<Q, V> for FzHashMap<K, V, BH>
+where
+    Q: ?Sized + Hash + Equivalent<K>,
+    BH: BuildHasher,
+{
+    map_query_trait_funcs!();
+}
+
+impl<K, V, BH> MapIteration<K, V> for FzHashMap<K, V, BH>
+where
+    BH: BuildHasher,
+{
     type Iterator<'a>
         = Iter<'a, K, V>
     where
@@ -158,9 +275,6 @@ impl<K, V, BH> MapIteration<K, V> for FzHashMap<K, V, BH> {
         V: 'a,
         BH: 'a;
 
-    type IntoKeyIterator = IntoKeys<K, V>;
-    type IntoValueIterator = IntoValues<K, V>;
-
     type MutIterator<'a>
         = IterMut<'a, K, V>
     where
@@ -175,100 +289,58 @@ impl<K, V, BH> MapIteration<K, V> for FzHashMap<K, V, BH> {
         V: 'a,
         BH: 'a;
 
-    fn iter(&self) -> Self::Iterator<'_> {
-        self.map_impl.iter()
-    }
-
-    fn keys(&self) -> Self::KeyIterator<'_> {
-        self.map_impl.keys()
-    }
-
-    fn values(&self) -> Self::ValueIterator<'_> {
-        self.map_impl.values()
-    }
-
-    fn into_keys(self) -> Self::IntoKeyIterator {
-        self.map_impl.into_keys()
-    }
-
-    fn into_values(self) -> Self::IntoValueIterator {
-        self.map_impl.into_values()
-    }
-
-    fn iter_mut(&mut self) -> Self::MutIterator<'_> {
-        self.map_impl.iter_mut()
-    }
-
-    fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
-        self.map_impl.values_mut()
-    }
+    map_iteration_trait_funcs!();
 }
 
-impl<K, V, BH> Len for FzHashMap<K, V, BH> {
-    fn len(&self) -> usize {
-        self.map_impl.len()
-    }
+impl<K, V, BH> Len for FzHashMap<K, V, BH>
+where
+    BH: BuildHasher,
+{
+    len_trait_funcs!();
 }
 
 impl<K, V, Q, BH> Index<&Q> for FzHashMap<K, V, BH>
 where
-    Q: ?Sized + Hash + Eq + Equivalent<K>,
+    Q: ?Sized + Hash + Equivalent<K>,
     BH: BuildHasher,
 {
-    type Output = V;
-
-    fn index(&self, index: &Q) -> &Self::Output {
-        self.get(index).expect("index should be valid")
-    }
+    index_trait_funcs!();
 }
 
-impl<'a, K, V, BH> IntoIterator for &'a FzHashMap<K, V, BH> {
-    type Item = (&'a K, &'a V);
-    type IntoIter = Iter<'a, K, V>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
+impl<K, V, BH> IntoIterator for FzHashMap<K, V, BH>
+where
+    BH: BuildHasher,
+{
+    into_iterator_trait_funcs!();
 }
 
-impl<'a, K, V, BH> IntoIterator for &'a mut FzHashMap<K, V, BH> {
-    type Item = (&'a K, &'a mut V);
-    type IntoIter = IterMut<'a, K, V>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter_mut()
-    }
+impl<'a, K, V, BH> IntoIterator for &'a FzHashMap<K, V, BH>
+where
+    BH: BuildHasher,
+{
+    into_iterator_trait_ref_funcs!();
 }
 
-impl<K, V, BH> IntoIterator for FzHashMap<K, V, BH> {
-    type Item = (K, V);
-    type IntoIter = IntoIter<K, V>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.map_impl.into_iter()
-    }
+impl<'a, K, V, BH> IntoIterator for &'a mut FzHashMap<K, V, BH>
+where
+    BH: BuildHasher,
+{
+    into_iterator_trait_mut_ref_funcs!();
 }
 
 impl<K, V, MT, BH> PartialEq<MT> for FzHashMap<K, V, BH>
 where
-    K: Hash + Eq,
+    K: PartialEq + Hash,
     V: PartialEq,
-    MT: Map<K, V>,
+    MT: MapQuery<K, V>,
     BH: BuildHasher,
 {
-    fn eq(&self, other: &MT) -> bool {
-        if self.len() != other.len() {
-            return false;
-        }
-
-        self.iter()
-            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
-    }
+    partial_eq_trait_funcs!();
 }
 
 impl<K, V, BH> Eq for FzHashMap<K, V, BH>
 where
-    K: Hash + Eq,
+    K: Eq + Hash,
     V: Eq,
     BH: BuildHasher,
 {
@@ -278,10 +350,9 @@ impl<K, V, BH> Debug for FzHashMap<K, V, BH>
 where
     K: Debug,
     V: Debug,
+    BH: BuildHasher,
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        self.map_impl.fmt(f)
-    }
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -289,8 +360,9 @@ impl<K, V, BH> Serialize for FzHashMap<K, V, BH>
 where
     K: Serialize,
     V: Serialize,
+    BH: BuildHasher,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -304,9 +376,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(MapVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_map(MapVisitor { marker: PhantomData })
     }
 }
 
@@ -328,12 +398,12 @@ where
         formatter.write_str("a map with hashable keys")
     }
 
-    fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
+    fn visit_map<M>(self, mut map: M) -> core::result::Result<Self::Value, M::Error>
     where
         M: MapAccess<'de>,
     {
-        let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
-        while let Some(x) = access.next_entry()? {
+        let mut v = Vec::with_capacity(map.size_hint().unwrap_or(0));
+        while let Some(x) = map.next_entry()? {
             v.push(x);
         }
 

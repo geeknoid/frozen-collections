@@ -1,31 +1,26 @@
-use alloc::vec::Vec;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Data, DeriveInput, Error, Fields};
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 /// Implementation logic for the `Scalar` derive macro.
 ///
 /// # Errors
 ///
 /// Bad things happen to bad input
-#[allow(clippy::module_name_repetitions)]
 pub fn derive_scalar_macro(args: TokenStream) -> syn::Result<TokenStream> {
     let input: DeriveInput = syn::parse2(args)?;
     let name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
     let Data::Enum(variants) = &input.data else {
-        return Err(Error::new_spanned(
-            name,
-            "Scalar can only be used with enums",
-        ));
+        return Err(Error::new_spanned(name, "Scalar can only be used with enums"));
     };
 
     if variants.variants.is_empty() {
-        return Err(Error::new_spanned(
-            name,
-            "Scalar can only be used with non-empty enums",
-        ));
+        return Err(Error::new_spanned(name, "Scalar can only be used with non-empty enums"));
     }
 
     for v in &variants.variants {
@@ -67,7 +62,6 @@ pub fn derive_scalar_macro(args: TokenStream) -> syn::Result<TokenStream> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::string::ToString;
 
     #[test]
     fn basic() {
@@ -93,10 +87,7 @@ mod tests {
             }
         ));
 
-        assert_eq!(
-            "Scalar can only be used with enums",
-            r.unwrap_err().to_string()
-        );
+        assert_eq!("Scalar can only be used with enums", r.unwrap_err().to_string());
     }
 
     #[test]
@@ -105,10 +96,7 @@ mod tests {
             enum Color {}
         ));
 
-        assert_eq!(
-            "Scalar can only be used with non-empty enums",
-            r.unwrap_err().to_string()
-        );
+        assert_eq!("Scalar can only be used with non-empty enums", r.unwrap_err().to_string());
     }
 
     #[test]
