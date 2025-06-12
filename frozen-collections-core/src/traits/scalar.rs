@@ -1,7 +1,4 @@
-use core::num::{
-    NonZeroI8, NonZeroI16, NonZeroI32, NonZeroIsize, NonZeroU8, NonZeroU16, NonZeroU32,
-    NonZeroUsize,
-};
+use core::num::{NonZeroI8, NonZeroI16, NonZeroI32, NonZeroIsize, NonZeroU8, NonZeroU16, NonZeroU32, NonZeroUsize};
 
 /// A scalar value with an index in its sequence of possible values.
 pub trait Scalar: Ord + Clone + Copy {
@@ -14,8 +11,8 @@ macro_rules! impl_unsigned_scalar {
         $(
             impl Scalar for $t {
                 #[inline]
-                #[allow(clippy::cast_possible_truncation)]
-                #[allow(trivial_numeric_casts)]
+                #[allow(clippy::cast_possible_truncation, reason = "Normal")]
+                #[allow(trivial_numeric_casts, reason = "Normal")]
                 fn index(&self) -> usize {
                     *self as usize
                 }
@@ -29,9 +26,9 @@ macro_rules! impl_signed_scalar {
         $(
             impl Scalar for $t {
                 #[inline]
-                #[allow(clippy::cast_sign_loss)]
-                #[allow(clippy::cast_possible_truncation)]
-                #[allow(trivial_numeric_casts)]
+                #[allow(clippy::cast_sign_loss, reason = "Normal")]
+                #[allow(clippy::cast_possible_truncation, reason = "Normal")]
+                #[allow(trivial_numeric_casts, reason = "Normal")]
                 fn index(&self) -> usize {
                     ((*self as $unsigned_ty) ^ $mask) as usize
                 }
@@ -45,8 +42,8 @@ macro_rules! impl_unsigned_nz_scalar {
         $(
             impl Scalar for $t {
                 #[inline]
-                #[allow(clippy::cast_possible_truncation)]
-                #[allow(trivial_numeric_casts)]
+                #[allow(clippy::cast_possible_truncation, reason = "Normal")]
+                #[allow(trivial_numeric_casts, reason = "Normal")]
                 fn index(&self) -> usize {
                     (*self).get() as usize
                 }
@@ -60,9 +57,9 @@ macro_rules! impl_signed_nz_scalar {
         $(
             impl Scalar for $t {
                 #[inline]
-                #[allow(clippy::cast_sign_loss)]
-                #[allow(clippy::cast_possible_truncation)]
-                #[allow(trivial_numeric_casts)]
+                #[allow(clippy::cast_sign_loss, reason = "Normal")]
+                #[allow(clippy::cast_possible_truncation, reason = "Normal")]
+                #[allow(trivial_numeric_casts, reason = "Normal")]
                 fn index(&self) -> usize {
                     (((*self).get() as $unsigned_ty) ^ $mask) as usize
                 }
@@ -76,13 +73,7 @@ impl_unsigned_scalar!(u8, u16, u32, u64, usize);
 #[cfg(target_pointer_width = "64")]
 impl_signed_scalar!(i8:u8:0x80, i16:u16:0x8000, i32:u32:0x8000_0000, i64:u64:0x8000_0000_0000_0000, isize:usize:0x8000_0000_0000_0000);
 #[cfg(target_pointer_width = "64")]
-impl_unsigned_nz_scalar!(
-    NonZeroU8,
-    NonZeroU16,
-    NonZeroU32,
-    core::num::NonZeroU64,
-    NonZeroUsize
-);
+impl_unsigned_nz_scalar!(NonZeroU8, NonZeroU16, NonZeroU32, core::num::NonZeroU64, NonZeroUsize);
 #[cfg(target_pointer_width = "64")]
 impl_signed_nz_scalar!(NonZeroI8:u8:0x80, NonZeroI16:u16:0x8000, NonZeroI32:u32:0x8000_0000, core::num::NonZeroI64:u64:0x8000_0000_0000_0000, NonZeroIsize:usize:0x8000_0000_0000_0000);
 
@@ -176,22 +167,10 @@ mod tests {
     #[test]
     #[cfg(target_pointer_width = "64")]
     fn test_signed_nz_scalar_64() {
-        assert_eq!(
-            NonZeroIsize::new(-30).unwrap().index(),
-            0x8000_0000_0000_0000 - 30
-        );
-        assert_eq!(
-            core::num::NonZeroI64::new(-40).unwrap().index(),
-            0x8000_0000_0000_0000 - 40
-        );
+        assert_eq!(NonZeroIsize::new(-30).unwrap().index(), 0x8000_0000_0000_0000 - 30);
+        assert_eq!(core::num::NonZeroI64::new(-40).unwrap().index(), 0x8000_0000_0000_0000 - 40);
 
-        assert_eq!(
-            NonZeroIsize::new(30).unwrap().index(),
-            0x8000_0000_0000_0000 + 30
-        );
-        assert_eq!(
-            core::num::NonZeroI64::new(40).unwrap().index(),
-            0x8000_0000_0000_0000 + 40
-        );
+        assert_eq!(NonZeroIsize::new(30).unwrap().index(), 0x8000_0000_0000_0000 + 30);
+        assert_eq!(core::num::NonZeroI64::new(40).unwrap().index(), 0x8000_0000_0000_0000 + 40);
     }
 }

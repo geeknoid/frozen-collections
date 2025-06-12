@@ -40,26 +40,34 @@ where
     CM: CollectionMagnitude,
 {
     #[inline]
-    #[allow(clippy::cast_possible_truncation)]
     pub(crate) fn find(&self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&T> {
+        #[expect(clippy::cast_possible_truncation, reason = "Truncation ok on 32 bit systems")]
         let hash_slot_index = (hash_code & self.mask) as usize;
+
+        // SAFETY: The index is guaranteed to be within bounds due to the mask applied above
         let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
         let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();
+
+        // SAFETY: The range is guaranteed to be valid by construction
         let entries = unsafe { self.entries.get_unchecked(range) };
         entries.iter().find(|entry| eq(entry))
     }
 
     #[inline]
-    #[allow(clippy::cast_possible_truncation)]
-    pub(crate) fn find_mut(
-        &mut self,
-        hash_code: u64,
-        mut eq: impl FnMut(&T) -> bool,
-    ) -> Option<&mut T> {
+    pub(crate) fn find_mut(&mut self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&mut T> {
+        #[expect(clippy::cast_possible_truncation, reason = "Truncation on 32 bit systems is fine")]
         let hash_slot_index = (hash_code & self.mask) as usize;
+
+        // SAFETY: The index is guaranteed to be within bounds due to the mask applied above
         let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
         let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();
+
+        // SAFETY: The range is guaranteed to be valid by construction
         let entries = unsafe { self.entries.get_unchecked_mut(range) };
         entries.iter_mut().find(|entry| eq(entry))
+    }
+
+    pub(crate) const fn len(&self) -> usize {
+        self.entries.len()
     }
 }

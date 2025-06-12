@@ -1,16 +1,17 @@
 //! Duplicate removal utility functions for frozen collections.
 
 use crate::traits::Hasher;
-use alloc::vec::Vec;
 use core::hash::Hash;
 use hashbrown::HashSet as HashbrownSet;
 use hashbrown::HashTable as HashbrownTable;
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 /// Remove duplicates from a vector, keeping the last occurrence of each duplicate.
 ///
 /// This assumes the input vector is fairly short as time complexity is very high.
 #[mutants::skip]
-#[allow(clippy::module_name_repetitions)]
 pub fn dedup_by_keep_last_slow<T, F>(unsorted_entries: &mut Vec<T>, mut cmp: F)
 where
     F: FnMut(&mut T, &mut T) -> bool,
@@ -45,7 +46,6 @@ where
 /// Remove duplicates from a vector, keeping the last occurrence of each duplicate.
 ///
 /// This assumes the input vector is sorted.
-#[allow(clippy::module_name_repetitions)]
 pub fn dedup_by_keep_last<T, F>(sorted_entries: &mut Vec<T>, mut cmp: F)
 where
     F: FnMut(&mut T, &mut T) -> bool,
@@ -75,7 +75,6 @@ where
 }
 
 /// Remove duplicates from a vector, keeping the last occurrence of each duplicate.
-#[allow(clippy::module_name_repetitions)]
 #[mutants::skip]
 pub fn dedup_by_hash_keep_last<T, F, G>(unsorted_entries: &mut Vec<T>, hasher: F, mut eq: G)
 where
@@ -151,7 +150,7 @@ where
 {
     for i in 0..values.len() {
         for j in 0..i {
-            if values[j].eq(&values[i]) {
+            if values[j] == values[i] {
                 return true;
             }
         }
@@ -183,10 +182,7 @@ mod tests {
             (3, "three last"),
         ];
         dedup_by_keep_last_slow(&mut vec, |x, y| x.0.eq(&y.0));
-        assert_eq!(
-            vec,
-            vec![(1, "one"), (2, "two duplicate"), (3, "three last")]
-        );
+        assert_eq!(vec, vec![(1, "one"), (2, "two duplicate"), (3, "three last")]);
     }
 
     #[test]

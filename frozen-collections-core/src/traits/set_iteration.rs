@@ -2,12 +2,13 @@ use core::hash::BuildHasher;
 
 /// Common iteration abstractions for sets.
 pub trait SetIteration<T>: IntoIterator<Item = T> {
+    /// The type of the iterator returned by [`Self::iter`].
     type Iterator<'a>: Iterator<Item = &'a T>
     where
         Self: 'a,
         T: 'a;
 
-    /// An iterator visiting all entries in arbitrary order.
+    #[doc = include_str!("../doc_snippets/iter.md")]
     #[must_use]
     fn iter(&self) -> Self::Iterator<'_>;
 }
@@ -23,9 +24,8 @@ where
         T: 'a,
         BH: 'a;
 
-    #[inline]
     fn iter(&self) -> Self::Iterator<'_> {
-        Self::iter(self)
+        self.iter()
     }
 }
 
@@ -36,7 +36,6 @@ impl<T> SetIteration<T> for std::collections::BTreeSet<T> {
     where
         T: 'a;
 
-    #[inline]
     fn iter(&self) -> Self::Iterator<'_> {
         Self::iter(self)
     }
@@ -52,7 +51,6 @@ where
         T: 'a,
         BH: 'a;
 
-    #[inline]
     fn iter(&self) -> Self::Iterator<'_> {
         Self::iter(self)
     }

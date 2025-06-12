@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "Benchmark")]
+
 // NOTE: as of version 0.9.6, the ph crate doesn't compile, so this benchmark is disabled for now
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};

@@ -1,4 +1,4 @@
-#![allow(clippy::redundant_pub_crate)]
+#![expect(clippy::redundant_pub_crate, reason = "Helps clarity")]
 
 use core::fmt::{Debug, Formatter};
 use proc_macro2::TokenStream;
@@ -8,6 +8,7 @@ use syn::{Expr, parse_quote};
 #[cfg(feature = "macros")]
 pub(crate) struct NonLiteralKey;
 
+/// Represents an entry in a collection used to build a frozen collection.
 pub struct CollectionEntry<K> {
     pub(crate) key: K,
     key_expr: Expr,
@@ -15,14 +16,12 @@ pub struct CollectionEntry<K> {
 }
 
 impl<K> CollectionEntry<K> {
+    /// Creates a new `CollectionEntry` for a map, using the specified key, key expression, and value expression.
     pub const fn map_entry(key: K, key_expr: Expr, value_expr: Expr) -> Self {
-        Self {
-            key,
-            key_expr,
-            value_expr,
-        }
+        Self { key, key_expr, value_expr }
     }
 
+    /// Creates a new `CollectionEntry` for a set, using the specified value and value expression.
     pub fn set_entry(value: K, value_expr: Expr) -> Self {
         Self {
             key: value,
@@ -67,6 +66,7 @@ where
         )
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -127,9 +127,6 @@ mod tests {
         let entry = CollectionEntry::map_entry(key, key_expr, value_expr);
         let debug_str = format!("{entry:?}");
 
-        assert_eq!(
-            debug_str,
-            "CollectionEntry { key: \"key\", key_expr 'key', value_expr: 'value'}"
-        );
+        assert_eq!(debug_str, "CollectionEntry { key: \"key\", key_expr 'key', value_expr: 'value'}");
     }
 }

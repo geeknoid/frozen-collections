@@ -70,13 +70,11 @@ where
     assert!(!s.contains(&T::default()));
     assert_eq!(0, s.len());
     assert!(s.is_empty());
+    assert!(s.get(&T::default()).is_none());
 }
 
-pub fn test_set_ops<'a, ST, T>(
-    set: &'a ST,
-    reference: &'a HashbrownSet<T>,
-    other: &'a HashbrownSet<T>,
-) where
+pub fn test_set_ops<'a, ST, T>(set: &'a ST, reference: &'a HashbrownSet<T>, other: &'a HashbrownSet<T>)
+where
     T: 'a + Hash + Eq + Clone + Debug,
     ST: 'a + Set<T> + Debug + Clone + PartialEq<HashbrownSet<T>>,
     &'a ST: BitOr<&'a HashbrownSet<T>, Output = HashbrownSet<T>>

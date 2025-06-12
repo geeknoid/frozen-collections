@@ -2,24 +2,23 @@ use core::hash::{BuildHasher, Hash};
 
 /// Common query abstractions for maps.
 pub trait MapQuery<K, V, Q: ?Sized = K> {
-    /// Checks whether a particular value is present in the map.
-    #[inline]
+    #[doc = include_str!("../doc_snippets/get.md")]
+    #[must_use]
+    fn get(&self, key: &Q) -> Option<&V>;
+
+    #[doc = include_str!("../doc_snippets/get_mut.md")]
+    #[must_use]
+    fn get_mut(&mut self, key: &Q) -> Option<&mut V>;
+
+    #[doc = include_str!("../doc_snippets/get_key_value.md")]
+    #[must_use]
+    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)>;
+
+    #[doc = include_str!("../doc_snippets/contains_key.md")]
     #[must_use]
     fn contains_key(&self, key: &Q) -> bool {
         self.get(key).is_some()
     }
-
-    /// Gets a value from the map.
-    #[must_use]
-    fn get(&self, key: &Q) -> Option<&V>;
-
-    /// Gets a key and value from the map.
-    #[must_use]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)>;
-
-    /// Gets a mutable value from the map.
-    #[must_use]
-    fn get_mut(&mut self, key: &Q) -> Option<&mut V>;
 }
 
 #[cfg(feature = "std")]
@@ -30,23 +29,23 @@ where
     BH: BuildHasher,
 {
     #[inline]
-    fn contains_key(&self, key: &Q) -> bool {
-        Self::contains_key(self, key)
-    }
-
-    #[inline]
     fn get(&self, key: &Q) -> Option<&V> {
-        Self::get(self, key)
-    }
-
-    #[inline]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        Self::get_key_value(self, key)
+        self.get(key)
     }
 
     #[inline]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        Self::get_mut(self, key)
+        self.get_mut(key)
+    }
+
+    #[inline]
+    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
+        self.get_key_value(key)
+    }
+
+    #[inline]
+    fn contains_key(&self, key: &Q) -> bool {
+        self.contains_key(key)
     }
 }
 
@@ -57,23 +56,23 @@ where
     Q: Ord,
 {
     #[inline]
-    fn contains_key(&self, key: &Q) -> bool {
-        Self::contains_key(self, key)
-    }
-
-    #[inline]
     fn get(&self, key: &Q) -> Option<&V> {
-        Self::get(self, key)
-    }
-
-    #[inline]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        Self::get_key_value(self, key)
+        self.get(key)
     }
 
     #[inline]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        Self::get_mut(self, key)
+        self.get_mut(key)
+    }
+
+    #[inline]
+    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
+        self.get_key_value(key)
+    }
+
+    #[inline]
+    fn contains_key(&self, key: &Q) -> bool {
+        self.contains_key(key)
     }
 }
 
@@ -84,23 +83,23 @@ where
     BH: BuildHasher,
 {
     #[inline]
-    fn contains_key(&self, key: &Q) -> bool {
-        Self::contains_key(self, key)
-    }
-
-    #[inline]
     fn get(&self, key: &Q) -> Option<&V> {
-        Self::get(self, key)
-    }
-
-    #[inline]
-    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
-        Self::get_key_value(self, key)
+        self.get(key)
     }
 
     #[inline]
     fn get_mut(&mut self, key: &Q) -> Option<&mut V> {
-        Self::get_mut(self, key)
+        self.get_mut(key)
+    }
+
+    #[inline]
+    fn get_key_value(&self, key: &Q) -> Option<(&K, &V)> {
+        self.get_key_value(key)
+    }
+
+    #[inline]
+    fn contains_key(&self, key: &Q) -> bool {
+        self.contains_key(key)
     }
 }
 

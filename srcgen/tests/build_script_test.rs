@@ -1,4 +1,4 @@
-use frozen_collections::{Len, SetQuery};
+//! Source generation tests
 
 include!(concat!(env!("OUT_DIR"), "/data.rs"));
 include!("../includes/make_collections.rs");

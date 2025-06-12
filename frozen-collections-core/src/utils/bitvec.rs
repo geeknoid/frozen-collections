@@ -1,5 +1,6 @@
 //! Simple bit vectors.
 
+#[cfg(not(feature = "std"))]
 use alloc::boxed::Box;
 
 pub struct BitVec {
@@ -56,8 +57,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    #[allow(clippy::should_panic_without_expect)]
+    #[should_panic(expected = "Out of bounds")]
     fn get_panic() {
         let bitvec = BitVec::with_capacity(12);
         _ = bitvec.get(12);

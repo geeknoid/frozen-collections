@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "Tests")]
+
 use frozen_collections::*;
 use frozen_collections_core::macros::{fz_scalar_map_macro, fz_scalar_set_macro};
 use quote::quote;
