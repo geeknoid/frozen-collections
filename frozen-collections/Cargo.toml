@@ -38,3 +38,19 @@ serde = ["frozen-collections-core/serde"]
 std = ["frozen-collections-core/std"]
 macros = ["frozen-collections-macros", "frozen-collections-core/macros"]
 emit = ["frozen-collections-core/emit"]
+
+[[bench]]
+name = "ordered_keys"
+harness = false
+
+[[bench]]
+name = "scalar_keys"
+harness = false
+
+[[bench]]
+name = "hashed_keys"
+harness = false
+
+[[bench]]
+name = "string_keys"
+harness = false

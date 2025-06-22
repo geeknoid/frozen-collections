@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Introduce hash collections optimized for the common no-collision case.
-
 ### Changed
+
+## 0.7.0 - 2025-06-22
+
+### Added
+
+- Introduce hash collections optimized for the common no-collision case.
 
 ## 0.6.0 - 2025-06-21
 
