@@ -20,9 +20,9 @@ readme = "README.md"
 rust-version = "1.87.0"
 
 [workspace.dependencies]
-frozen-collections = { path = "frozen-collections", default-features = false }
-frozen-collections-core = { path = "frozen-collections-core", default-features = false }
-frozen-collections-macros = { path = "frozen-collections-macros", default-features = false }
+frozen-collections = { version = "0.6.0", path = "frozen-collections", default-features = false }
+frozen-collections-core = { version = "0.6.0", path = "frozen-collections-core", default-features = false }
+frozen-collections-macros = { version = "0.6.0", path = "frozen-collections-macros", default-features = false }
 
 const-random = "0.1.18"
 criterion = "0.6.0"
