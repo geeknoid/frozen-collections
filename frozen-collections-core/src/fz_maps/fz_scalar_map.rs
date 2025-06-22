@@ -1,20 +1,24 @@
 use crate::analyzers::{ScalarKeyAnalysisResult, analyze_scalar_keys};
 use crate::hashers::PassthroughHasher;
-use crate::maps::{
-    DenseScalarLookupMap, HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys,
-    SparseScalarLookupMap, Values, ValuesMut,
+use crate::maps::decl_macros::{
+    debug_trait_funcs, index_trait_funcs, into_iterator_trait_funcs, into_iterator_trait_mut_ref_funcs, into_iterator_trait_ref_funcs,
+    len_trait_funcs, map_extras_trait_funcs, map_iteration_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs,
 };
-use crate::traits::{LargeCollection, Len, Map, MapIteration, MapQuery, Scalar};
+use crate::maps::{
+    DenseScalarLookupMap, HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, SparseScalarLookupMap, Values, ValuesMut,
+};
+use crate::traits::{LargeCollection, Len, Map, MapExtras, MapIteration, MapQuery, Scalar};
 use crate::utils::dedup_by_keep_last;
-use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter, Result};
-use core::iter::FromIterator;
 use core::ops::Index;
-use equivalent::Equivalent;
+use equivalent::Comparable;
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 #[cfg(feature = "serde")]
 use {
-    crate::maps::decl_macros::serialize_fn,
+    crate::maps::decl_macros::serialize_trait_funcs,
     core::marker::PhantomData,
     serde::de::{MapAccess, Visitor},
     serde::ser::SerializeMap,
@@ -41,30 +45,214 @@ pub struct FzScalarMap<K, V> {
     map_impl: MapTypes<K, V>,
 }
 
-impl<K, V> FzScalarMap<K, V>
-where
-    K: Scalar,
-{
+impl<K, V> FzScalarMap<K, V> {
     /// Creates a frozen map.
     #[must_use]
-    #[allow(clippy::missing_panics_doc)]
-    pub fn new(mut entries: Vec<(K, V)>) -> Self {
+    #[expect(clippy::missing_panics_doc, reason = "Guaranteed to work because the map is a LargeCollection")]
+    pub fn new(mut entries: Vec<(K, V)>) -> Self
+    where
+        K: Scalar,
+    {
         entries.sort_by(|x, y| x.0.cmp(&y.0));
         dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
 
         Self {
             map_impl: match analyze_scalar_keys(entries.iter().map(|x| x.0)) {
-                ScalarKeyAnalysisResult::DenseRange => {
-                    MapTypes::Dense(DenseScalarLookupMap::new_raw(entries))
-                }
-                ScalarKeyAnalysisResult::SparseRange => {
-                    MapTypes::Sparse(SparseScalarLookupMap::new_raw(entries))
-                }
-                ScalarKeyAnalysisResult::General => {
-                    let h = PassthroughHasher::new();
-                    MapTypes::Hash(HashMap::with_hasher_half_baked(entries, h).unwrap())
-                }
+                ScalarKeyAnalysisResult::DenseRange => MapTypes::Dense(DenseScalarLookupMap::new_raw(entries)),
+                ScalarKeyAnalysisResult::SparseRange => MapTypes::Sparse(SparseScalarLookupMap::new_raw(entries)),
+                ScalarKeyAnalysisResult::General => MapTypes::Hash(HashMap::with_hasher_half_baked(entries, PassthroughHasher {}).unwrap()),
             },
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/get.md")]
+    #[inline]
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        Q: Scalar + Comparable<K>,
+    {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.get(key),
+            MapTypes::Dense(m) => m.get(key),
+            MapTypes::Sparse(m) => m.get(key),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_mut.md")]
+    #[inline]
+    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
+    where
+        Q: Scalar + Comparable<K>,
+    {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => m.get_mut(key),
+            MapTypes::Dense(m) => m.get_mut(key),
+            MapTypes::Sparse(m) => m.get_mut(key),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_key_value.md")]
+    #[inline]
+    pub fn get_key_value<Q>(&self, key: &Q) -> Option<(&K, &V)>
+    where
+        Q: Scalar + Comparable<K>,
+    {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.get_key_value(key),
+            MapTypes::Dense(m) => m.get_key_value(key),
+            MapTypes::Sparse(m) => m.get_key_value(key),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/contains_key.md")]
+    #[inline]
+    #[must_use]
+    pub fn contains_key<Q>(&self, key: &Q) -> bool
+    where
+        Q: Scalar + Comparable<K>,
+    {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.contains_key(key),
+            MapTypes::Dense(m) => m.contains_key(key),
+            MapTypes::Sparse(m) => m.contains_key(key),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_disjoint_mut.md")]
+    #[must_use]
+    pub fn get_disjoint_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
+    where
+        Q: Scalar + Comparable<K>,
+    {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => m.get_disjoint_mut(keys),
+            MapTypes::Dense(m) => m.get_disjoint_mut(keys),
+            MapTypes::Sparse(m) => m.get_disjoint_mut(keys),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_disjoint_unchecked_mut.md")]
+    #[must_use]
+    pub unsafe fn get_disjoint_unchecked_mut<Q, const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N]
+    where
+        Q: Scalar + Comparable<K>,
+    {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => {
+                // SAFETY: The caller must ensure that the keys are disjoint and valid for the map.
+                unsafe { m.get_disjoint_unchecked_mut(keys) }
+            }
+
+            MapTypes::Dense(m) => {
+                // SAFETY: The caller must ensure that the keys are disjoint and valid for the map.
+                unsafe { m.get_disjoint_unchecked_mut(keys) }
+            }
+
+            MapTypes::Sparse(m) => {
+                // SAFETY: The caller must ensure that the keys are disjoint and valid for the map.
+                unsafe { m.get_disjoint_unchecked_mut(keys) }
+            }
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/len.md")]
+    #[inline]
+    #[must_use]
+    pub fn len(&self) -> usize {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.len(),
+            MapTypes::Dense(m) => m.len(),
+            MapTypes::Sparse(m) => m.len(),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/is_empty.md")]
+    #[inline]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.is_empty(),
+            MapTypes::Dense(m) => m.is_empty(),
+            MapTypes::Sparse(m) => m.is_empty(),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/iter.md")]
+    #[must_use]
+    pub fn iter(&self) -> Iter<'_, K, V> {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.iter(),
+            MapTypes::Dense(m) => m.iter(),
+            MapTypes::Sparse(m) => m.iter(),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/iter_mut.md")]
+    #[must_use]
+    pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => m.iter_mut(),
+            MapTypes::Dense(m) => m.iter_mut(),
+            MapTypes::Sparse(m) => m.iter_mut(),
+        }
+    }
+
+    #[must_use]
+    fn into_iter(self) -> IntoIter<K, V> {
+        match self.map_impl {
+            MapTypes::Hash(m) => m.into_iter(),
+            MapTypes::Dense(m) => m.into_iter(),
+            MapTypes::Sparse(m) => m.into_iter(),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/keys.md")]
+    #[must_use]
+    pub fn keys(&self) -> Keys<'_, K, V> {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.keys(),
+            MapTypes::Dense(m) => m.keys(),
+            MapTypes::Sparse(m) => m.keys(),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/into_keys.md")]
+    #[must_use]
+    pub fn into_keys(self) -> IntoKeys<K, V> {
+        match self.map_impl {
+            MapTypes::Hash(m) => m.into_keys(),
+            MapTypes::Dense(m) => m.into_keys(),
+            MapTypes::Sparse(m) => m.into_keys(),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/values.md")]
+    #[must_use]
+    pub fn values(&self) -> Values<'_, K, V> {
+        match &self.map_impl {
+            MapTypes::Hash(m) => m.values(),
+            MapTypes::Dense(m) => m.values(),
+            MapTypes::Sparse(m) => m.values(),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/values_mut.md")]
+    #[must_use]
+    pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
+        match &mut self.map_impl {
+            MapTypes::Hash(m) => m.values_mut(),
+            MapTypes::Dense(m) => m.values_mut(),
+            MapTypes::Sparse(m) => m.values_mut(),
+        }
+    }
+
+    #[doc = include_str!("../doc_snippets/into_values.md")]
+    #[must_use]
+    pub fn into_values(self) -> IntoValues<K, V> {
+        match self.map_impl {
+            MapTypes::Hash(m) => m.into_values(),
+            MapTypes::Dense(m) => m.into_values(),
+            MapTypes::Sparse(m) => m.into_values(),
         }
     }
 }
@@ -95,62 +283,20 @@ where
     }
 }
 
-impl<K, V> Map<K, V, K> for FzScalarMap<K, V>
-where
-    K: Scalar + Eq + Equivalent<K>,
-{
-    fn get_disjoint_mut<const N: usize>(&mut self, keys: [&K; N]) -> [Option<&mut V>; N] {
-        match &mut self.map_impl {
-            MapTypes::Hash(m) => m.get_disjoint_mut(keys),
-            MapTypes::Dense(m) => m.get_disjoint_mut(keys),
-            MapTypes::Sparse(m) => m.get_disjoint_mut(keys),
-        }
-    }
+impl<K, V, Q> Map<K, V, Q> for FzScalarMap<K, V> where Q: Scalar + Comparable<K> {}
 
-    unsafe fn get_disjoint_unchecked_mut<const N: usize>(
-        &mut self,
-        keys: [&K; N],
-    ) -> [Option<&mut V>; N] {
-        unsafe {
-            match &mut self.map_impl {
-                MapTypes::Hash(m) => m.get_disjoint_unchecked_mut(keys),
-                MapTypes::Dense(m) => m.get_disjoint_unchecked_mut(keys),
-                MapTypes::Sparse(m) => m.get_disjoint_unchecked_mut(keys),
-            }
-        }
-    }
+impl<K, V, Q> MapExtras<K, V, Q> for FzScalarMap<K, V>
+where
+    Q: Scalar + Comparable<K>,
+{
+    map_extras_trait_funcs!();
 }
 
-impl<K, V> MapQuery<K, V, K> for FzScalarMap<K, V>
+impl<K, V, Q> MapQuery<Q, V> for FzScalarMap<K, V>
 where
-    K: Scalar + Eq + Equivalent<K>,
+    Q: Scalar + Comparable<K>,
 {
-    #[inline(always)]
-    fn get(&self, key: &K) -> Option<&V> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.get(key),
-            MapTypes::Dense(m) => m.get(key),
-            MapTypes::Sparse(m) => m.get(key),
-        }
-    }
-
-    #[inline]
-    fn get_key_value(&self, key: &K) -> Option<(&K, &V)> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.get_key_value(key),
-            MapTypes::Dense(m) => m.get_key_value(key),
-            MapTypes::Sparse(m) => m.get_key_value(key),
-        }
-    }
-
-    #[inline]
-    fn get_mut(&mut self, key: &K) -> Option<&mut V> {
-        match &mut self.map_impl {
-            MapTypes::Hash(m) => m.get_mut(key),
-            MapTypes::Dense(m) => m.get_mut(key),
-            MapTypes::Sparse(m) => m.get_mut(key),
-        }
-    }
+    map_query_trait_funcs!();
 }
 
 impl<K, V> MapIteration<K, V> for FzScalarMap<K, V> {
@@ -172,9 +318,6 @@ impl<K, V> MapIteration<K, V> for FzScalarMap<K, V> {
         K: 'a,
         V: 'a;
 
-    type IntoKeyIterator = IntoKeys<K, V>;
-    type IntoValueIterator = IntoValues<K, V>;
-
     type MutIterator<'a>
         = IterMut<'a, K, V>
     where
@@ -187,129 +330,39 @@ impl<K, V> MapIteration<K, V> for FzScalarMap<K, V> {
         K: 'a,
         V: 'a;
 
-    fn iter(&self) -> Self::Iterator<'_> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.iter(),
-            MapTypes::Dense(m) => m.iter(),
-            MapTypes::Sparse(m) => m.iter(),
-        }
-    }
-
-    fn keys(&self) -> Self::KeyIterator<'_> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.keys(),
-            MapTypes::Dense(m) => m.keys(),
-            MapTypes::Sparse(m) => m.keys(),
-        }
-    }
-
-    fn values(&self) -> Self::ValueIterator<'_> {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.values(),
-            MapTypes::Dense(m) => m.values(),
-            MapTypes::Sparse(m) => m.values(),
-        }
-    }
-
-    fn into_keys(self) -> Self::IntoKeyIterator {
-        match self.map_impl {
-            MapTypes::Hash(m) => m.into_keys(),
-            MapTypes::Dense(m) => m.into_keys(),
-            MapTypes::Sparse(m) => m.into_keys(),
-        }
-    }
-
-    fn into_values(self) -> Self::IntoValueIterator {
-        match self.map_impl {
-            MapTypes::Hash(m) => m.into_values(),
-            MapTypes::Dense(m) => m.into_values(),
-            MapTypes::Sparse(m) => m.into_values(),
-        }
-    }
-
-    fn iter_mut(&mut self) -> Self::MutIterator<'_> {
-        match &mut self.map_impl {
-            MapTypes::Hash(m) => m.iter_mut(),
-            MapTypes::Dense(m) => m.iter_mut(),
-            MapTypes::Sparse(m) => m.iter_mut(),
-        }
-    }
-
-    fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
-        match &mut self.map_impl {
-            MapTypes::Hash(m) => m.values_mut(),
-            MapTypes::Dense(m) => m.values_mut(),
-            MapTypes::Sparse(m) => m.values_mut(),
-        }
-    }
+    map_iteration_trait_funcs!();
 }
 
 impl<K, V> Len for FzScalarMap<K, V> {
-    fn len(&self) -> usize {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.len(),
-            MapTypes::Dense(m) => m.len(),
-            MapTypes::Sparse(m) => m.len(),
-        }
-    }
+    len_trait_funcs!();
 }
 
 impl<Q, V> Index<&Q> for FzScalarMap<Q, V>
 where
-    Q: Scalar + Eq + Equivalent<Q>,
+    Q: Scalar + Eq,
 {
-    type Output = V;
-
-    fn index(&self, index: &Q) -> &Self::Output {
-        self.get(index).expect("index should be valid")
-    }
-}
-
-impl<'a, K, V> IntoIterator for &'a FzScalarMap<K, V> {
-    type Item = (&'a K, &'a V);
-    type IntoIter = Iter<'a, K, V>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
-
-impl<'a, K, V> IntoIterator for &'a mut FzScalarMap<K, V> {
-    type Item = (&'a K, &'a mut V);
-    type IntoIter = IterMut<'a, K, V>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter_mut()
-    }
+    index_trait_funcs!();
 }
 
 impl<K, V> IntoIterator for FzScalarMap<K, V> {
-    type Item = (K, V);
-    type IntoIter = IntoIter<K, V>;
+    into_iterator_trait_funcs!();
+}
 
-    fn into_iter(self) -> Self::IntoIter {
-        match self.map_impl {
-            MapTypes::Hash(m) => m.into_iter(),
-            MapTypes::Dense(m) => m.into_iter(),
-            MapTypes::Sparse(m) => m.into_iter(),
-        }
-    }
+impl<'a, K, V> IntoIterator for &'a FzScalarMap<K, V> {
+    into_iterator_trait_ref_funcs!();
+}
+
+impl<'a, K, V> IntoIterator for &'a mut FzScalarMap<K, V> {
+    into_iterator_trait_mut_ref_funcs!();
 }
 
 impl<K, V, MT> PartialEq<MT> for FzScalarMap<K, V>
 where
     K: Scalar,
     V: PartialEq,
-    MT: Map<K, V>,
+    MT: MapQuery<K, V>,
 {
-    fn eq(&self, other: &MT) -> bool {
-        if self.len() != other.len() {
-            return false;
-        }
-
-        self.iter()
-            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
-    }
+    partial_eq_trait_funcs!();
 }
 
 impl<K, V> Eq for FzScalarMap<K, V>
@@ -324,13 +377,7 @@ where
     K: Debug,
     V: Debug,
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match &self.map_impl {
-            MapTypes::Hash(m) => m.fmt(f),
-            MapTypes::Dense(m) => m.fmt(f),
-            MapTypes::Sparse(m) => m.fmt(f),
-        }
-    }
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -339,7 +386,7 @@ where
     K: Serialize,
     V: Serialize,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -352,9 +399,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(MapVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_map(MapVisitor { marker: PhantomData })
     }
 }
 
@@ -375,12 +420,12 @@ where
         formatter.write_str("a map with scalar keys")
     }
 
-    fn visit_map<M>(self, mut access: M) -> core::result::Result<Self::Value, M::Error>
+    fn visit_map<M>(self, mut map: M) -> core::result::Result<Self::Value, M::Error>
     where
         M: MapAccess<'de>,
     {
-        let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
-        while let Some(x) = access.next_entry()? {
+        let mut v = Vec::with_capacity(map.size_hint().unwrap_or(0));
+        while let Some(x) = map.next_entry()? {
             v.push(x);
         }
 

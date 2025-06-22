@@ -46,16 +46,27 @@ jobs:
         with:
           toolchain: stable
           components: clippy, rustfmt
+      - name: Install Rust Nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: miri
       - name: Install cargo-audit
         run: cargo install cargo-audit
+      - name: Install cargo-machete
+        run: cargo install cargo-machete
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
       - name: Audit
         run: cargo audit
+      - name: Machete
+        run: cargo machete
       - name: Format
         run: cargo fmt -- --check
       - name: Docs
         run: RUSTDOCFLAGS='--deny warnings' cargo doc --no-deps --all-features
+      - name: Miri
+        run: cargo +nightly miri test --test omni_tests
 
   coverage:
     runs-on: ubuntu-latest

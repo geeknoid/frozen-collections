@@ -1,18 +1,20 @@
 use crate::inline_maps::InlineBinarySearchMap;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn,
-    partial_eq_fn, set_iteration_funcs, sub_fn,
+    binary_search_primary_funcs, bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, common_primary_funcs, debug_trait_funcs,
+    into_iterator_ref_trait_funcs, into_iterator_trait_funcs, partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs,
+    set_query_trait_funcs, sub_trait_funcs,
 };
 use crate::sets::{IntoIter, Iter};
-use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
+use crate::traits::{Len, Set, SetExtras, SetIteration, SetOps, SetQuery};
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Comparable;
 
+use crate::maps::decl_macros::len_trait_funcs;
 #[cfg(feature = "serde")]
 use {
-    crate::sets::decl_macros::serialize_fn,
+    crate::sets::decl_macros::serialize_trait_funcs,
     serde::ser::SerializeSeq,
     serde::{Serialize, Serializer},
 };
@@ -38,18 +40,25 @@ impl<T, const SZ: usize> InlineBinarySearchSet<T, SZ> {
     pub const fn new(map: InlineBinarySearchMap<T, (), SZ>) -> Self {
         Self { map }
     }
+
+    binary_search_primary_funcs!();
+    common_primary_funcs!(const_len);
 }
 
-impl<T, Q, const SZ: usize> Set<T, Q> for InlineBinarySearchSet<T, SZ> where
-    Q: ?Sized + Ord + Comparable<T>
-{
-}
+impl<T, Q, const SZ: usize> Set<T, Q> for InlineBinarySearchSet<T, SZ> where Q: ?Sized + Comparable<T> {}
 
-impl<T, Q, const SZ: usize> SetQuery<T, Q> for InlineBinarySearchSet<T, SZ>
+impl<T, Q, const SZ: usize> SetExtras<T, Q> for InlineBinarySearchSet<T, SZ>
 where
-    Q: ?Sized + Ord + Comparable<T>,
+    Q: ?Sized + Comparable<T>,
 {
-    get_fn!();
+    set_extras_trait_funcs!();
+}
+
+impl<T, Q, const SZ: usize> SetQuery<Q> for InlineBinarySearchSet<T, SZ>
+where
+    Q: ?Sized + Comparable<T>,
+{
+    set_query_trait_funcs!();
 }
 
 impl<T, const SZ: usize> SetIteration<T> for InlineBinarySearchSet<T, SZ> {
@@ -58,61 +67,59 @@ impl<T, const SZ: usize> SetIteration<T> for InlineBinarySearchSet<T, SZ> {
     where
         T: 'a;
 
-    set_iteration_funcs!();
+    set_iteration_trait_funcs!();
 }
 
 impl<T, const SZ: usize> Len for InlineBinarySearchSet<T, SZ> {
-    fn len(&self) -> usize {
-        SZ
-    }
+    len_trait_funcs!();
 }
 
 impl<T, ST, const SZ: usize> BitOr<&ST> for &InlineBinarySearchSet<T, SZ>
 where
-    T: Hash + Eq + Ord + Clone,
+    T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitor_fn!();
+    bitor_trait_funcs!();
 }
 
 impl<T, ST, const SZ: usize> BitAnd<&ST> for &InlineBinarySearchSet<T, SZ>
 where
-    T: Hash + Eq + Ord + Clone,
+    T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitand_fn!();
+    bitand_trait_funcs!();
 }
 
 impl<T, ST, const SZ: usize> BitXor<&ST> for &InlineBinarySearchSet<T, SZ>
 where
-    T: Hash + Eq + Ord + Clone,
+    T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitxor_fn!();
+    bitxor_trait_funcs!();
 }
 
 impl<T, ST, const SZ: usize> Sub<&ST> for &InlineBinarySearchSet<T, SZ>
 where
-    T: Hash + Eq + Ord + Clone,
+    T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    sub_fn!();
+    sub_trait_funcs!();
 }
 
 impl<T, const SZ: usize> IntoIterator for InlineBinarySearchSet<T, SZ> {
-    into_iter_fn!();
+    into_iterator_trait_funcs!();
 }
 
 impl<'a, T, const SZ: usize> IntoIterator for &'a InlineBinarySearchSet<T, SZ> {
-    into_iter_ref_fn!();
+    into_iterator_ref_trait_funcs!();
 }
 
 impl<T, ST, const SZ: usize> PartialEq<ST> for InlineBinarySearchSet<T, SZ>
 where
     T: Ord,
-    ST: Set<T>,
+    ST: SetQuery<T>,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<T, const SZ: usize> Eq for InlineBinarySearchSet<T, SZ> where T: Ord {}
@@ -121,7 +128,7 @@ impl<T, const SZ: usize> Debug for InlineBinarySearchSet<T, SZ>
 where
     T: Debug,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -129,5 +136,5 @@ impl<T, const SZ: usize> Serialize for InlineBinarySearchSet<T, SZ>
 where
     T: Serialize,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }

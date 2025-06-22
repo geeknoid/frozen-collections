@@ -9,12 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+## 0.6.0 - 2025-06-21
+
+### Added
+
 - Added the get_disjoint_unchecked_mut function to the Map trait to match what HashMap has.
 
 ### Changed
 
 - The get_many_mut function on the Map trait has been renamed to get_disjoint_mut to match the stable name
 used in HashMap.
+
+- Improved usability by implementing all the methods that
+were previously just on the traits as normal methods on the
+collections themselves. This avoids the need to import
+the traits to use the collections, making them more user-friendly.
+
+- Revamped the FzStringMap/Set types. Their implementation
+is now simpler, yet the API is more flexible.
+
+- Tidied up a lot of generic bounds. Many of the
+bounds are removed, making the types easier to use
+
+- SetQuery and MapQuery now have one fewer generics,
+making them considerably easier and natural to use.
+
+- Enabled more lints and fixed the resulting warnings.
 
 ## 0.5.0 - 2025-04-17
 

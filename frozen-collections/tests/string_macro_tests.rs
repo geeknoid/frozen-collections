@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "Tests")]
+
 use frozen_collections::*;
 use frozen_collections_core::macros::{fz_string_map_macro, fz_string_set_macro};
 use quote::quote;
@@ -151,64 +153,10 @@ fn string() {
     test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6");
     test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7");
     test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8");
-    test_string!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9"
-    );
-    test_string!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10"
-    );
-    test_string!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11"
-    );
-    test_string!(
-        &'static str,
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12"
-    );
+    test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+    test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+    test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
+    test_string!(&'static str, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
     test_string!(
         &'static str,
         "0",
@@ -260,18 +208,7 @@ fn string() {
         "ColorMagenta"
     );
 
-    test_string!(
-        &'static str,
-        "XXA",
-        "XXB",
-        "XXC",
-        "XXD",
-        "XXE",
-        "XXF",
-        "XXG",
-        "XXH",
-        "XXHI"
-    );
+    test_string!(&'static str, "XXA", "XXB", "XXC", "XXD", "XXE", "XXF", "XXG", "XXH", "XXHI");
 }
 
 #[test]

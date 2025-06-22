@@ -1,9 +1,8 @@
-extern crate alloc;
+#![expect(missing_docs, reason = "Benchmark")]
 
-use alloc::vec::Vec;
 use core::hint::black_box;
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-use frozen_collections::{FzScalarSet, SetQuery, fz_scalar_set};
+use frozen_collections::{FzScalarSet, fz_scalar_set};
 
 include!(concat!(env!("OUT_DIR"), "/dense_scalar.rs"));
 include!(concat!(env!("OUT_DIR"), "/sparse_scalar.rs"));

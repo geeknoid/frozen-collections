@@ -1,12 +1,12 @@
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
 use alloc::vec;
-use alloc::vec::Vec;
 use core::ops::Range;
 
 use crate::analyzers::analyze_hash_codes;
 use crate::hash_tables::HashTableSlot;
 use crate::traits::{CollectionMagnitude, Len, SmallCollection};
+
+#[cfg(not(feature = "std"))]
+use {alloc::boxed::Box, alloc::string::String, alloc::string::ToString, alloc::vec::Vec};
 
 /// A general-purpose hash table.
 ///
@@ -36,8 +36,8 @@ where
     /// Creates a new hash table.
     ///
     /// This function assumes that there are no duplicates in the input vector.
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn new<F>(mut entries: Vec<T>, hash: F) -> Result<Self, String>
+    #[expect(clippy::unwrap_in_result, reason = "Guaranteed not to happen")]
+    pub(crate) fn new<F>(mut entries: Vec<T>, hash: F) -> Result<Self, String>
     where
         F: Fn(&T) -> u64,
     {
@@ -52,12 +52,11 @@ where
         let mut prep_items = Vec::with_capacity(entries.len());
         while let Some(entry) = entries.pop() {
             let hash_code = hash(&entry);
+
+            #[expect(clippy::cast_possible_truncation, reason = "Truncation ok on 32 bit systems")]
             let hash_slot_index = (hash_code % num_hash_slots as u64) as usize;
 
-            prep_items.push(PrepItem {
-                hash_slot_index,
-                entry,
-            });
+            prep_items.push(PrepItem { hash_slot_index, entry });
         }
 
         // sort items so hash collisions are contiguous.
@@ -79,7 +78,7 @@ where
 
                 if let Some(last) = prep_items.last() {
                     if last.hash_slot_index == hash_slot_index {
-                        item = prep_items.pop().unwrap();
+                        item = prep_items.pop().expect("Ensure by the call to last() above");
                         continue;
                     }
                 }
@@ -101,18 +100,17 @@ where
             entries: final_entries.into_boxed_slice(),
         })
     }
-}
 
-impl<T, CM> HashTable<T, CM>
-where
-    CM: CollectionMagnitude,
-{
     #[inline]
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn find(&self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&T> {
+    pub(crate) fn find(&self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&T> {
+        #[expect(clippy::cast_possible_truncation, reason = "Truncation ok on 32 bit systems")]
         let hash_slot_index = (hash_code & self.mask) as usize;
+
+        // SAFETY: The hash slot index is guaranteed to be within bounds because of the modulo above
         let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
         let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();
+
+        // SAFETY: The range is guaranteed to be within bounds by construction
         let entries = unsafe { self.entries.get_unchecked(range) };
 
         let mut result = None;
@@ -126,11 +124,15 @@ where
     }
 
     #[inline]
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn find_mut(&mut self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&mut T> {
+    pub(crate) fn find_mut(&mut self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&mut T> {
+        #[expect(clippy::cast_possible_truncation, reason = "Truncation on 32 bit systems is fine")]
         let hash_slot_index = (hash_code & self.mask) as usize;
+
+        // SAFETY: The hash slot index is guaranteed to be within bounds because of the modulo above
         let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
         let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();
+
+        // SAFETY: The range is guaranteed to be valid by construction
         let entries = unsafe { self.entries.get_unchecked_mut(range) };
 
         let mut result = None;
@@ -142,11 +144,8 @@ where
 
         result
     }
-}
 
-impl<T, CM> Len for HashTable<T, CM> {
-    #[inline]
-    fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         self.entries.len()
     }
 }

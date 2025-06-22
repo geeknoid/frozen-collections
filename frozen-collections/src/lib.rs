@@ -160,18 +160,18 @@
 //!
 //! The maps produced by this crate implement the following traits:
 //!
-//! - [`Map`]. The primary representation of a map. This trait has [`MapQuery`] and
-//!   [`MapIteration`] as super-traits.
-//! - [`MapQuery`]. A trait for querying maps. This is an object-safe trait.
-//! - [`MapIteration`]. A trait for iterating over maps.
+//! - [`Map`]. The primary representation of a map.
+//! - [`MapQuery`]. A dyn compatible trait for querying maps.
+//! - [`MapIteration`]. A dyn compatible trait for iterating over maps.
+//! - [`MapExtras`]. A trait for extra map operations.
 //!
 //! The sets produced by this crate implement the following traits:
 //!
-//! - [`Set`]. The primary representation of a set. This trait has [`SetQuery`],
-//!   [`SetIteration`] and [`SetOps`] as super-traits.
-//! - [`SetQuery`]. A trait for querying sets. This is an object-safe trait.
-//! - [`SetIteration`]. A trait for iterating over sets.
+//! - [`Set`]. The primary representation of a set.
+//! - [`SetQuery`]. A dyn compatible trait for querying sets.
+//! - [`SetIteration`]. A dyn compatible trait for iterating over sets.
 //! - [`SetOps`]. A trait for set operations like union and intersections.
+//! - [`SetExtras`]. A trait for extra set operations.
 //!
 //! # Performance Considerations
 //!
@@ -240,16 +240,10 @@
 //!
 //! All features are enabled by default.
 
-extern crate alloc;
-
-pub use frozen_collections_core::traits::{
-    Map, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery,
-};
+pub use frozen_collections_core::traits::{Map, MapExtras, MapIteration, MapQuery, Scalar, Set, SetExtras, SetIteration, SetOps, SetQuery};
 
 #[doc(hidden)]
-pub use frozen_collections_core::traits::{
-    CollectionMagnitude, Hasher, LargeCollection, Len, MediumCollection, SmallCollection,
-};
+pub use frozen_collections_core::traits::{CollectionMagnitude, Hasher, LargeCollection, Len, MediumCollection, SmallCollection};
 
 /// Creates an efficient map with a fixed set of hashable keys.
 ///

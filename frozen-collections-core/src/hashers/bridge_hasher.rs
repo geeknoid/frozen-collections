@@ -11,6 +11,7 @@ pub struct BridgeHasher<BH = DefaultHashBuilder> {
 }
 
 impl<BH> BridgeHasher<BH> {
+    /// Creates a new `BridgeHasher` with the given `BuildHasher` to bridge to.
     #[must_use]
     pub const fn new(bh: BH) -> Self {
         Self { bh }

@@ -1,55 +1,43 @@
-use core::borrow::Borrow;
+use crate::sets::decl_macros::set_query_trait_funcs;
+use crate::traits::Len;
 use core::hash::{BuildHasher, Hash};
 
-/// Common query abstractions for sets.
-pub trait SetQuery<T, Q: ?Sized = T> {
-    /// Checks whether a particular value is present in the set.
-    #[must_use]
-    #[inline]
-    fn contains(&self, value: &Q) -> bool {
-        self.get(value).is_some()
-    }
+#[cfg(feature = "std")]
+use core::borrow::Borrow;
 
-    /// Gets a reference to a value in the set.
+/// Common query abstractions for sets.
+pub trait SetQuery<Q: ?Sized>: Len {
+    #[doc = include_str!("../doc_snippets/contains.md")]
     #[must_use]
-    fn get(&self, value: &Q) -> Option<&T>;
+    fn contains(&self, value: &Q) -> bool;
 }
 
 #[cfg(feature = "std")]
-impl<T, Q, BH> SetQuery<T, Q> for std::collections::HashSet<T, BH>
+impl<T, Q, BH> SetQuery<Q> for std::collections::HashSet<T, BH>
 where
-    T: Eq + Hash + Borrow<Q>,
-    Q: Hash + Eq,
+    T: Hash + Eq + Borrow<Q>,
+    Q: ?Sized + Hash + Eq,
     BH: BuildHasher,
 {
-    #[inline]
-    fn get(&self, value: &Q) -> Option<&T> {
-        self.get(value)
-    }
+    set_query_trait_funcs!();
 }
 
 #[cfg(feature = "std")]
-impl<T, Q> SetQuery<T, Q> for std::collections::BTreeSet<T>
+impl<T, Q> SetQuery<Q> for std::collections::BTreeSet<T>
 where
     T: Ord + Borrow<Q>,
     Q: Ord,
 {
-    #[inline]
-    fn get(&self, value: &Q) -> Option<&T> {
-        self.get(value)
-    }
+    set_query_trait_funcs!();
 }
 
-impl<T, Q, BH> SetQuery<T, Q> for hashbrown::hash_set::HashSet<T, BH>
+impl<T, Q, BH> SetQuery<Q> for hashbrown::hash_set::HashSet<T, BH>
 where
-    T: Hash + Eq + Borrow<Q>,
-    Q: Hash + Eq,
+    T: Hash + Eq,
+    Q: ?Sized + Hash + hashbrown::Equivalent<T>,
     BH: BuildHasher,
 {
-    #[inline]
-    fn get(&self, value: &Q) -> Option<&T> {
-        self.get(value)
-    }
+    set_query_trait_funcs!();
 }
 
 #[cfg(test)]
@@ -59,7 +47,7 @@ mod tests {
 
     #[test]
     fn test_object_safe() {
-        let s: &dyn SetQuery<_, _> = &HashSet::from([1, 2, 3]);
+        let s: &dyn SetQuery<_> = &HashSet::from([1, 2, 3]);
 
         assert!(s.contains(&1));
     }

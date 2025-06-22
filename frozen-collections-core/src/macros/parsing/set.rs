@@ -3,7 +3,7 @@ use crate::macros::parsing::short_form_set::ShortFormSet;
 use syn::parse::Parse;
 use syn::{Token, Visibility};
 
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant, reason = "Large is in the eye of the beholder, this is just fine")]
 pub enum Set {
     Short(ShortFormSet),
     Long(LongFormSet),

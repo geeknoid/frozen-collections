@@ -1,5 +1,6 @@
 //! Simple bit vectors.
 
+#[cfg(not(feature = "std"))]
 use alloc::boxed::Box;
 
 pub struct BitVec {
@@ -8,24 +9,24 @@ pub struct BitVec {
 }
 
 impl BitVec {
-    pub fn with_capacity(capacity: usize) -> Self {
+    pub(crate) fn with_capacity(capacity: usize) -> Self {
         Self {
             bits: (0..(capacity as u64).div_ceil(64)).collect(),
             len: capacity,
         }
     }
 
-    pub fn clear_all(&mut self) {
+    pub(crate) fn clear_all(&mut self) {
         self.bits.fill(0);
     }
 
-    pub fn set(&mut self, index: usize) {
+    pub(crate) fn set(&mut self, index: usize) {
         debug_assert!(index < self.len, "Out of bounds");
 
         self.bits[index / 64] |= 1 << (index % 64);
     }
 
-    pub fn get(&self, index: usize) -> bool {
+    pub(crate) fn get(&self, index: usize) -> bool {
         debug_assert!(index < self.len, "Out of bounds");
 
         (self.bits[index / 64] & (1 << (index % 64))) != 0
@@ -56,8 +57,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    #[allow(clippy::should_panic_without_expect)]
+    #[should_panic(expected = "Out of bounds")]
     fn get_panic() {
         let bitvec = BitVec::with_capacity(12);
         _ = bitvec.get(12);

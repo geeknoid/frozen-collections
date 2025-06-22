@@ -1,12 +1,14 @@
+//! Validates quality of generated code
+
 #![no_std]
 extern crate alloc;
 
 use alloc::string::{String, ToString};
 use alloc::vec;
 use core::hint::black_box;
+use frozen_collections::FzHashMap;
 use frozen_collections::hashers::BridgeHasher;
 use frozen_collections::maps::HashMap;
-use frozen_collections::{FzHashMap, MapQuery};
 use hashbrown::HashMap as HashbrownMap;
 
 #[derive(Hash, PartialEq, Eq, Clone)]

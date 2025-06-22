@@ -1,19 +1,22 @@
 use crate::fz_maps::FzScalarMap;
+use crate::maps::decl_macros::len_trait_funcs;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
-    set_iteration_funcs, sub_fn,
+    bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, debug_trait_funcs, into_iterator_ref_trait_funcs, into_iterator_trait_funcs,
+    partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs, set_query_trait_funcs, sub_trait_funcs,
 };
 use crate::sets::{IntoIter, Iter};
-use crate::traits::{Len, MapIteration, MapQuery, Scalar, Set, SetIteration, SetOps, SetQuery};
-use alloc::vec::Vec;
+use crate::traits::{Len, Scalar, Set, SetExtras, SetIteration, SetOps, SetQuery};
 use core::fmt::Debug;
 use core::hash::Hash;
-use core::iter::FromIterator;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
+use equivalent::Comparable;
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 #[cfg(feature = "serde")]
 use {
-    crate::sets::decl_macros::serialize_fn,
+    crate::sets::decl_macros::serialize_trait_funcs,
     core::fmt::Formatter,
     core::marker::PhantomData,
     serde::de::{SeqAccess, Visitor},
@@ -34,16 +37,59 @@ pub struct FzScalarSet<T> {
     map: FzScalarMap<T, ()>,
 }
 
-impl<T> FzScalarSet<T>
-where
-    T: Scalar,
-{
+impl<T> FzScalarSet<T> {
     /// Creates a new frozen set.
     #[must_use]
-    pub fn new(entries: Vec<T>) -> Self {
+    pub fn new(entries: Vec<T>) -> Self
+    where
+        T: Scalar,
+    {
         Self {
             map: FzScalarMap::new(entries.into_iter().map(|x| (x, ())).collect()),
         }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_from_set.md")]
+    #[inline]
+    pub fn get<Q>(&self, value: &Q) -> Option<&T>
+    where
+        Q: Scalar + Comparable<T>,
+    {
+        Some(self.map.get_key_value(value)?.0)
+    }
+
+    #[doc = include_str!("../doc_snippets/contains.md")]
+    #[inline]
+    #[must_use]
+    pub fn contains<Q>(&self, value: &Q) -> bool
+    where
+        Q: Scalar + Comparable<T>,
+    {
+        self.map.contains_key(value)
+    }
+
+    #[doc = include_str!("../doc_snippets/len.md")]
+    #[inline]
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.map.len()
+    }
+
+    #[doc = include_str!("../doc_snippets/is_empty.md")]
+    #[inline]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.map.is_empty()
+    }
+
+    #[doc = include_str!("../doc_snippets/iter.md")]
+    #[must_use]
+    pub fn iter(&self) -> Iter<'_, T> {
+        Iter::new(self.map.iter())
+    }
+
+    fn into_iter(self) -> IntoIter<T> {
+        IntoIter::new(self.map.into_iter())
     }
 }
 
@@ -84,14 +130,18 @@ where
 
 impl<T> Set<T, T> for FzScalarSet<T> where T: Scalar {}
 
-impl<T> SetQuery<T, T> for FzScalarSet<T>
+impl<T, Q> SetExtras<T, Q> for FzScalarSet<T>
 where
-    T: Scalar,
+    Q: Scalar + Comparable<T>,
 {
-    #[inline]
-    fn get(&self, value: &T) -> Option<&T> {
-        Some(self.map.get_key_value(value)?.0)
-    }
+    set_extras_trait_funcs!();
+}
+
+impl<T, Q> SetQuery<Q> for FzScalarSet<T>
+where
+    Q: Scalar + Comparable<T>,
+{
+    set_query_trait_funcs!();
 }
 
 impl<T> SetIteration<T> for FzScalarSet<T> {
@@ -100,61 +150,59 @@ impl<T> SetIteration<T> for FzScalarSet<T> {
     where
         T: 'a;
 
-    set_iteration_funcs!();
+    set_iteration_trait_funcs!();
 }
 
 impl<T> Len for FzScalarSet<T> {
-    fn len(&self) -> usize {
-        self.map.len()
-    }
+    len_trait_funcs!();
 }
 
 impl<T, ST> BitOr<&ST> for &FzScalarSet<T>
 where
-    T: Hash + Eq + Scalar + Clone,
+    T: Hash + Scalar + Clone,
     ST: Set<T>,
 {
-    bitor_fn!();
+    bitor_trait_funcs!();
 }
 
 impl<T, ST> BitAnd<&ST> for &FzScalarSet<T>
 where
-    T: Hash + Eq + Scalar + Clone,
+    T: Hash + Scalar + Clone,
     ST: Set<T>,
 {
-    bitand_fn!();
+    bitand_trait_funcs!();
 }
 
 impl<T, ST> BitXor<&ST> for &FzScalarSet<T>
 where
-    T: Hash + Eq + Scalar + Clone,
+    T: Hash + Scalar + Clone,
     ST: Set<T>,
 {
-    bitxor_fn!();
+    bitxor_trait_funcs!();
 }
 
 impl<T, ST> Sub<&ST> for &FzScalarSet<T>
 where
-    T: Hash + Eq + Scalar + Clone,
+    T: Hash + Scalar + Clone,
     ST: Set<T>,
 {
-    sub_fn!();
+    sub_trait_funcs!();
 }
 
 impl<T> IntoIterator for FzScalarSet<T> {
-    into_iter_fn!();
+    into_iterator_trait_funcs!();
 }
 
 impl<'a, T> IntoIterator for &'a FzScalarSet<T> {
-    into_iter_ref_fn!();
+    into_iterator_ref_trait_funcs!();
 }
 
 impl<T, ST> PartialEq<ST> for FzScalarSet<T>
 where
     T: Scalar,
-    ST: Set<T>,
+    ST: SetQuery<T>,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<T> Eq for FzScalarSet<T> where T: Scalar {}
@@ -163,7 +211,7 @@ impl<T> Debug for FzScalarSet<T>
 where
     T: Debug,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -171,7 +219,7 @@ impl<T> Serialize for FzScalarSet<T>
 where
     T: Serialize,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -183,9 +231,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_seq(SetVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_seq(SetVisitor { marker: PhantomData })
     }
 }
 
@@ -205,12 +251,12 @@ where
         formatter.write_str("a set with scalar values")
     }
 
-    fn visit_seq<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+    fn visit_seq<M>(self, mut seq: M) -> Result<Self::Value, M::Error>
     where
         M: SeqAccess<'de>,
     {
-        let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
-        while let Some(x) = access.next_element()? {
+        let mut v = Vec::with_capacity(seq.size_hint().unwrap_or(0));
+        while let Some(x) = seq.next_element()? {
             v.push((x, ()));
         }
 

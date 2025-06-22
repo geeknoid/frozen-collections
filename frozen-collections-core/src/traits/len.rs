@@ -1,16 +1,16 @@
-use alloc::boxed::Box;
 use alloc::collections::VecDeque;
 use alloc::rc::Rc;
-use alloc::string::String;
 use alloc::sync::Arc;
-use alloc::vec::Vec;
+
+#[cfg(not(feature = "std"))]
+use {alloc::boxed::Box, alloc::string::String, alloc::vec::Vec};
 
 /// Types that can return a length.
 pub trait Len {
-    /// Returns the length of the value.
+    #[doc = include_str!("../doc_snippets/len.md")]
     fn len(&self) -> usize;
 
-    /// Returns whether the value is empty.
+    #[doc = include_str!("../doc_snippets/is_empty.md")]
     fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -103,35 +103,35 @@ impl<K, V, CM> Len for std::collections::HashMap<K, V, CM> {
 }
 
 #[cfg(feature = "std")]
-impl Len for std::ffi::CString {
+impl Len for alloc::ffi::CString {
     fn len(&self) -> usize {
         self.as_bytes().len()
     }
 }
 
 #[cfg(feature = "std")]
-impl<K, V> Len for std::collections::BTreeMap<K, V> {
+impl<K, V> Len for alloc::collections::BTreeMap<K, V> {
     fn len(&self) -> usize {
         self.len()
     }
 }
 
 #[cfg(feature = "std")]
-impl<T> Len for std::collections::BTreeSet<T> {
+impl<T> Len for alloc::collections::BTreeSet<T> {
     fn len(&self) -> usize {
         self.len()
     }
 }
 
 #[cfg(feature = "std")]
-impl<T> Len for std::collections::BinaryHeap<T> {
+impl<T> Len for alloc::collections::BinaryHeap<T> {
     fn len(&self) -> usize {
         self.len()
     }
 }
 
 #[cfg(feature = "std")]
-impl<T> Len for std::collections::LinkedList<T> {
+impl<T> Len for alloc::collections::LinkedList<T> {
     fn len(&self) -> usize {
         self.len()
     }
@@ -154,13 +154,10 @@ impl Len for std::ffi::OsString {
 #[cfg(test)]
 mod tests {
     use crate::traits::Len;
-    use alloc::boxed::Box;
     use alloc::collections::VecDeque;
     use alloc::rc::Rc;
-    use alloc::string::String;
     use alloc::sync::Arc;
     use alloc::vec;
-    use alloc::vec::Vec;
 
     fn get_len<T: Len + ?Sized>(value: &T) -> usize {
         value.len()
@@ -237,7 +234,7 @@ mod tests {
     #[test]
     #[cfg(feature = "std")]
     fn cstring_len_and_is_empty() {
-        use std::ffi::CString;
+        use alloc::ffi::CString;
         let s = CString::new("").unwrap();
         assert_eq!(get_len(&s), 0);
         assert!(s.is_empty());
@@ -317,7 +314,7 @@ mod tests {
     #[test]
     #[cfg(feature = "std")]
     fn btreemap_len_and_is_empty() {
-        use std::collections::BTreeMap;
+        use alloc::collections::BTreeMap;
         let mut map = BTreeMap::new();
         assert_eq!(get_len(&map), 0);
         assert!(map.is_empty());
@@ -330,7 +327,7 @@ mod tests {
     #[test]
     #[cfg(feature = "std")]
     fn btreeset_len_and_is_empty() {
-        use std::collections::BTreeSet;
+        use alloc::collections::BTreeSet;
         let mut set = BTreeSet::new();
         assert_eq!(get_len(&set), 0);
         assert!(set.is_empty());
@@ -343,7 +340,7 @@ mod tests {
     #[test]
     #[cfg(feature = "std")]
     fn binaryheap_len_and_is_empty() {
-        use std::collections::BinaryHeap;
+        use alloc::collections::BinaryHeap;
         let mut heap = BinaryHeap::new();
         assert_eq!(get_len(&heap), 0);
         assert!(heap.is_empty());
@@ -356,7 +353,7 @@ mod tests {
     #[test]
     #[cfg(feature = "std")]
     fn linkedlist_len_and_is_empty() {
-        use std::collections::LinkedList;
+        use alloc::collections::LinkedList;
         let mut list = LinkedList::new();
         assert_eq!(get_len(&list), 0);
         assert!(list.is_empty());

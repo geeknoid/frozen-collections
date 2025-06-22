@@ -1,18 +1,17 @@
 use crate::maps::decl_macros::{
-    binary_search_query_funcs, debug_fn, get_disjoint_mut_fn, get_disjoint_unchecked_mut_body,
-    get_disjoint_unchecked_mut_fn, index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn,
-    map_iteration_funcs, partial_eq_fn,
+    binary_search_primary_funcs, common_primary_funcs, debug_trait_funcs, get_disjoint_mut_funcs, index_trait_funcs,
+    into_iterator_trait_funcs, into_iterator_trait_mut_ref_funcs, into_iterator_trait_ref_funcs, len_trait_funcs, map_extras_trait_funcs,
+    map_iteration_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs,
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
-use crate::traits::{Len, Map, MapIteration, MapQuery};
-use alloc::vec::Vec;
+use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery};
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
 
 #[cfg(feature = "serde")]
 use {
-    crate::maps::decl_macros::serialize_fn,
+    crate::maps::decl_macros::serialize_trait_funcs,
     serde::ser::SerializeMap,
     serde::{Serialize, Serializer},
 };
@@ -33,10 +32,7 @@ pub struct InlineBinarySearchMap<K, V, const SZ: usize> {
     entries: [(K, V); SZ],
 }
 
-impl<K, V, const SZ: usize> InlineBinarySearchMap<K, V, SZ>
-where
-    K: Ord,
-{
+impl<K, V, const SZ: usize> InlineBinarySearchMap<K, V, SZ> {
     /// Creates a frozen map.
     ///
     /// This function assumes the vector is sorted according to the ordering of the [`Ord`] trait.
@@ -46,21 +42,25 @@ where
             entries: processed_entries,
         }
     }
+
+    binary_search_primary_funcs!();
+    common_primary_funcs!(const_len, entries);
 }
 
-impl<K, V, Q, const SZ: usize> Map<K, V, Q> for InlineBinarySearchMap<K, V, SZ>
+impl<K, V, Q, const SZ: usize> Map<K, V, Q> for InlineBinarySearchMap<K, V, SZ> where Q: ?Sized + Comparable<K> {}
+
+impl<K, V, Q, const SZ: usize> MapExtras<K, V, Q> for InlineBinarySearchMap<K, V, SZ>
 where
-    Q: ?Sized + Eq + Comparable<K>,
+    Q: ?Sized + Comparable<K>,
 {
-    get_disjoint_mut_fn!();
-    get_disjoint_unchecked_mut_fn!();
+    map_extras_trait_funcs!();
 }
 
-impl<K, V, Q, const SZ: usize> MapQuery<K, V, Q> for InlineBinarySearchMap<K, V, SZ>
+impl<K, V, Q, const SZ: usize> MapQuery<Q, V> for InlineBinarySearchMap<K, V, SZ>
 where
-    Q: ?Sized + Eq + Comparable<K>,
+    Q: ?Sized + Comparable<K>,
 {
-    binary_search_query_funcs!();
+    map_query_trait_funcs!();
 }
 
 impl<K, V, const SZ: usize> MapIteration<K, V> for InlineBinarySearchMap<K, V, SZ> {
@@ -94,41 +94,39 @@ impl<K, V, const SZ: usize> MapIteration<K, V> for InlineBinarySearchMap<K, V, S
         K: 'a,
         V: 'a;
 
-    map_iteration_funcs!(entries);
+    map_iteration_trait_funcs!();
 }
 
 impl<K, V, const SZ: usize> Len for InlineBinarySearchMap<K, V, SZ> {
-    fn len(&self) -> usize {
-        SZ
-    }
+    len_trait_funcs!();
 }
 
 impl<Q, K, V, const SZ: usize> Index<&Q> for InlineBinarySearchMap<K, V, SZ>
 where
-    Q: ?Sized + Eq + Comparable<K>,
+    Q: ?Sized + Comparable<K>,
 {
-    index_fn!();
+    index_trait_funcs!();
 }
 
 impl<K, V, const SZ: usize> IntoIterator for InlineBinarySearchMap<K, V, SZ> {
-    into_iter_fn!(entries);
+    into_iterator_trait_funcs!();
 }
 
 impl<'a, K, V, const SZ: usize> IntoIterator for &'a InlineBinarySearchMap<K, V, SZ> {
-    into_iter_ref_fn!();
+    into_iterator_trait_ref_funcs!();
 }
 
 impl<'a, K, V, const SZ: usize> IntoIterator for &'a mut InlineBinarySearchMap<K, V, SZ> {
-    into_iter_mut_ref_fn!();
+    into_iterator_trait_mut_ref_funcs!();
 }
 
 impl<K, V, MT, const N: usize> PartialEq<MT> for InlineBinarySearchMap<K, V, N>
 where
     K: Ord,
     V: PartialEq,
-    MT: Map<K, V>,
+    MT: MapQuery<K, V>,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<K, V, const N: usize> Eq for InlineBinarySearchMap<K, V, N>
@@ -143,7 +141,7 @@ where
     K: Debug,
     V: Debug,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -152,5 +150,5 @@ where
     K: Serialize,
     V: Serialize,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }

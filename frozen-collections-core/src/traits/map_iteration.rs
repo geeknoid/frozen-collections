@@ -2,63 +2,71 @@ use core::hash::BuildHasher;
 
 /// Common iteration abstractions for maps.
 pub trait MapIteration<K, V>: IntoIterator<Item = (K, V)> {
+    /// The type of the iterator returned by [`Self::iter`].
     type Iterator<'a>: Iterator<Item = (&'a K, &'a V)>
     where
         Self: 'a,
         K: 'a,
         V: 'a;
 
+    /// The type of the iterator returned by [`Self::keys`].
     type KeyIterator<'a>: Iterator<Item = &'a K>
     where
         Self: 'a,
         K: 'a;
 
+    /// The type of the iterator returned by [`Self::values`].
     type ValueIterator<'a>: Iterator<Item = &'a V>
     where
         Self: 'a,
         V: 'a;
 
+    /// The type of the iterator returned by [`Self::into_keys`].
     type IntoKeyIterator: Iterator<Item = K>;
+
+    /// The type of the iterator returned by [`Self::into_values`].
     type IntoValueIterator: Iterator<Item = V>;
 
+    /// The type of the mutable iterator returned by [`Self::iter_mut`].
     type MutIterator<'a>: Iterator<Item = (&'a K, &'a mut V)>
     where
         Self: 'a,
         K: 'a,
         V: 'a;
 
+    /// The type of the mutable iterator returned by [`Self::values_mut`].
     type ValueMutIterator<'a>: Iterator<Item = &'a mut V>
     where
         Self: 'a,
         V: 'a;
 
-    /// An iterator visiting all entries in arbitrary order.
+    #[doc = include_str!("../doc_snippets/iter.md")]
     #[must_use]
     fn iter(&self) -> Self::Iterator<'_>;
 
-    /// An iterator visiting all keys in arbitrary order.
-    #[must_use]
-    fn keys(&self) -> Self::KeyIterator<'_>;
-
-    /// An iterator visiting all values in arbitrary order.
-    #[must_use]
-    fn values(&self) -> Self::ValueIterator<'_>;
-
-    /// A consuming iterator visiting all keys in arbitrary order.
-    #[must_use]
-    fn into_keys(self) -> Self::IntoKeyIterator;
-
-    /// A consuming iterator visiting all values in arbitrary order.
-    #[must_use]
-    fn into_values(self) -> Self::IntoValueIterator;
-
-    /// An iterator producing mutable references to all entries in arbitrary order.
+    #[doc = include_str!("../doc_snippets/iter_mut.md")]
     #[must_use]
     fn iter_mut(&mut self) -> Self::MutIterator<'_>;
 
-    /// An iterator visiting all values mutably in arbitrary order.
+    #[doc = include_str!("../doc_snippets/keys.md")]
+    #[must_use]
+    fn keys(&self) -> Self::KeyIterator<'_>;
+
+    #[doc = include_str!("../doc_snippets/into_keys.md")]
+    #[must_use]
+    fn into_keys(self) -> Self::IntoKeyIterator;
+
+    #[doc = include_str!("../doc_snippets/values.md")]
+    #[must_use]
+    fn values(&self) -> Self::ValueIterator<'_>;
+
+    #[doc = include_str!("../doc_snippets/values_mut.md")]
     #[must_use]
     fn values_mut(&mut self) -> Self::ValueMutIterator<'_>;
+
+    #[doc = include_str!("../doc_snippets/into_values.md")]
+    #[must_use]
+    fn into_values(self) -> Self::IntoValueIterator;
 }
 
 #[cfg(feature = "std")]
@@ -89,6 +97,7 @@ where
 
     type IntoKeyIterator = std::collections::hash_map::IntoKeys<K, V>;
     type IntoValueIterator = std::collections::hash_map::IntoValues<K, V>;
+
     type MutIterator<'a>
         = std::collections::hash_map::IterMut<'a, K, V>
     where
@@ -104,94 +113,95 @@ where
         BH: 'a;
 
     fn iter(&self) -> Self::Iterator<'_> {
-        Self::iter(self)
-    }
-
-    fn keys(&self) -> Self::KeyIterator<'_> {
-        Self::keys(self)
-    }
-
-    fn values(&self) -> Self::ValueIterator<'_> {
-        Self::values(self)
-    }
-
-    fn into_keys(self) -> Self::IntoKeyIterator {
-        Self::into_keys(self)
-    }
-
-    fn into_values(self) -> Self::IntoValueIterator {
-        Self::into_values(self)
+        self.iter()
     }
 
     fn iter_mut(&mut self) -> Self::MutIterator<'_> {
-        Self::iter_mut(self)
+        self.iter_mut()
+    }
+
+    fn keys(&self) -> Self::KeyIterator<'_> {
+        self.keys()
+    }
+
+    fn into_keys(self) -> Self::IntoKeyIterator {
+        self.into_keys()
+    }
+
+    fn values(&self) -> Self::ValueIterator<'_> {
+        self.values()
     }
 
     fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
         self.values_mut()
     }
+
+    fn into_values(self) -> Self::IntoValueIterator {
+        self.into_values()
+    }
 }
 
 #[cfg(feature = "std")]
-impl<K, V> MapIteration<K, V> for std::collections::BTreeMap<K, V> {
+impl<K, V> MapIteration<K, V> for alloc::collections::BTreeMap<K, V> {
     type Iterator<'a>
-        = std::collections::btree_map::Iter<'a, K, V>
+        = alloc::collections::btree_map::Iter<'a, K, V>
     where
         K: 'a,
         V: 'a;
 
     type KeyIterator<'a>
-        = std::collections::btree_map::Keys<'a, K, V>
+        = alloc::collections::btree_map::Keys<'a, K, V>
     where
         K: 'a,
         V: 'a;
 
     type ValueIterator<'a>
-        = std::collections::btree_map::Values<'a, K, V>
+        = alloc::collections::btree_map::Values<'a, K, V>
     where
         K: 'a,
         V: 'a;
 
-    type IntoKeyIterator = std::collections::btree_map::IntoKeys<K, V>;
-    type IntoValueIterator = std::collections::btree_map::IntoValues<K, V>;
+    type IntoKeyIterator = alloc::collections::btree_map::IntoKeys<K, V>;
+    type IntoValueIterator = alloc::collections::btree_map::IntoValues<K, V>;
+
     type MutIterator<'a>
-        = std::collections::btree_map::IterMut<'a, K, V>
+        = alloc::collections::btree_map::IterMut<'a, K, V>
     where
         K: 'a,
         V: 'a;
 
     type ValueMutIterator<'a>
-        = std::collections::btree_map::ValuesMut<'a, K, V>
+        = alloc::collections::btree_map::ValuesMut<'a, K, V>
     where
         K: 'a,
         V: 'a;
 
     fn iter(&self) -> Self::Iterator<'_> {
-        Self::iter(self)
-    }
-
-    fn keys(&self) -> Self::KeyIterator<'_> {
-        Self::keys(self)
-    }
-
-    fn values(&self) -> Self::ValueIterator<'_> {
-        Self::values(self)
-    }
-
-    fn into_keys(self) -> Self::IntoKeyIterator {
-        Self::into_keys(self)
-    }
-
-    fn into_values(self) -> Self::IntoValueIterator {
-        Self::into_values(self)
+        self.iter()
     }
 
     fn iter_mut(&mut self) -> Self::MutIterator<'_> {
-        Self::iter_mut(self)
+        self.iter_mut()
+    }
+
+    fn keys(&self) -> Self::KeyIterator<'_> {
+        self.keys()
+    }
+
+    fn into_keys(self) -> Self::IntoKeyIterator {
+        self.into_keys()
+    }
+
+    fn values(&self) -> Self::ValueIterator<'_> {
+        self.values()
     }
 
     fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
         self.values_mut()
+    }
+
+    fn into_values(self) -> Self::IntoValueIterator {
+        self.into_values()
     }
 }
 
@@ -222,6 +232,7 @@ where
 
     type IntoKeyIterator = hashbrown::hash_map::IntoKeys<K, V>;
     type IntoValueIterator = hashbrown::hash_map::IntoValues<K, V>;
+
     type MutIterator<'a>
         = hashbrown::hash_map::IterMut<'a, K, V>
     where
@@ -237,30 +248,30 @@ where
         BH: 'a;
 
     fn iter(&self) -> Self::Iterator<'_> {
-        Self::iter(self)
-    }
-
-    fn keys(&self) -> Self::KeyIterator<'_> {
-        Self::keys(self)
-    }
-
-    fn values(&self) -> Self::ValueIterator<'_> {
-        Self::values(self)
-    }
-
-    fn into_keys(self) -> Self::IntoKeyIterator {
-        Self::into_keys(self)
-    }
-
-    fn into_values(self) -> Self::IntoValueIterator {
-        Self::into_values(self)
+        self.iter()
     }
 
     fn iter_mut(&mut self) -> Self::MutIterator<'_> {
-        Self::iter_mut(self)
+        self.iter_mut()
+    }
+
+    fn keys(&self) -> Self::KeyIterator<'_> {
+        self.keys()
+    }
+
+    fn into_keys(self) -> Self::IntoKeyIterator {
+        self.into_keys()
+    }
+
+    fn values(&self) -> Self::ValueIterator<'_> {
+        self.values()
     }
 
     fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
         self.values_mut()
+    }
+
+    fn into_values(self) -> Self::IntoValueIterator {
+        self.into_values()
     }
 }

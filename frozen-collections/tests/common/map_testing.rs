@@ -1,18 +1,20 @@
 use core::fmt::Debug;
+use core::hash::Hash;
+use core::ops::Index;
 use frozen_collections_core::traits::Map;
 use hashbrown::HashMap as HashbrownMap;
 use hashbrown::HashSet as HashbrownSet;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
-use std::hash::Hash;
-use std::ops::Index;
+
+#[cfg(not(miri))]
 use std::panic;
 
 pub fn test_map<MT, K, V>(map: &MT, reference: &HashbrownMap<K, V>, other: &HashbrownMap<K, V>)
 where
     K: Hash + Eq + Clone + Debug + Default,
     V: Hash + Eq + Clone + Debug + Default,
-    MT: Map<K, V> + Debug + Clone + Eq + Serialize + std::panic::RefUnwindSafe,
+    MT: Map<K, V> + Debug + Clone + Eq + Serialize + core::panic::RefUnwindSafe,
 {
     assert_eq_map(map, reference);
 
@@ -27,22 +29,11 @@ where
     assert_eq_map(&m2, &r2);
 
     let v1: HashbrownMap<K, V> = map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-    let v2: HashbrownMap<K, V> = reference
-        .iter()
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect();
+    let v2: HashbrownMap<K, V> = reference.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
     assert_eq!(v1, v2);
 
-    let v1: HashbrownMap<K, V> = map
-        .clone()
-        .iter_mut()
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect();
-    let v2: HashbrownMap<K, V> = reference
-        .clone()
-        .iter_mut()
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect();
+    let v1: HashbrownMap<K, V> = map.clone().iter_mut().map(|(k, v)| (k.clone(), v.clone())).collect();
+    let v2: HashbrownMap<K, V> = reference.clone().iter_mut().map(|(k, v)| (k.clone(), v.clone())).collect();
     assert_eq!(v1, v2);
 
     let v1: HashbrownMap<K, V> = map.clone().into_iter().collect();
@@ -72,13 +63,11 @@ where
     for pair in other {
         assert_eq!(map.contains_key(pair.0), reference.contains_key(pair.0));
         assert_eq!(map.get(pair.0), reference.get(pair.0));
-        assert_eq!(map.get_key_value(pair.0), reference.get_key_value(pair.0));
-        assert_eq!(
-            map.clone().get_mut(pair.0),
-            reference.clone().get_mut(pair.0)
-        );
+        assert_eq!(map.clone().get_mut(pair.0), reference.clone().get_mut(pair.0));
+        assert_eq!(map.clone().get_key_value(pair.0), reference.clone().get_key_value(pair.0));
     }
 
+    #[cfg(not(miri))]
     if map.len() >= 2 {
         let keys: Vec<_> = map.keys().collect();
         let mut cloned_map = map.clone();
@@ -104,14 +93,13 @@ where
 
         panic::set_hook(h);
 
-        assert_eq!(
-            err.downcast_ref::<&'static str>().unwrap(),
-            &"duplicate keys found"
-        );
+        assert_eq!(err.downcast_ref::<&'static str>().unwrap(), &"duplicate keys found");
 
         {
             let keys: Vec<_> = map.keys().collect();
             let mut cloned_map = map.clone();
+
+            // SAFETY: This is an unsafe operation, but we are testing it here
             unsafe { _ = cloned_map.get_disjoint_unchecked_mut([keys[0], keys[0]]) };
         }
     }

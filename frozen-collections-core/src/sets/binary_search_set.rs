@@ -1,18 +1,20 @@
+use crate::maps::BinarySearchMap;
+use crate::maps::decl_macros::len_trait_funcs;
+use crate::sets::decl_macros::{
+    binary_search_primary_funcs, bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, common_primary_funcs, debug_trait_funcs,
+    into_iterator_ref_trait_funcs, into_iterator_trait_funcs, partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs,
+    set_query_trait_funcs, sub_trait_funcs,
+};
+use crate::sets::{IntoIter, Iter};
+use crate::traits::{Len, Set, SetExtras, SetIteration, SetOps, SetQuery};
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
-
-use crate::maps::BinarySearchMap;
-use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, get_fn, into_iter_fn, into_iter_ref_fn,
-    partial_eq_fn, set_iteration_funcs, sub_fn,
-};
-use crate::sets::{IntoIter, Iter};
-use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
+use equivalent::Comparable;
 
 #[cfg(feature = "serde")]
 use {
-    crate::sets::decl_macros::serialize_fn,
+    crate::sets::decl_macros::serialize_trait_funcs,
     serde::ser::SerializeSeq,
     serde::{Serialize, Serializer},
 };
@@ -28,15 +30,15 @@ pub struct BinarySearchSet<T> {
     map: BinarySearchMap<T, ()>,
 }
 
-impl<T> BinarySearchSet<T>
-where
-    T: Ord,
-{
+impl<T> BinarySearchSet<T> {
     /// Creates a frozen set.
     #[must_use]
     pub const fn new(map: BinarySearchMap<T, ()>) -> Self {
         Self { map }
     }
+
+    binary_search_primary_funcs!();
+    common_primary_funcs!(non_const_len);
 }
 
 impl<T> Default for BinarySearchSet<T> {
@@ -47,13 +49,20 @@ impl<T> Default for BinarySearchSet<T> {
     }
 }
 
-impl<T> Set<T, T> for BinarySearchSet<T> where T: Ord {}
+impl<T, Q> Set<T, Q> for BinarySearchSet<T> where Q: ?Sized + Comparable<T> {}
 
-impl<T> SetQuery<T, T> for BinarySearchSet<T>
+impl<T, Q> SetExtras<T, Q> for BinarySearchSet<T>
 where
-    T: Ord,
+    Q: ?Sized + Comparable<T>,
 {
-    get_fn!("Scalar");
+    set_extras_trait_funcs!();
+}
+
+impl<T, Q> SetQuery<Q> for BinarySearchSet<T>
+where
+    Q: ?Sized + Comparable<T>,
+{
+    set_query_trait_funcs!();
 }
 
 impl<T> SetIteration<T> for BinarySearchSet<T> {
@@ -62,13 +71,11 @@ impl<T> SetIteration<T> for BinarySearchSet<T> {
     where
         T: 'a;
 
-    set_iteration_funcs!();
+    set_iteration_trait_funcs!();
 }
 
 impl<T> Len for BinarySearchSet<T> {
-    fn len(&self) -> usize {
-        self.map.len()
-    }
+    len_trait_funcs!();
 }
 
 impl<T, ST> BitOr<&ST> for &BinarySearchSet<T>
@@ -76,7 +83,7 @@ where
     T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitor_fn!();
+    bitor_trait_funcs!();
 }
 
 impl<T, ST> BitAnd<&ST> for &BinarySearchSet<T>
@@ -84,7 +91,7 @@ where
     T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitand_fn!();
+    bitand_trait_funcs!();
 }
 
 impl<T, ST> BitXor<&ST> for &BinarySearchSet<T>
@@ -92,7 +99,7 @@ where
     T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    bitxor_fn!();
+    bitxor_trait_funcs!();
 }
 
 impl<T, ST> Sub<&ST> for &BinarySearchSet<T>
@@ -100,23 +107,23 @@ where
     T: Hash + Ord + Clone,
     ST: Set<T>,
 {
-    sub_fn!();
+    sub_trait_funcs!();
 }
 
 impl<T> IntoIterator for BinarySearchSet<T> {
-    into_iter_fn!();
+    into_iterator_trait_funcs!();
 }
 
 impl<'a, T> IntoIterator for &'a BinarySearchSet<T> {
-    into_iter_ref_fn!();
+    into_iterator_ref_trait_funcs!();
 }
 
 impl<T, ST> PartialEq<ST> for BinarySearchSet<T>
 where
     T: Ord,
-    ST: Set<T>,
+    ST: SetQuery<T>,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<T> Eq for BinarySearchSet<T> where T: Ord {}
@@ -125,7 +132,7 @@ impl<T> Debug for BinarySearchSet<T>
 where
     T: Debug,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -133,5 +140,5 @@ impl<T> Serialize for BinarySearchSet<T>
 where
     T: Serialize,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }

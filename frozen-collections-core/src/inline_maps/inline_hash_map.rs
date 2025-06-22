@@ -1,22 +1,19 @@
 use crate::hash_tables::InlineHashTable;
 use crate::hashers::BridgeHasher;
 use crate::maps::decl_macros::{
-    get_disjoint_mut_fn, get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn,
-    hash_query_funcs, index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn,
-    map_iteration_funcs, partial_eq_fn,
+    common_primary_funcs, debug_trait_funcs, get_disjoint_mut_funcs, hash_primary_funcs, index_trait_funcs, into_iterator_trait_funcs,
+    into_iterator_trait_mut_ref_funcs, into_iterator_trait_ref_funcs, len_trait_funcs, map_extras_trait_funcs, map_iteration_trait_funcs,
+    map_query_trait_funcs, partial_eq_trait_funcs,
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
-use crate::traits::{
-    CollectionMagnitude, Hasher, Len, Map, MapIteration, MapQuery, SmallCollection,
-};
-use alloc::vec::Vec;
+use crate::traits::{CollectionMagnitude, Hasher, Len, Map, MapExtras, MapIteration, MapQuery, SmallCollection};
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Equivalent;
 
 #[cfg(feature = "serde")]
 use {
-    crate::maps::decl_macros::serialize_fn,
+    crate::maps::decl_macros::serialize_trait_funcs,
     serde::ser::SerializeMap,
     serde::{Serialize, Serializer},
 };
@@ -36,54 +33,54 @@ use {
 /// - `NHS`: The number of hash table slots.
 /// - `H`: The hasher to generate hash codes.
 #[derive(Clone)]
-pub struct InlineHashMap<
-    K,
-    V,
-    const SZ: usize,
-    const NHS: usize,
-    CM = SmallCollection,
-    H = BridgeHasher,
-> {
-    table: InlineHashTable<(K, V), SZ, NHS, CM>,
+pub struct InlineHashMap<K, V, const SZ: usize, const NHS: usize, CM = SmallCollection, H = BridgeHasher> {
+    entries: InlineHashTable<(K, V), SZ, NHS, CM>,
     hasher: H,
 }
 
 impl<K, V, const SZ: usize, const NHS: usize, CM, H> InlineHashMap<K, V, SZ, NHS, CM, H>
 where
-    K: Eq,
     CM: CollectionMagnitude,
-    H: Hasher<K>,
 {
     /// Creates a frozen map.
     #[must_use]
     pub const fn new_raw(table: InlineHashTable<(K, V), SZ, NHS, CM>, hasher: H) -> Self {
-        Self { table, hasher }
+        Self { entries: table, hasher }
     }
+
+    hash_primary_funcs!();
+    common_primary_funcs!(const_len, entries entries);
 }
 
-impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> Map<K, V, Q>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> Map<K, V, Q> for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     CM: CollectionMagnitude,
-    Q: ?Sized + Eq + Equivalent<K>,
+    Q: ?Sized + Equivalent<K>,
     H: Hasher<Q>,
 {
-    get_disjoint_mut_fn!("Hash");
-    get_disjoint_unchecked_mut_fn!("Hash");
 }
 
-impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> MapQuery<K, V, Q>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> MapExtras<K, V, Q> for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     CM: CollectionMagnitude,
-    Q: ?Sized + Eq + Equivalent<K>,
+    Q: ?Sized + Equivalent<K>,
     H: Hasher<Q>,
 {
-    hash_query_funcs!();
+    map_extras_trait_funcs!();
 }
 
-impl<K, V, const SZ: usize, const NHS: usize, CM, H> MapIteration<K, V>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, Q, const SZ: usize, const NHS: usize, CM, H> MapQuery<Q, V> for InlineHashMap<K, V, SZ, NHS, CM, H>
+where
+    CM: CollectionMagnitude,
+    Q: ?Sized + Equivalent<K>,
+    H: Hasher<Q>,
+{
+    map_query_trait_funcs!();
+}
+
+impl<K, V, const SZ: usize, const NHS: usize, CM, H> MapIteration<K, V> for InlineHashMap<K, V, SZ, NHS, CM, H>
+where
+    CM: CollectionMagnitude,
 {
     type Iterator<'a>
         = Iter<'a, K, V>
@@ -125,53 +122,55 @@ impl<K, V, const SZ: usize, const NHS: usize, CM, H> MapIteration<K, V>
         CM: 'a,
         H: 'a;
 
-    map_iteration_funcs!(table entries);
+    map_iteration_trait_funcs!();
 }
 
-impl<K, V, const SZ: usize, const NHS: usize, CM, H> Len for InlineHashMap<K, V, SZ, NHS, CM, H> {
-    fn len(&self) -> usize {
-        SZ
-    }
-}
-
-impl<Q, K, V, const SZ: usize, const NHS: usize, CM, H> Index<&Q>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, const SZ: usize, const NHS: usize, CM, H> Len for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     CM: CollectionMagnitude,
-    Q: ?Sized + Eq + Equivalent<K>,
+{
+    len_trait_funcs!();
+}
+
+impl<Q, K, V, const SZ: usize, const NHS: usize, CM, H> Index<&Q> for InlineHashMap<K, V, SZ, NHS, CM, H>
+where
+    CM: CollectionMagnitude,
+    Q: ?Sized + Equivalent<K>,
     H: Hasher<Q>,
 {
-    index_fn!();
+    index_trait_funcs!();
 }
 
-impl<K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
-{
-    into_iter_fn!(table entries);
-}
-
-impl<'a, K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for &'a InlineHashMap<K, V, SZ, NHS, CM, H>
-{
-    into_iter_ref_fn!();
-}
-
-impl<'a, K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator
-    for &'a mut InlineHashMap<K, V, SZ, NHS, CM, H>
-{
-    into_iter_mut_ref_fn!();
-}
-
-impl<K, V, MT, const SZ: usize, const NHS: usize, CM, H> PartialEq<MT>
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
-    K: Eq,
     CM: CollectionMagnitude,
+{
+    into_iterator_trait_funcs!();
+}
+
+impl<'a, K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator for &'a InlineHashMap<K, V, SZ, NHS, CM, H>
+where
+    CM: CollectionMagnitude,
+{
+    into_iterator_trait_ref_funcs!();
+}
+
+impl<'a, K, V, const SZ: usize, const NHS: usize, CM, H> IntoIterator for &'a mut InlineHashMap<K, V, SZ, NHS, CM, H>
+where
+    CM: CollectionMagnitude,
+{
+    into_iterator_trait_mut_ref_funcs!();
+}
+
+impl<K, V, MT, const SZ: usize, const NHS: usize, CM, H> PartialEq<MT> for InlineHashMap<K, V, SZ, NHS, CM, H>
+where
+    K: PartialEq,
     V: PartialEq,
-    MT: Map<K, V>,
+    CM: CollectionMagnitude,
+    MT: MapQuery<K, V>,
     H: Hasher<K>,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<K, V, const SZ: usize, const NHS: usize, CM, H> Eq for InlineHashMap<K, V, SZ, NHS, CM, H>
@@ -187,19 +186,17 @@ impl<K, V, const SZ: usize, const NHS: usize, CM, H> Debug for InlineHashMap<K, 
 where
     K: Debug,
     V: Debug,
+    CM: CollectionMagnitude,
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        let pairs = self.table.entries.iter().map(|x| (&x.0, &x.1));
-        f.debug_map().entries(pairs).finish()
-    }
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
-impl<K, V, const SZ: usize, const NHS: usize, CM, H> Serialize
-    for InlineHashMap<K, V, SZ, NHS, CM, H>
+impl<K, V, const SZ: usize, const NHS: usize, CM, H> Serialize for InlineHashMap<K, V, SZ, NHS, CM, H>
 where
     K: Serialize,
     V: Serialize,
+    CM: CollectionMagnitude,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }

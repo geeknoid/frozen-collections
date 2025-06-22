@@ -10,7 +10,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-extern crate core;
 
 mod analyzers;
 pub mod fz_maps;

@@ -1,19 +1,17 @@
 use crate::maps::decl_macros::{
-    debug_fn, get_disjoint_mut_fn, get_disjoint_unchecked_mut_body, get_disjoint_unchecked_mut_fn,
-    index_fn, into_iter_fn, into_iter_mut_ref_fn, into_iter_ref_fn, map_iteration_funcs,
-    partial_eq_fn, sparse_scalar_lookup_query_funcs,
+    common_primary_funcs, debug_trait_funcs, get_disjoint_mut_funcs, index_trait_funcs, into_iterator_trait_funcs,
+    into_iterator_trait_mut_ref_funcs, into_iterator_trait_ref_funcs, len_trait_funcs, map_extras_trait_funcs, map_iteration_trait_funcs,
+    map_query_trait_funcs, partial_eq_trait_funcs, sparse_scalar_lookup_primary_funcs,
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
-use crate::traits::{
-    CollectionMagnitude, Len, Map, MapIteration, MapQuery, Scalar, SmallCollection,
-};
-use alloc::vec::Vec;
+use crate::traits::{CollectionMagnitude, Len, Map, MapExtras, MapIteration, MapQuery, Scalar, SmallCollection};
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
+use equivalent::Comparable;
 
 #[cfg(feature = "serde")]
 use {
-    crate::maps::decl_macros::serialize_fn,
+    crate::maps::decl_macros::serialize_trait_funcs,
     serde::ser::SerializeMap,
     serde::{Serialize, Serializer},
 };
@@ -31,13 +29,7 @@ use {
 /// - `SZ`: The number of entries in the map.
 /// - `LTSZ`: The number of entries in the lookup table.
 #[derive(Clone)]
-pub struct InlineSparseScalarLookupMap<
-    K,
-    V,
-    const SZ: usize,
-    const LTSZ: usize,
-    CM = SmallCollection,
-> {
+pub struct InlineSparseScalarLookupMap<K, V, const SZ: usize, const LTSZ: usize, CM = SmallCollection> {
     min: usize,
     max: usize,
     lookup: [CM; LTSZ],
@@ -46,17 +38,11 @@ pub struct InlineSparseScalarLookupMap<
 
 impl<K, V, const SZ: usize, const LTSZ: usize, CM> InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
 where
-    K: Scalar,
     CM: CollectionMagnitude,
 {
     /// Creates a frozen map.
     #[must_use]
-    pub const fn new_raw(
-        processed_entries: [(K, V); SZ],
-        lookup: [CM; LTSZ],
-        min: usize,
-        max: usize,
-    ) -> Self {
+    pub const fn new_raw(processed_entries: [(K, V); SZ], lookup: [CM; LTSZ], min: usize, max: usize) -> Self {
         Self {
             min,
             max,
@@ -64,29 +50,37 @@ where
             entries: processed_entries,
         }
     }
+
+    sparse_scalar_lookup_primary_funcs!();
+    common_primary_funcs!(const_len, entries);
 }
 
-impl<K, V, const SZ: usize, const LTSZ: usize, CM> Map<K, V, K>
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<K, V, Q, const SZ: usize, const LTSZ: usize, CM> Map<K, V, Q> for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
 where
     CM: CollectionMagnitude,
-    K: Scalar,
+    Q: Scalar + Comparable<K>,
 {
-    get_disjoint_mut_fn!("Scalar");
-    get_disjoint_unchecked_mut_fn!("Scalar");
 }
 
-impl<K, V, const SZ: usize, const LTSZ: usize, CM> MapQuery<K, V, K>
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<K, V, Q, const SZ: usize, const LTSZ: usize, CM> MapExtras<K, V, Q> for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
 where
     CM: CollectionMagnitude,
-    K: Scalar,
+    Q: Scalar + Comparable<K>,
 {
-    sparse_scalar_lookup_query_funcs!();
+    map_extras_trait_funcs!();
 }
 
-impl<K, V, const SZ: usize, const LTSZ: usize, CM> MapIteration<K, V>
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<K, V, Q, const SZ: usize, const LTSZ: usize, CM> MapQuery<Q, V> for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+where
+    CM: CollectionMagnitude,
+    Q: Scalar + Comparable<K>,
+{
+    map_query_trait_funcs!();
+}
+
+impl<K, V, const SZ: usize, const LTSZ: usize, CM> MapIteration<K, V> for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+where
+    CM: CollectionMagnitude,
 {
     type Iterator<'a>
         = Iter<'a, K, V>
@@ -123,57 +117,56 @@ impl<K, V, const SZ: usize, const LTSZ: usize, CM> MapIteration<K, V>
         V: 'a,
         CM: 'a;
 
-    map_iteration_funcs!(entries);
+    map_iteration_trait_funcs!();
 }
 
-impl<K, V, const SZ: usize, const LTSZ: usize, CM> Len
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
-{
-    fn len(&self) -> usize {
-        SZ
-    }
-}
-
-impl<Q, V, const SZ: usize, const LTSZ: usize, CM> Index<&Q>
-    for InlineSparseScalarLookupMap<Q, V, SZ, LTSZ, CM>
+impl<K, V, const SZ: usize, const LTSZ: usize, CM> Len for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
 where
-    Q: Scalar,
     CM: CollectionMagnitude,
 {
-    index_fn!();
+    len_trait_funcs!();
 }
 
-impl<K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<K, V, Q, const SZ: usize, const LTSZ: usize, CM> Index<&Q> for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+where
+    Q: Comparable<K> + Scalar,
+    CM: CollectionMagnitude,
 {
-    into_iter_fn!(entries);
+    index_trait_funcs!();
 }
 
-impl<'a, K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator
-    for &'a InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+where
+    CM: CollectionMagnitude,
 {
-    into_iter_ref_fn!();
+    into_iterator_trait_funcs!();
 }
 
-impl<'a, K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator
-    for &'a mut InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<'a, K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator for &'a InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+where
+    CM: CollectionMagnitude,
 {
-    into_iter_mut_ref_fn!();
+    into_iterator_trait_ref_funcs!();
 }
 
-impl<K, V, MT, const SZ: usize, const LTSZ: usize, CM> PartialEq<MT>
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<'a, K, V, const SZ: usize, const LTSZ: usize, CM> IntoIterator for &'a mut InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+where
+    CM: CollectionMagnitude,
+{
+    into_iterator_trait_mut_ref_funcs!();
+}
+
+impl<K, V, MT, const SZ: usize, const LTSZ: usize, CM> PartialEq<MT> for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
 where
     K: Scalar,
     V: PartialEq,
-    MT: Map<K, V>,
+    MT: MapQuery<K, V>,
     CM: CollectionMagnitude,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
-impl<K, V, const SZ: usize, const LTSZ: usize, CM> Eq
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<K, V, const SZ: usize, const LTSZ: usize, CM> Eq for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
 where
     K: Scalar,
     V: Eq,
@@ -181,21 +174,21 @@ where
 {
 }
 
-impl<K, V, const SZ: usize, const LTSZ: usize, CM> Debug
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<K, V, const SZ: usize, const LTSZ: usize, CM> Debug for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
 where
     K: Debug,
     V: Debug,
+    CM: CollectionMagnitude,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
-impl<K, V, const SZ: usize, const LTSZ: usize, CM> Serialize
-    for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
+impl<K, V, const SZ: usize, const LTSZ: usize, CM> Serialize for InlineSparseScalarLookupMap<K, V, SZ, LTSZ, CM>
 where
     K: Serialize,
     V: Serialize,
+    CM: CollectionMagnitude,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }

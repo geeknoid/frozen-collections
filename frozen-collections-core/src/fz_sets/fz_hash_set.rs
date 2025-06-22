@@ -1,22 +1,25 @@
 use crate::DefaultHashBuilder;
 use crate::fz_maps::FzHashMap;
+use crate::maps::decl_macros::len_trait_funcs;
 use crate::sets::decl_macros::{
-    bitand_fn, bitor_fn, bitxor_fn, debug_fn, into_iter_fn, into_iter_ref_fn, partial_eq_fn,
-    set_iteration_funcs, sub_fn,
+    bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, debug_trait_funcs, into_iterator_ref_trait_funcs, into_iterator_trait_funcs,
+    partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs, set_query_trait_funcs, sub_trait_funcs,
 };
 use crate::sets::{IntoIter, Iter};
-use crate::traits::{Len, MapIteration, MapQuery, Set, SetIteration, SetOps, SetQuery};
-use alloc::vec::Vec;
+use crate::traits::{Len, Set, SetExtras, SetIteration, SetOps, SetQuery};
 use core::fmt::Debug;
 use core::hash::BuildHasher;
 use core::hash::Hash;
-use core::iter::FromIterator;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
 use foldhash::fast::RandomState;
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+
 #[cfg(feature = "serde")]
 use {
-    crate::sets::decl_macros::serialize_fn,
+    crate::sets::decl_macros::serialize_trait_funcs,
     core::fmt::Formatter,
     core::marker::PhantomData,
     serde::de::{SeqAccess, Visitor},
@@ -42,28 +45,74 @@ pub struct FzHashSet<T, BH = DefaultHashBuilder> {
     map: FzHashMap<T, (), BH>,
 }
 
-impl<T> FzHashSet<T, DefaultHashBuilder>
-where
-    T: Hash + Eq,
-{
+impl<T> FzHashSet<T, DefaultHashBuilder> {
     /// Creates a new frozen set.
     #[must_use]
-    pub fn new(entries: Vec<T>) -> Self {
+    pub fn new(entries: Vec<T>) -> Self
+    where
+        T: Hash + Eq,
+    {
         Self::with_hasher(entries, RandomState::default())
     }
 }
 
 impl<T, BH> FzHashSet<T, BH>
 where
-    T: Hash + Eq,
     BH: BuildHasher,
 {
     /// Creates a new frozen set which uses the given hash builder to hash values.
     #[must_use]
-    pub fn with_hasher(entries: Vec<T>, bh: BH) -> Self {
+    pub fn with_hasher(entries: Vec<T>, bh: BH) -> Self
+    where
+        T: Hash + Eq,
+    {
         Self {
             map: FzHashMap::with_hasher(entries.into_iter().map(|x| (x, ())).collect(), bh),
         }
+    }
+
+    #[doc = include_str!("../doc_snippets/get_from_set.md")]
+    #[inline]
+    fn get<Q>(&self, value: &Q) -> Option<&T>
+    where
+        Q: ?Sized + Hash + Equivalent<T>,
+    {
+        Some(self.map.get_key_value(value)?.0)
+    }
+
+    #[doc = include_str!("../doc_snippets/contains.md")]
+    #[inline]
+    #[must_use]
+    pub fn contains<Q>(&self, value: &Q) -> bool
+    where
+        Q: ?Sized + Hash + Equivalent<T>,
+    {
+        self.map.contains_key(value)
+    }
+
+    #[doc = include_str!("../doc_snippets/len.md")]
+    #[inline]
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.map.len()
+    }
+
+    #[doc = include_str!("../doc_snippets/is_empty.md")]
+    #[inline]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.map.is_empty()
+    }
+
+    #[doc = include_str!("../doc_snippets/iter.md")]
+    #[must_use]
+    pub fn iter(&self) -> Iter<'_, T> {
+        Iter::new(self.map.iter())
+    }
+
+    #[must_use]
+    fn into_iter(self) -> IntoIter<T> {
+        IntoIter::new(self.map.into_iter())
     }
 }
 
@@ -72,9 +121,7 @@ where
     BH: Default,
 {
     fn default() -> Self {
-        Self {
-            map: FzHashMap::default(),
-        }
+        Self { map: FzHashMap::default() }
     }
 }
 
@@ -110,36 +157,45 @@ where
 
 impl<T, Q, BH> Set<T, Q> for FzHashSet<T, BH>
 where
-    Q: ?Sized + Hash + Eq + Equivalent<T>,
+    Q: ?Sized + Hash + Equivalent<T>,
     BH: BuildHasher,
 {
 }
 
-impl<T, Q, BH> SetQuery<T, Q> for FzHashSet<T, BH>
+impl<T, Q, BH> SetExtras<T, Q> for FzHashSet<T, BH>
 where
-    Q: ?Sized + Hash + Eq + Equivalent<T>,
+    Q: ?Sized + Hash + Equivalent<T>,
     BH: BuildHasher,
 {
-    #[inline]
-    fn get(&self, value: &Q) -> Option<&T> {
-        Some(self.map.get_key_value(value)?.0)
-    }
+    set_extras_trait_funcs!();
 }
 
-impl<T, BH> SetIteration<T> for FzHashSet<T, BH> {
+impl<T, Q, BH> SetQuery<Q> for FzHashSet<T, BH>
+where
+    Q: ?Sized + Hash + Equivalent<T>,
+    BH: BuildHasher,
+{
+    set_query_trait_funcs!();
+}
+
+impl<T, BH> SetIteration<T> for FzHashSet<T, BH>
+where
+    BH: BuildHasher,
+{
     type Iterator<'a>
         = Iter<'a, T>
     where
         T: 'a,
         BH: 'a;
 
-    set_iteration_funcs!();
+    set_iteration_trait_funcs!();
 }
 
-impl<T, BH> Len for FzHashSet<T, BH> {
-    fn len(&self) -> usize {
-        self.map.len()
-    }
+impl<T, BH> Len for FzHashSet<T, BH>
+where
+    BH: BuildHasher,
+{
+    len_trait_funcs!();
 }
 
 impl<T, ST, BH> BitOr<&ST> for &FzHashSet<T, BH>
@@ -148,7 +204,7 @@ where
     ST: Set<T>,
     BH: BuildHasher,
 {
-    bitor_fn!();
+    bitor_trait_funcs!();
 }
 
 impl<T, ST, BH> BitAnd<&ST> for &FzHashSet<T, BH>
@@ -157,7 +213,7 @@ where
     ST: Set<T>,
     BH: BuildHasher,
 {
-    bitand_fn!();
+    bitand_trait_funcs!();
 }
 
 impl<T, ST, BH> BitXor<&ST> for &FzHashSet<T, BH>
@@ -166,7 +222,7 @@ where
     ST: Set<T>,
     BH: BuildHasher,
 {
-    bitxor_fn!();
+    bitxor_trait_funcs!();
 }
 
 impl<T, ST, BH> Sub<&ST> for &FzHashSet<T, BH>
@@ -175,24 +231,30 @@ where
     ST: Set<T>,
     BH: BuildHasher,
 {
-    sub_fn!();
+    sub_trait_funcs!();
 }
 
-impl<T, BH> IntoIterator for FzHashSet<T, BH> {
-    into_iter_fn!();
+impl<T, BH> IntoIterator for FzHashSet<T, BH>
+where
+    BH: BuildHasher,
+{
+    into_iterator_trait_funcs!();
 }
 
-impl<'a, T, BH> IntoIterator for &'a FzHashSet<T, BH> {
-    into_iter_ref_fn!();
+impl<'a, T, BH> IntoIterator for &'a FzHashSet<T, BH>
+where
+    BH: BuildHasher,
+{
+    into_iterator_ref_trait_funcs!();
 }
 
 impl<T, ST, BH> PartialEq<ST> for FzHashSet<T, BH>
 where
-    T: Hash + Eq,
-    ST: Set<T>,
+    T: PartialEq + Hash,
+    ST: SetQuery<T>,
     BH: BuildHasher,
 {
-    partial_eq_fn!();
+    partial_eq_trait_funcs!();
 }
 
 impl<T, BH> Eq for FzHashSet<T, BH>
@@ -205,16 +267,18 @@ where
 impl<T, BH> Debug for FzHashSet<T, BH>
 where
     T: Debug,
+    BH: BuildHasher,
 {
-    debug_fn!();
+    debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
 impl<T, BH> Serialize for FzHashSet<T, BH>
 where
     T: Serialize,
+    BH: BuildHasher,
 {
-    serialize_fn!();
+    serialize_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
@@ -227,9 +291,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_seq(SetVisitor {
-            marker: PhantomData,
-        })
+        deserializer.deserialize_seq(SetVisitor { marker: PhantomData })
     }
 }
 
@@ -250,12 +312,12 @@ where
         formatter.write_str("a set with hashable values")
     }
 
-    fn visit_seq<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+    fn visit_seq<M>(self, mut seq: M) -> Result<Self::Value, M::Error>
     where
         M: SeqAccess<'de>,
     {
-        let mut v = Vec::with_capacity(access.size_hint().unwrap_or(0));
-        while let Some(x) = access.next_element()? {
+        let mut v = Vec::with_capacity(seq.size_hint().unwrap_or(0));
+        while let Some(x) = seq.next_element()? {
             v.push((x, ()));
         }
 

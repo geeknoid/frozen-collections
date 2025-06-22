@@ -1,3 +1,5 @@
+//! Validates quality of generated code
+
 #![no_std]
 extern crate alloc;
 
@@ -6,7 +8,7 @@ use core::hint::black_box;
 use frozen_collections::hashers::PassthroughHasher;
 use frozen_collections::inline_maps::InlineScanMap;
 use frozen_collections::maps::{DenseScalarLookupMap, HashMap, ScanMap, SparseScalarLookupMap};
-use frozen_collections::{FzScalarMap, MapQuery, SmallCollection};
+use frozen_collections::{FzScalarMap, SmallCollection};
 use hashbrown::HashMap as HashbrownMap;
 
 fn main() {
@@ -18,7 +20,7 @@ fn main() {
         _ = black_box(call_hashbrown_map(&map, key));
     }
 
-    let map = HashMap::with_hasher(input.clone(), PassthroughHasher::default()).unwrap();
+    let map = HashMap::with_hasher(input.clone(), PassthroughHasher {}).unwrap();
     for key in probe.clone() {
         _ = black_box(call_hash_map_with_passthrough_hasher(&map, key));
     }
@@ -70,10 +72,7 @@ fn call_hashbrown_map(map: &HashbrownMap<i32, i32>, key: i32) -> bool {
 }
 
 #[inline(never)]
-fn call_hash_map_with_passthrough_hasher(
-    map: &HashMap<i32, i32, SmallCollection, PassthroughHasher>,
-    key: i32,
-) -> bool {
+fn call_hash_map_with_passthrough_hasher(map: &HashMap<i32, i32, SmallCollection, PassthroughHasher>, key: i32) -> bool {
     map.contains_key(&key)
 }
 

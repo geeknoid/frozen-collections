@@ -1,9 +1,11 @@
-use crate::traits::{Len, SetIteration, SetQuery};
-use core::borrow::Borrow;
+use crate::traits::{SetExtras, SetIteration, SetQuery};
 use core::hash::{BuildHasher, Hash};
 
+#[cfg(feature = "std")]
+use core::borrow::Borrow;
+
 /// Common abstractions for sets.
-pub trait Set<T, Q: ?Sized = T>: SetQuery<T, Q> + SetIteration<T> + Len {}
+pub trait Set<T, Q: ?Sized = T>: SetQuery<Q> + SetIteration<T> + SetExtras<T, Q> {}
 
 #[cfg(feature = "std")]
 impl<T, Q, BH> Set<T, Q> for std::collections::HashSet<T, BH>
@@ -15,7 +17,7 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<T, Q> Set<T, Q> for std::collections::BTreeSet<T>
+impl<T, Q> Set<T, Q> for alloc::collections::BTreeSet<T>
 where
     T: Ord + Borrow<Q>,
     Q: Ord,
@@ -24,8 +26,8 @@ where
 
 impl<T, Q, BH> Set<T, Q> for hashbrown::hash_set::HashSet<T, BH>
 where
-    T: Hash + Eq + Borrow<Q>,
-    Q: Hash + Eq,
+    T: Hash + Eq,
+    Q: ?Sized + Hash + hashbrown::Equivalent<T>,
     BH: BuildHasher,
 {
 }

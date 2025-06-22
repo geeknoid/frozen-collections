@@ -4,7 +4,7 @@
 [![docs.rs](https://docs.rs/frozen-collections/badge.svg)](https://docs.rs/frozen-collections)
 [![CI](https://github.com/geeknoid/frozen-collections/workflows/main/badge.svg)](https://github.com/geeknoid/frozen-collections/actions)
 [![Coverage](https://codecov.io/gh/geeknoid/frozen-collections/graph/badge.svg?token=FCUG0EL5TI)](https://codecov.io/gh/geeknoid/frozen-collections)
-[![Minimum Supported Rust Version 1.85](https://img.shields.io/badge/MSRV-1.85-blue.svg)]()
+[![Minimum Supported Rust Version 1.87](https://img.shields.io/badge/MSRV-1.87-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 * [Summary](#summary)
@@ -196,18 +196,18 @@ collection instances.
 
 The maps produced by this crate implement the following traits:
 
-- [`Map`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). The primary representation of a map. This trait has [`MapQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapQuery.html) and
-  [`MapIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapIteration.html) as super-traits.
-- [`MapQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapQuery.html). A trait for querying maps. This is an object-safe trait.
-- [`MapIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapIteration.html). A trait for iterating over maps.
+- [`Map`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). The primary representation of a map.
+- [`MapQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapQuery.html). A dyn compatible trait for querying maps.
+- [`MapIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapIteration.html). A dyn compatible trait for iterating over maps.
+- [`MapExtras`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.MapExtras.html). A trait for extra map operations.
 
 The sets produced by this crate implement the following traits:
 
-- [`Set`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Set.html). The primary representation of a set. This trait has [`SetQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html),
-  [`SetIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) and [`SetOps`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html) as super-traits.
-- [`SetQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). A trait for querying sets. This is an object-safe trait.
-- [`SetIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). A trait for iterating over sets.
-- [`SetOps`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Map.html). A trait for set operations like union and intersections.
+- [`Set`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.Set.html). The primary representation of a set.
+- [`SetQuery`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.SetQuery.html). A dyn compatible trait for querying sets.
+- [`SetIteration`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.SetIteration.html). A dyn compatible trait for iterating over sets.
+- [`SetOps`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.SetOps.html). A trait for set operations like union and intersections.
+- [`SetExtras`](https://docs.rs/frozen-collections/latest/frozen_collections/trait.SetExtras.html). A trait for extra set operations.
 
 ## Performance Considerations
 
