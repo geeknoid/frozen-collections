@@ -6,7 +6,6 @@ use crate::hash_tables::HashTable;
 use crate::hashers::BridgeHasher;
 use crate::traits::{CollectionMagnitude, Hasher, LargeCollection, MediumCollection, Scalar, SmallCollection};
 use alloc::vec;
-use const_random::const_random;
 use core::hash::Hash;
 use core::ops::Range;
 use foldhash::fast::FixedState;
@@ -33,10 +32,16 @@ pub(super) struct Output {
 
 impl Generator {
     pub(super) fn new(key_type: &Type, value_type: Option<&Type>, len: usize) -> Self {
+        #[cfg(test)]
+        let seed = 0x_dead_beef; // make tests deterministic
+
+        #[cfg(not(test))]
+        let seed = const_random::const_random!(u64);
+
         Self {
             key_type: (*key_type).clone(),
             value_type: value_type.map_or_else(|| parse_quote!(()), Clone::clone),
-            seed: const_random!(u64),
+            seed,
             len: Literal::usize_unsuffixed(len),
             gen_set: value_type.is_none(),
         }
@@ -224,17 +229,27 @@ impl Generator {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
-        let (ht, magnitude, num_slots) =
+        let (ht, magnitude, num_slots, collisions) =
             self.gen_inline_hash_table_components(entries, &BridgeHasher::new(FixedState::with_seed(self.seed)));
         let seed = Self::inject_underscores(self.seed.to_token_stream());
 
-        let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
+        let mut ty = if collisions {
+            quote!(::frozen_collections::inline_maps::InlineHashMap)
+        } else {
+            quote!(::frozen_collections::inline_maps::InlineHashMapNoCollisions)
+        };
+
         let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::BridgeHasher<::frozen_collections::foldhash::FixedState>>);
         let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::BridgeHasher::new(::frozen_collections::foldhash::FixedState::with_seed(#seed))));
 
         if self.gen_set {
-            ty = quote!(::frozen_collections::inline_sets::InlineHashSet);
+            ty = if collisions {
+                quote!(::frozen_collections::inline_sets::InlineHashSet)
+            } else {
+                quote!(::frozen_collections::inline_sets::InlineHashSetNoCollisions)
+            };
+
             generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::BridgeHasher<::frozen_collections::foldhash::FixedState>>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::new(#ctor));
@@ -250,15 +265,25 @@ impl Generator {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
-        let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(entries, hasher);
+        let (ht, magnitude, num_slots, collisions) = self.gen_inline_hash_table_components(entries, hasher);
 
-        let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
+        let mut ty = if collisions {
+            quote!(::frozen_collections::inline_maps::InlineHashMap)
+        } else {
+            quote!(::frozen_collections::inline_maps::InlineHashMapNoCollisions)
+        };
+
         let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::PassthroughHasher>);
         let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::PassthroughHasher {}));
 
         if self.gen_set {
-            ty = quote!(::frozen_collections::inline_sets::InlineHashSet);
+            ty = if collisions {
+                quote!(::frozen_collections::inline_sets::InlineHashSet)
+            } else {
+                quote!(::frozen_collections::inline_sets::InlineHashSetNoCollisions)
+            };
+
             generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::PassthroughHasher>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::new(#ctor));
@@ -280,18 +305,28 @@ impl Generator {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
-        let (ht, magnitude, num_slots) = self.gen_inline_hash_table_components(entries, hasher);
+        let (ht, magnitude, num_slots, collisions) = self.gen_inline_hash_table_components(entries, hasher);
         let seed = Self::inject_underscores(self.seed.to_token_stream());
         let range_start = Literal::usize_unsuffixed(hash_range.start);
         let range_end = Literal::usize_unsuffixed(hash_range.end);
 
-        let mut ty = quote!(::frozen_collections::inline_maps::InlineHashMap);
+        let mut ty = if collisions {
+            quote!(::frozen_collections::inline_maps::InlineHashMap)
+        } else {
+            quote!(::frozen_collections::inline_maps::InlineHashMapNoCollisions)
+        };
+
         let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::#hasher_type<#range_start, #range_end, ::frozen_collections::foldhash::FixedState>>);
         let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::#hasher_type::new(::frozen_collections::foldhash::FixedState::with_seed(#seed))));
 
         if self.gen_set {
-            ty = quote!(::frozen_collections::inline_sets::InlineHashSet);
+            ty = if collisions {
+                quote!(::frozen_collections::inline_sets::InlineHashSet)
+            } else {
+                quote!(::frozen_collections::inline_sets::InlineHashSetNoCollisions)
+            };
+
             generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::#hasher_type<#range_start, #range_end, ::frozen_collections::foldhash::FixedState>>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::new(#ctor));
@@ -469,7 +504,11 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    fn gen_inline_hash_table_components<K, H>(&self, entries: Vec<CollectionEntry<K>>, hasher: &H) -> (TokenStream, TokenStream, Literal)
+    fn gen_inline_hash_table_components<K, H>(
+        &self,
+        entries: Vec<CollectionEntry<K>>,
+        hasher: &H,
+    ) -> (TokenStream, TokenStream, Literal, bool)
     where
         H: Hasher<K>,
     {
@@ -478,27 +517,57 @@ impl Generator {
         let len = Self::inject_underscores(self.len.to_token_stream());
 
         let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash(&x.key)).unwrap();
+        let collisions = ht.has_collisions();
         let slots = ht.slots;
         let num_slots = Literal::usize_unsuffixed(slots.len());
         let entries = ht.entries;
         let magnitude = Self::collection_magnitude(entries.len());
 
-        (
-            quote!(::frozen_collections::hash_tables::InlineHashTable::<(#key_type, #value_type), #len, #num_slots, #magnitude>::new_raw(
-                [
-                #(
-                    #slots,
-                )*
-                ],
-                [
-                #(
-                    #entries,
-                )*
-                ],
-            )),
-            magnitude,
-            parse_quote!(#num_slots),
-        )
+        if collisions {
+            (
+                quote!(::frozen_collections::hash_tables::InlineHashTable::<(#key_type, #value_type), #len, #num_slots, #magnitude>::new_raw(
+                    [
+                    #(
+                        #slots,
+                    )*
+                    ],
+                    [
+                    #(
+                        #entries,
+                    )*
+                    ],
+                )),
+                magnitude,
+                parse_quote!(#num_slots),
+                true,
+            )
+        } else {
+            let slots = slots.iter().map(|s| {
+                if s.is_empty() {
+                    Literal::usize_unsuffixed(0)
+                } else {
+                    Literal::usize_unsuffixed(s.min_index + 1)
+                }
+            });
+
+            (
+                quote!(::frozen_collections::hash_tables::InlineHashTableNoCollisions::<(#key_type, #value_type), #len, #num_slots, #magnitude>::new_raw(
+                    [
+                    #(
+                        #slots,
+                    )*
+                    ],
+                    [
+                    #(
+                        #entries,
+                    )*
+                    ],
+                )),
+                magnitude,
+                parse_quote!(#num_slots),
+                false,
+            )
+        }
     }
 
     fn collection_magnitude(len: usize) -> TokenStream {

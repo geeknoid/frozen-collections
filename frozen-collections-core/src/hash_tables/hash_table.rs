@@ -5,6 +5,7 @@ use crate::analyzers::analyze_hash_codes;
 use crate::hash_tables::HashTableSlot;
 use crate::traits::{CollectionMagnitude, Len, SmallCollection};
 
+use crate::hash_tables::decl_macros::hash_table_funcs;
 #[cfg(not(feature = "std"))]
 use {alloc::boxed::Box, alloc::string::String, alloc::string::ToString, alloc::vec::Vec};
 
@@ -19,9 +20,9 @@ use {alloc::boxed::Box, alloc::string::String, alloc::string::ToString, alloc::v
 /// lookups by avoiding the need to perform a modulo operation.
 #[derive(Clone)]
 pub struct HashTable<T, CM = SmallCollection> {
-    mask: u64,
     pub(crate) slots: Box<[HashTableSlot<CM>]>,
     pub(crate) entries: Box<[T]>,
+    mask: u64,
 }
 
 struct PrepItem<T> {
@@ -101,52 +102,19 @@ where
         })
     }
 
-    #[inline]
-    pub(crate) fn find(&self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&T> {
-        #[expect(clippy::cast_possible_truncation, reason = "Truncation ok on 32 bit systems")]
-        let hash_slot_index = (hash_code & self.mask) as usize;
-
-        // SAFETY: The hash slot index is guaranteed to be within bounds because of the modulo above
-        let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
-        let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();
-
-        // SAFETY: The range is guaranteed to be within bounds by construction
-        let entries = unsafe { self.entries.get_unchecked(range) };
-
-        let mut result = None;
-        for entry in entries {
-            if eq(entry) {
-                result = Some(entry);
-            }
-        }
-
-        result
-    }
+    hash_table_funcs!();
 
     #[inline]
-    pub(crate) fn find_mut(&mut self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&mut T> {
-        #[expect(clippy::cast_possible_truncation, reason = "Truncation on 32 bit systems is fine")]
-        let hash_slot_index = (hash_code & self.mask) as usize;
-
-        // SAFETY: The hash slot index is guaranteed to be within bounds because of the modulo above
-        let hash_slot = unsafe { self.slots.get_unchecked(hash_slot_index) };
-        let range: Range<usize> = hash_slot.min_index.into()..hash_slot.max_index.into();
-
-        // SAFETY: The range is guaranteed to be valid by construction
-        let entries = unsafe { self.entries.get_unchecked_mut(range) };
-
-        let mut result = None;
-        for entry in entries {
-            if eq(entry) {
-                result = Some(entry);
-            }
-        }
-
-        result
-    }
-
     pub(crate) fn len(&self) -> usize {
         self.entries.len()
+    }
+
+    pub(crate) fn has_collisions(&self) -> bool {
+        self.slots.iter().any(|slot| {
+            let min: usize = slot.min_index.into();
+            let max: usize = slot.max_index.into();
+            max - min > 1
+        })
     }
 }
 

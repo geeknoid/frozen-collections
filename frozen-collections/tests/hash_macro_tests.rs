@@ -1,7 +1,7 @@
 #![expect(missing_docs, reason = "Tests")]
 
-use frozen_collections::*;
 use frozen_collections_core::macros::{fz_hash_map_macro, fz_hash_set_macro};
+use frozen_collections_macros::*;
 use hashbrown::HashMap as HashbrownMap;
 use hashbrown::HashSet as HashbrownSet;
 use quote::quote;
