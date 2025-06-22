@@ -1,7 +1,7 @@
 #![expect(missing_docs, reason = "Tests")]
 
-use frozen_collections::*;
 use frozen_collections_core::macros::{fz_ordered_map_macro, fz_ordered_set_macro};
+use frozen_collections_macros::*;
 use quote::quote;
 use std::collections::BTreeMap as StdBTreeMap;
 use std::collections::BTreeSet as StdBTreeSet;

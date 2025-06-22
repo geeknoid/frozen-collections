@@ -1,3 +1,5 @@
+use crate::traits::CollectionMagnitude;
+
 /// An individual slot in a hash table.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
@@ -10,10 +12,18 @@ pub struct HashTableSlot<CM> {
     pub(crate) max_index: CM,
 }
 
-impl<CM> HashTableSlot<CM> {
+impl<CM> HashTableSlot<CM>
+where
+    CM: CollectionMagnitude,
+{
     /// Creates a new hash table slot with the specified minimum and maximum indices.
     pub const fn new(min_index: CM, max_index: CM) -> Self {
         Self { min_index, max_index }
+    }
+
+    /// Returns whether the hash slot is completely empty.
+    pub(crate) fn is_empty(&self) -> bool {
+        self.max_index.into() == 0_usize
     }
 }
 
