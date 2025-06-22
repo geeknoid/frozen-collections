@@ -61,13 +61,13 @@ fn analyze_lengths<T>(keys: &Vec<&[T]>) -> SliceKeyAnalysisResult {
     let max_identical = keys.len() / ACCEPTABLE_DUPLICATE_RATIO;
     let mut lengths = HashbrownMap::<usize, usize>::new();
     for s in keys {
-        let v = lengths.get(&s.len());
+        let v = lengths.get_mut(&s.len());
         if let Some(count) = v {
             if *count >= max_identical {
                 return SliceKeyAnalysisResult::General;
             }
 
-            _ = lengths.insert(s.len(), count + 1);
+            *count += 1;
         } else {
             _ = lengths.insert(s.len(), 1);
         }
