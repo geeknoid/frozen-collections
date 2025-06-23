@@ -27,7 +27,7 @@ where
     BH: BuildHasher,
 {
     #[inline]
-    fn hash(&self, value: &[T]) -> u64 {
+    fn hash_one(&self, value: &[T]) -> u64 {
         if value.len() < self.range.end {
             cold();
             return 0;
@@ -43,7 +43,7 @@ where
     BH: BuildHasher,
 {
     #[inline]
-    fn hash(&self, value: &str) -> u64 {
+    fn hash_one(&self, value: &str) -> u64 {
         let b = value.as_bytes();
         if b.len() < self.range.end {
             cold();
@@ -61,7 +61,7 @@ where
     BH: BuildHasher,
 {
     #[inline]
-    fn hash(&self, value: &AR) -> u64 {
+    fn hash_one(&self, value: &AR) -> u64 {
         let value = value.as_ref();
         let b = value.as_bytes();
         if b.len() < self.range.end {
@@ -92,35 +92,38 @@ mod tests {
     #[test]
     fn test_right_range_hasher_hash_slice() {
         let hasher = RightRangeHasher::new(RandomState::default(), 1..3);
-        assert_eq!(hasher.hash(vec![1, 2, 3, 4].as_slice()), hasher.bh.hash_one(vec![2, 3].as_slice()));
         assert_eq!(
-            hasher.hash(vec![1, 2, 3, 4, 5, 6].as_slice()),
+            hasher.hash_one(vec![1, 2, 3, 4].as_slice()),
+            hasher.bh.hash_one(vec![2, 3].as_slice())
+        );
+        assert_eq!(
+            hasher.hash_one(vec![1, 2, 3, 4, 5, 6].as_slice()),
             hasher.bh.hash_one(vec![4, 5].as_slice())
         );
-        assert_eq!(hasher.hash(vec![1, 2].as_slice()), 0);
+        assert_eq!(hasher.hash_one(vec![1, 2].as_slice()), 0);
     }
 
     #[test]
     fn test_right_range_hasher_hash_string() {
         let hasher = RightRangeHasher::new(RandomState::default(), 3..5);
-        assert_eq!(hasher.hash(&"abcdef".to_string()), hasher.bh.hash_one(b"bc"));
-        assert_eq!(hasher.hash(&"abcdefghijklmn".to_string()), hasher.bh.hash_one(b"jk"));
-        assert_eq!(hasher.hash(&"a".to_string()), 0);
+        assert_eq!(hasher.hash_one(&"abcdef".to_string()), hasher.bh.hash_one(b"bc"));
+        assert_eq!(hasher.hash_one(&"abcdefghijklmn".to_string()), hasher.bh.hash_one(b"jk"));
+        assert_eq!(hasher.hash_one(&"a".to_string()), 0);
     }
 
     #[test]
     fn test_right_range_hasher_hash_str_ref() {
         let hasher = RightRangeHasher::new(RandomState::default(), 1..3);
-        assert_eq!(hasher.hash(&"abcd"), hasher.bh.hash_one(b"bc"));
-        assert_eq!(hasher.hash(&"a"), 0);
+        assert_eq!(hasher.hash_one(&"abcd"), hasher.bh.hash_one(b"bc"));
+        assert_eq!(hasher.hash_one(&"a"), 0);
     }
 
     #[test]
     fn test_right_range_hasher_hash_str() {
         let hasher = RightRangeHasher::new(RandomState::default(), 1..3);
-        assert_eq!(hasher.hash("abcd"), hasher.bh.hash_one(b"bc"));
-        assert_eq!(hasher.hash("abcdefghijklmn"), hasher.bh.hash_one(b"lm"));
-        assert_eq!(hasher.hash("a"), 0);
+        assert_eq!(hasher.hash_one("abcd"), hasher.bh.hash_one(b"bc"));
+        assert_eq!(hasher.hash_one("abcdefghijklmn"), hasher.bh.hash_one(b"lm"));
+        assert_eq!(hasher.hash_one("a"), 0);
     }
 
     #[test]

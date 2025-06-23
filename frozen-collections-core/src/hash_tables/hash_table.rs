@@ -1,5 +1,4 @@
 use alloc::vec;
-use core::ops::Range;
 
 use crate::analyzers::analyze_hash_codes;
 use crate::hash_tables::HashTableSlot;

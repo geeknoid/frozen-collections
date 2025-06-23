@@ -10,7 +10,6 @@ use core::fmt::{Debug, Formatter, Result};
 use core::hash::BuildHasher;
 use core::marker::PhantomData;
 use core::ops::Index;
-use foldhash::fast::RandomState;
 
 #[cfg(not(feature = "std"))]
 use {alloc::boxed::Box, alloc::string::ToString, alloc::vec::Vec};
@@ -49,7 +48,7 @@ impl<V> FzStringMap<Box<str>, V, DefaultHashBuilder> {
     /// Creates a frozen map.
     #[must_use]
     pub fn new(entries: Vec<(impl AsRef<str>, V)>) -> Self {
-        Self::with_hasher(entries, RandomState::default())
+        Self::with_hasher(entries, DefaultHashBuilder::default())
     }
 }
 

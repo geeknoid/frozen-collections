@@ -23,7 +23,8 @@ where
     T: ?Sized + Hash,
     BH: BuildHasher,
 {
-    fn hash(&self, value: &T) -> u64 {
+    #[inline]
+    fn hash_one(&self, value: &T) -> u64 {
         self.bh.hash_one(value)
     }
 }

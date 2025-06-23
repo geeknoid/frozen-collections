@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Save a few cycles in the hashing collections.
+
 ## 0.7.0 - 2025-06-22
 
 ### Added

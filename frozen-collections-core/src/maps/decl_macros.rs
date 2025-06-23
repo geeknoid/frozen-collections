@@ -351,7 +351,7 @@ macro_rules! hash_primary_funcs {
             H: Hasher<Q>,
         {
             self.entries
-                .find(self.hasher.hash(key), |entry| key.equivalent(&entry.0))
+                .find(self.hasher.hash_one(key), |entry| key.equivalent(&entry.0))
                 .map(|(_, v)| v)
         }
 
@@ -363,7 +363,7 @@ macro_rules! hash_primary_funcs {
             H: Hasher<Q>,
         {
             self.entries
-                .find_mut(self.hasher.hash(key), |entry| key.equivalent(&entry.0))
+                .find_mut(self.hasher.hash_one(key), |entry| key.equivalent(&entry.0))
                 .map(|(_, v)| v)
         }
 
@@ -375,7 +375,7 @@ macro_rules! hash_primary_funcs {
             H: Hasher<Q>,
         {
             self.entries
-                .find(self.hasher.hash(key), |entry| key.equivalent(&entry.0))
+                .find(self.hasher.hash_one(key), |entry| key.equivalent(&entry.0))
                 .map(|(k, v)| (k, v))
         }
 

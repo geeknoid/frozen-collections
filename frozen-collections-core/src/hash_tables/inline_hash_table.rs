@@ -1,7 +1,6 @@
 use crate::hash_tables::HashTableSlot;
 use crate::hash_tables::decl_macros::hash_table_funcs;
 use crate::traits::{CollectionMagnitude, SmallCollection};
-use core::ops::Range;
 
 /// A hash table that stores its entries inline.
 ///

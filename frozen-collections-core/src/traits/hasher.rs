@@ -9,5 +9,5 @@ where
     T: ?Sized,
 {
     /// Produce a hash value for the given value.
-    fn hash(&self, value: &T) -> u64;
+    fn hash_one(&self, value: &T) -> u64;
 }

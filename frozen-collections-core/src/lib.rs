@@ -33,4 +33,9 @@ pub mod emit;
 mod emit;
 
 /// The default hash builder used by the frozen collections.
+#[cfg(test)]
+pub type DefaultHashBuilder = foldhash::fast::FixedState;
+
+/// The default hash builder used by the frozen collections.
+#[cfg(not(test))]
 pub type DefaultHashBuilder = foldhash::fast::RandomState;
