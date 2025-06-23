@@ -7,7 +7,6 @@ use crate::traits::{Len, Set, SetExtras, SetIteration, SetOps, SetQuery};
 use core::fmt::Debug;
 use core::hash::BuildHasher;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
-use foldhash::fast::RandomState;
 
 #[cfg(not(feature = "std"))]
 use {alloc::boxed::Box, alloc::vec::Vec};
@@ -40,7 +39,7 @@ impl FzStringSet<Box<str>, DefaultHashBuilder> {
     /// Creates a new frozen set.
     #[must_use]
     pub fn new(entries: Vec<impl AsRef<str>>) -> Self {
-        Self::with_hasher(entries, RandomState::default())
+        Self::with_hasher(entries, DefaultHashBuilder::default())
     }
 }
 

@@ -69,7 +69,7 @@ where
         K: Eq,
         H: Hasher<K>,
     {
-        dedup_by_hash_keep_last(&mut entries, |x| hasher.hash(&x.0), |x, y| x.0 == y.0);
+        dedup_by_hash_keep_last(&mut entries, |x| hasher.hash_one(&x.0), |x, y| x.0 == y.0);
 
         Self::with_hasher_half_baked(entries, hasher)
     }
@@ -85,7 +85,7 @@ where
         H: Hasher<K>,
     {
         let c = &hasher;
-        let h = |entry: &(K, V)| c.hash(&entry.0);
+        let h = |entry: &(K, V)| c.hash_one(&entry.0);
         Ok(Self::new_raw(HashTable::<(K, V), CM>::new(processed_entries, h)?, hasher))
     }
 

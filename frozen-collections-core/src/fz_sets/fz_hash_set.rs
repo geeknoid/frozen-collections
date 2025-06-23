@@ -12,7 +12,6 @@ use core::hash::BuildHasher;
 use core::hash::Hash;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 use equivalent::Equivalent;
-use foldhash::fast::RandomState;
 
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
@@ -52,7 +51,7 @@ impl<T> FzHashSet<T, DefaultHashBuilder> {
     where
         T: Hash + Eq,
     {
-        Self::with_hasher(entries, RandomState::default())
+        Self::with_hasher(entries, DefaultHashBuilder::default())
     }
 }
 

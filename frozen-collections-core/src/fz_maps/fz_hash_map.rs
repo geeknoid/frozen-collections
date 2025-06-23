@@ -11,7 +11,6 @@ use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};
 use core::ops::Index;
 use equivalent::Equivalent;
-use foldhash::fast::RandomState;
 
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
@@ -50,7 +49,7 @@ impl<K, V> FzHashMap<K, V, DefaultHashBuilder> {
     where
         K: Eq + Hash,
     {
-        Self::with_hasher(entries, RandomState::default())
+        Self::with_hasher(entries, DefaultHashBuilder::default())
     }
 }
 

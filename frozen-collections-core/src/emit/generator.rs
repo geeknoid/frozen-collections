@@ -516,7 +516,7 @@ impl Generator {
         let value_type = &self.value_type;
         let len = Self::inject_underscores(self.len.to_token_stream());
 
-        let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash(&x.key)).unwrap();
+        let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash_one(&x.key)).unwrap();
         let collisions = ht.has_collisions();
         let slots = ht.slots;
         let num_slots = Literal::usize_unsuffixed(slots.len());
