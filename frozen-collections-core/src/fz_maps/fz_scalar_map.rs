@@ -1,5 +1,4 @@
 use crate::analyzers::{ScalarKeyAnalysisResult, analyze_scalar_keys};
-use crate::hashers::PassthroughHasher;
 use crate::maps::decl_macros::{
     debug_trait_funcs, index_trait_funcs, into_iterator_trait_funcs, into_iterator_trait_mut_ref_funcs, into_iterator_trait_ref_funcs,
     len_trait_funcs, map_extras_trait_funcs, map_iteration_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs,
@@ -16,6 +15,7 @@ use equivalent::Comparable;
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
+use crate::hashers::ScalarHasher;
 #[cfg(feature = "serde")]
 use {
     crate::maps::decl_macros::serialize_trait_funcs,
@@ -27,7 +27,7 @@ use {
 
 #[derive(Clone)]
 enum MapTypes<K, V> {
-    Hash(HashMap<K, V, LargeCollection, PassthroughHasher>),
+    Hash(HashMap<K, V, LargeCollection, ScalarHasher>),
     Dense(DenseScalarLookupMap<K, V>),
     Sparse(SparseScalarLookupMap<K, V>),
 }
@@ -60,7 +60,7 @@ impl<K, V> FzScalarMap<K, V> {
             map_impl: match analyze_scalar_keys(entries.iter().map(|x| x.0)) {
                 ScalarKeyAnalysisResult::DenseRange => MapTypes::Dense(DenseScalarLookupMap::new_raw(entries)),
                 ScalarKeyAnalysisResult::SparseRange => MapTypes::Sparse(SparseScalarLookupMap::new_raw(entries)),
-                ScalarKeyAnalysisResult::General => MapTypes::Hash(HashMap::with_hasher_half_baked(entries, PassthroughHasher {}).unwrap()),
+                ScalarKeyAnalysisResult::General => MapTypes::Hash(HashMap::with_hasher_half_baked(entries, ScalarHasher {}).unwrap()),
             },
         }
     }

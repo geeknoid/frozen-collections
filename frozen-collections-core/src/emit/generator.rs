@@ -258,7 +258,12 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub(super) fn gen_inline_hash_with_passthrough<K, H>(&self, entries: Vec<CollectionEntry<K>>, hasher: &H) -> Output
+    pub(super) fn gen_inline_hash_with_hasher<K, H>(
+        &self,
+        entries: Vec<CollectionEntry<K>>,
+        hasher: &H,
+        hasher_name: &TokenStream,
+    ) -> Output
     where
         H: Hasher<K>,
     {
@@ -273,9 +278,9 @@ impl Generator {
             quote!(::frozen_collections::inline_maps::InlineHashMapNoCollisions)
         };
 
-        let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::PassthroughHasher>);
+        let mut generics = quote!(<#key_type, #value_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::#hasher_name>);
         let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::PassthroughHasher {}));
+        let mut ctor = quote!(#type_sig::new_raw(#ht, ::frozen_collections::hashers::#hasher_name {}));
 
         if self.gen_set {
             ty = if collisions {
@@ -284,7 +289,7 @@ impl Generator {
                 quote!(::frozen_collections::inline_sets::InlineHashSetNoCollisions)
             };
 
-            generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::PassthroughHasher>);
+            generics = quote!(<#key_type, #len, #num_slots, #magnitude, ::frozen_collections::hashers::#hasher_name>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::new(#ctor));
         }

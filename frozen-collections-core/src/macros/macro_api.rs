@@ -229,7 +229,7 @@ mod tests {
         check_impl(":: BridgeHasher", quote!({ "1", "2", "3", "4", "5", "6", "7" }));
 
         check_impl(
-            ":: PassthroughHasher",
+            ":: LengthHasher",
             quote!({ "1", "22", "333", "4444", "55555", "666666", "7777777" }),
         );
 
