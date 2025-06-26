@@ -39,40 +39,6 @@ where
     }
 }
 
-impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<String> for InlineRightRangeHasher<RANGE_START, RANGE_END, BH>
-where
-    BH: BuildHasher,
-{
-    #[inline]
-    fn hash_one(&self, value: &String) -> u64 {
-        let b = value.as_bytes();
-        if b.len() < RANGE_END {
-            cold();
-            return 0;
-        }
-
-        let effective_range = value.len() - RANGE_END..value.len() - RANGE_START;
-        self.bh.hash_one(&b[effective_range])
-    }
-}
-
-impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<&str> for InlineRightRangeHasher<RANGE_START, RANGE_END, BH>
-where
-    BH: BuildHasher,
-{
-    #[inline]
-    fn hash_one(&self, value: &&str) -> u64 {
-        let b = value.as_bytes();
-        if b.len() < RANGE_END {
-            cold();
-            return 0;
-        }
-
-        let effective_range = value.len() - RANGE_END..value.len() - RANGE_START;
-        self.bh.hash_one(&b[effective_range])
-    }
-}
-
 impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<str> for InlineRightRangeHasher<RANGE_START, RANGE_END, BH>
 where
     BH: BuildHasher,
@@ -86,6 +52,24 @@ where
         }
 
         let effective_range = value.len() - RANGE_END..value.len() - RANGE_START;
+        self.bh.hash_one(&b[effective_range])
+    }
+}
+
+impl<AR, const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<AR> for InlineRightRangeHasher<RANGE_START, RANGE_END, BH>
+where
+    AR: AsRef<str>,
+    BH: BuildHasher,
+{
+    #[inline]
+    fn hash_one(&self, value: &AR) -> u64 {
+        let b = value.as_ref().as_bytes();
+        if b.len() < RANGE_END {
+            cold();
+            return 0;
+        }
+
+        let effective_range = value.as_ref().len() - RANGE_END..value.as_ref().len() - RANGE_START;
         self.bh.hash_one(&b[effective_range])
     }
 }

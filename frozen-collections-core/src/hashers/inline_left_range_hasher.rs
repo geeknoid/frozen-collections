@@ -38,38 +38,6 @@ where
     }
 }
 
-impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<String> for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
-where
-    BH: BuildHasher,
-{
-    #[inline]
-    fn hash_one(&self, value: &String) -> u64 {
-        let b = value.as_bytes();
-        if b.len() < RANGE_END {
-            cold();
-            return 0;
-        }
-
-        self.bh.hash_one(&b[RANGE_START..RANGE_END])
-    }
-}
-
-impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<&str> for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
-where
-    BH: BuildHasher,
-{
-    #[inline]
-    fn hash_one(&self, value: &&str) -> u64 {
-        let b = value.as_bytes();
-        if b.len() < RANGE_END {
-            cold();
-            return 0;
-        }
-
-        self.bh.hash_one(&b[RANGE_START..RANGE_END])
-    }
-}
-
 impl<const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<str> for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
 where
     BH: BuildHasher,
@@ -77,6 +45,23 @@ where
     #[inline]
     fn hash_one(&self, value: &str) -> u64 {
         let b = value.as_bytes();
+        if b.len() < RANGE_END {
+            cold();
+            return 0;
+        }
+
+        self.bh.hash_one(&b[RANGE_START..RANGE_END])
+    }
+}
+
+impl<AR, const RANGE_START: usize, const RANGE_END: usize, BH> Hasher<AR> for InlineLeftRangeHasher<RANGE_START, RANGE_END, BH>
+where
+    AR: AsRef<str>,
+    BH: BuildHasher,
+{
+    #[inline]
+    fn hash_one(&self, value: &AR) -> u64 {
+        let b = value.as_ref().as_bytes();
         if b.len() < RANGE_END {
             cold();
             return 0;

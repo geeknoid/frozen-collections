@@ -54,8 +54,8 @@ where
 
 impl<AR, BH> Hasher<AR> for LeftRangeHasher<BH>
 where
-    BH: BuildHasher,
     AR: AsRef<str>,
+    BH: BuildHasher,
 {
     #[inline]
     fn hash_one(&self, value: &AR) -> u64 {
