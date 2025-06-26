@@ -1,4 +1,4 @@
-use crate::DefaultHashBuilder;
+use crate::DefaultBuildHasher;
 use crate::analyzers::{SliceKeyAnalysisResult, analyze_slice_keys};
 use crate::hashers::{BridgeHasher, LeftRangeHasher, RightRangeHasher};
 use crate::maps::decl_macros::{debug_trait_funcs, index_trait_funcs, len_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs};
@@ -39,16 +39,16 @@ enum MapTypes<V, BH> {
 /// If your keys are known at compile time, consider using the various `fz_*_map` macros instead of
 /// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzStringMap<K, V, BH = DefaultHashBuilder> {
+pub struct FzStringMap<K, V, BH = DefaultBuildHasher> {
     map_impl: MapTypes<V, BH>,
     _0: PhantomData<K>,
 }
 
-impl<V> FzStringMap<Box<str>, V, DefaultHashBuilder> {
+impl<V> FzStringMap<Box<str>, V, DefaultBuildHasher> {
     /// Creates a frozen map.
     #[must_use]
     pub fn new(entries: Vec<(impl AsRef<str>, V)>) -> Self {
-        Self::with_hasher(entries, DefaultHashBuilder::default())
+        Self::with_hasher(entries, DefaultBuildHasher::default())
     }
 }
 

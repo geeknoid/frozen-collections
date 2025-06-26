@@ -1,4 +1,4 @@
-use crate::DefaultHashBuilder;
+use crate::DefaultBuildHasher;
 use crate::fz_maps::FzStringMap;
 use crate::maps::decl_macros::len_trait_funcs;
 use crate::sets::decl_macros::{debug_trait_funcs, partial_eq_trait_funcs};
@@ -31,15 +31,15 @@ use {
 /// If your values are known at compile time, consider using the various `fz_*_set` macros instead of
 /// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzStringSet<K, BH = DefaultHashBuilder> {
+pub struct FzStringSet<K, BH = DefaultBuildHasher> {
     map: FzStringMap<K, (), BH>,
 }
 
-impl FzStringSet<Box<str>, DefaultHashBuilder> {
+impl FzStringSet<Box<str>, DefaultBuildHasher> {
     /// Creates a new frozen set.
     #[must_use]
     pub fn new(entries: Vec<impl AsRef<str>>) -> Self {
-        Self::with_hasher(entries, DefaultHashBuilder::default())
+        Self::with_hasher(entries, DefaultBuildHasher::default())
     }
 }
 

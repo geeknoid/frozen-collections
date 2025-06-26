@@ -1,4 +1,4 @@
-use crate::DefaultHashBuilder;
+use crate::DefaultBuildHasher;
 use crate::traits::Hasher;
 use crate::utils::cold;
 use core::hash::{BuildHasher, Hash};
@@ -8,7 +8,7 @@ use core::ops::Range;
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone, Debug)]
-pub struct RightRangeHasher<BH = DefaultHashBuilder> {
+pub struct RightRangeHasher<BH = DefaultBuildHasher> {
     bh: BH,
     range: Range<usize>,
 }

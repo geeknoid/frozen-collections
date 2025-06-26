@@ -1,4 +1,4 @@
-use crate::DefaultHashBuilder;
+use crate::DefaultBuildHasher;
 use crate::traits::Hasher;
 use core::hash::{BuildHasher, Hash};
 
@@ -6,7 +6,7 @@ use core::hash::{BuildHasher, Hash};
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone, Debug)]
-pub struct BridgeHasher<BH = DefaultHashBuilder> {
+pub struct BridgeHasher<BH = DefaultBuildHasher> {
     bh: BH,
 }
 

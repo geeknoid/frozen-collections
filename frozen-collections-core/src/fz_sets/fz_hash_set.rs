@@ -1,4 +1,4 @@
-use crate::DefaultHashBuilder;
+use crate::DefaultBuildHasher;
 use crate::fz_maps::FzHashMap;
 use crate::maps::decl_macros::len_trait_funcs;
 use crate::sets::decl_macros::{
@@ -40,18 +40,18 @@ use {
 /// If your values are known at compile time, consider using the various `fz_*_set` macros instead of
 /// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzHashSet<T, BH = DefaultHashBuilder> {
+pub struct FzHashSet<T, BH = DefaultBuildHasher> {
     map: FzHashMap<T, (), BH>,
 }
 
-impl<T> FzHashSet<T, DefaultHashBuilder> {
+impl<T> FzHashSet<T, DefaultBuildHasher> {
     /// Creates a new frozen set.
     #[must_use]
     pub fn new(entries: Vec<T>) -> Self
     where
         T: Hash + Eq,
     {
-        Self::with_hasher(entries, DefaultHashBuilder::default())
+        Self::with_hasher(entries, DefaultBuildHasher::default())
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::DefaultHashBuilder;
+use crate::DefaultBuildHasher;
 use crate::hash_tables::HashTable;
 use crate::hashers::BridgeHasher;
 use crate::maps::decl_macros::{
@@ -36,7 +36,7 @@ pub struct HashMap<K, V, CM = SmallCollection, H = BridgeHasher> {
     hasher: H,
 }
 
-impl<K, V, CM> HashMap<K, V, CM, BridgeHasher<DefaultHashBuilder>>
+impl<K, V, CM> HashMap<K, V, CM, BridgeHasher<DefaultBuildHasher>>
 where
     CM: CollectionMagnitude,
 {
