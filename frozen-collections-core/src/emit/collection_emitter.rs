@@ -1,7 +1,7 @@
 use crate::analyzers::{ScalarKeyAnalysisResult, SliceKeyAnalysisResult, analyze_scalar_keys, analyze_slice_keys};
 use crate::emit::collection_entry::CollectionEntry;
 use crate::emit::generator::{Generator, Output};
-use crate::hashers::{LeftRangeHasher, PassthroughHasher, RightRangeHasher};
+use crate::hashers::{LeftRangeHasher, LengthHasher, RightRangeHasher, ScalarHasher};
 use crate::traits::Scalar;
 use crate::utils::dedup_by_keep_last;
 use core::hash::BuildHasher;
@@ -297,7 +297,7 @@ impl CollectionEmitter {
                 if entries.len() < 8 {
                     generator.gen_inline_scan(entries)
                 } else {
-                    generator.gen_inline_hash_with_passthrough(entries, &PassthroughHasher {})
+                    generator.gen_inline_hash_with_hasher(entries, &ScalarHasher {}, &quote! { ScalarHasher })
                 }
             }
         };
@@ -338,7 +338,9 @@ impl CollectionEmitter {
                     generator.gen_inline_hash_with_range(entries, range, &quote!(InlineRightRangeHasher), &hasher)
                 }
 
-                SliceKeyAnalysisResult::Length => generator.gen_inline_hash_with_passthrough(entries, &PassthroughHasher {}),
+                SliceKeyAnalysisResult::Length => {
+                    generator.gen_inline_hash_with_hasher(entries, &LengthHasher {}, &quote! { LengthHasher })
+                }
 
                 SliceKeyAnalysisResult::General => generator.gen_inline_hash_with_bridge(entries),
             }

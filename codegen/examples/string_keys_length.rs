@@ -26,7 +26,7 @@ fn main() {
 
     let map = input;
     for key in probe {
-        _ = black_box(call_inline_hash_map_with_passthrough_hasher(&map, key));
+        _ = black_box(call_inline_hash_map_with_length_hasher(&map, key));
     }
 }
 
@@ -36,7 +36,7 @@ fn call_hashbrown_map(map: &HashbrownMap<&str, i32>, key: &str) -> bool {
 }
 
 #[inline(never)]
-fn call_inline_hash_map_with_passthrough_hasher(map: &MyMapType, key: &str) -> bool {
+fn call_inline_hash_map_with_length_hasher(map: &MyMapType, key: &str) -> bool {
     map.contains_key(key)
 }
 

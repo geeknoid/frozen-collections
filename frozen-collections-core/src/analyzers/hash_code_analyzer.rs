@@ -3,7 +3,7 @@ use crate::utils::BitVec;
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
-/// How to treat a collection of hash codes for the best performance.
+/// How to treat a batch of hash codes for the best performance.
 pub struct HashCodeAnalysisResult {
     /// The recommended hash table size. This is not necessarily optimal, but it's good enough.
     pub num_hash_slots: usize,
@@ -29,7 +29,7 @@ where
     const MEDIUM_INPUT_SIZE_THRESHOLD: usize = 128;
     const LARGE_INPUT_SIZE_THRESHOLD: usize = 1000;
 
-    // amount by which the table can be larger than the input
+    // the amount by which the table can be larger than the input
     const MAX_SMALL_INPUT_MULTIPLIER: usize = 10;
     const MAX_MEDIUM_INPUT_MULTIPLIER: usize = 7;
     const MAX_LARGE_INPUT_MULTIPLIER: usize = 3;
