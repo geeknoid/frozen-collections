@@ -1,4 +1,4 @@
-use crate::DefaultHashBuilder;
+use crate::DefaultBuildHasher;
 use crate::hashers::BridgeHasher;
 use crate::maps::decl_macros::{
     debug_trait_funcs, index_trait_funcs, into_iterator_trait_funcs, into_iterator_trait_mut_ref_funcs, into_iterator_trait_ref_funcs,
@@ -38,18 +38,18 @@ use {
 /// If your keys are known at compile time, consider using the various `fz_*_map` macros instead of
 /// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzHashMap<K, V, BH = DefaultHashBuilder> {
+pub struct FzHashMap<K, V, BH = DefaultBuildHasher> {
     map_impl: HashMap<K, V, LargeCollection, BridgeHasher<BH>>,
 }
 
-impl<K, V> FzHashMap<K, V, DefaultHashBuilder> {
+impl<K, V> FzHashMap<K, V, DefaultBuildHasher> {
     /// Creates a frozen map.
     #[must_use]
     pub fn new(entries: Vec<(K, V)>) -> Self
     where
         K: Eq + Hash,
     {
-        Self::with_hasher(entries, DefaultHashBuilder::default())
+        Self::with_hasher(entries, DefaultBuildHasher::default())
     }
 }
 

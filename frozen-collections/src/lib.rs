@@ -1127,4 +1127,4 @@ pub mod foldhash {
     pub use foldhash::fast::FixedState;
 }
 
-pub use frozen_collections_core::DefaultHashBuilder;
+pub use frozen_collections_core::DefaultBuildHasher;

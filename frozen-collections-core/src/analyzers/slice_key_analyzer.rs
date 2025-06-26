@@ -77,7 +77,7 @@ fn analyze_lengths<T>(keys: &Vec<&[T]>) -> SliceKeyAnalysisResult {
 }
 
 /// See if we can use subslices to reduce the time spent hashing
-#[expect(clippy::missing_asserts_for_indexing, reason = "There is in fact an assert present")]
+#[allow(clippy::missing_asserts_for_indexing, reason = "There is in fact an assert present")]
 fn analyze_subslices<T, BH>(keys: &[&[T]], bh: &BH) -> SliceKeyAnalysisResult
 where
     T: Hash + Eq,
