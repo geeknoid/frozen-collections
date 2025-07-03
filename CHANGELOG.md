@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Renamed the DefaultHashBuilder type to DefaultBuildHasher which makes more sense.
 
+- Fixed a couple bugs where undedupped vectors where being used when they should have been dedupped.
+
+- Fixed a bug where fz_ordered_map/set would sometimes produce non-working maps due to the
+  data vector not being sorted correctly.
+
 ## 0.7.0 - 2025-06-22
 
 ### Added

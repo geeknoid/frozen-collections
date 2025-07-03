@@ -25,16 +25,12 @@ impl<'a, T> Iterator for Iter<'a, T> {
         self.inner.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.inner.count()
     }
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (k, ())| f(acc, k))
@@ -87,16 +83,12 @@ impl<T> Iterator for IntoIter<T> {
         self.inner.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.inner.count()
     }
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (k, ())| f(acc, k))
@@ -264,10 +256,7 @@ where
         self.iter.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.iter.count()
     }
 }

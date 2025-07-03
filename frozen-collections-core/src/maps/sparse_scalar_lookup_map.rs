@@ -5,7 +5,7 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery, Scalar};
-use crate::utils::dedup_by_keep_last;
+use crate::utils::SortedAndDeduppedVec;
 use alloc::vec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
@@ -37,33 +37,31 @@ pub struct SparseScalarLookupMap<K, V> {
 impl<K, V> SparseScalarLookupMap<K, V> {
     /// Creates a new `SparseScalarLookupMap` from a list of entries.
     #[must_use]
-    pub fn new(mut entries: Vec<(K, V)>) -> Self
+    pub fn new(entries: Vec<(K, V)>) -> Self
     where
         K: Scalar,
     {
-        entries.sort_by_key(|x| x.0);
-        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
-
+        let entries = SortedAndDeduppedVec::new(entries, |x, y| x.0.cmp(&y.0));
         if entries.is_empty() {
             return Self::default();
         }
 
-        Self::new_raw(entries)
+        Self::from_sorted_and_dedupped(entries)
     }
 
     /// Creates a new frozen map.
     #[must_use]
-    pub(crate) fn new_raw(processed_entries: Vec<(K, V)>) -> Self
+    pub(crate) fn from_sorted_and_dedupped(entries: SortedAndDeduppedVec<(K, V)>) -> Self
     where
         K: Scalar,
     {
-        let min = processed_entries[0].0.index();
-        let max = processed_entries[processed_entries.len() - 1].0.index();
+        let min = entries[0].0.index();
+        let max = entries[entries.len() - 1].0.index();
         let count = max - min + 1;
 
         let mut lookup = vec![0; count];
 
-        for (i, entry) in processed_entries.iter().enumerate() {
+        for (i, entry) in entries.iter().enumerate() {
             let index_in_lookup = entry.0.index() - min;
             let index_in_entries = i + 1;
             lookup[index_in_lookup] = index_in_entries;
@@ -73,7 +71,7 @@ impl<K, V> SparseScalarLookupMap<K, V> {
             min,
             max,
             lookup: lookup.into_boxed_slice(),
-            entries: processed_entries.into_boxed_slice(),
+            entries: entries.into_boxed_slice(),
         }
     }
 
@@ -196,4 +194,25 @@ where
     V: Serialize,
 {
     serialize_trait_funcs!();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sparse_lookup() {
+        let entries = vec![(1, "a"), (10, "b"), (100, "c"), (1000, "d")];
+        let map = SparseScalarLookupMap::new(entries);
+
+        assert_eq!(map.get(&1), Some(&"a"));
+        assert_eq!(map.get(&10), Some(&"b"));
+        assert_eq!(map.get(&100), Some(&"c"));
+        assert_eq!(map.get(&1000), Some(&"d"));
+
+        assert_eq!(map.get(&0), None);
+        assert_eq!(map.get(&2), None);
+        assert_eq!(map.get(&999), None);
+        assert_eq!(map.get(&1001), None);
+    }
 }

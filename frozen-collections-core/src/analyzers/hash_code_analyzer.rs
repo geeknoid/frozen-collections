@@ -15,10 +15,7 @@ pub struct HashCodeAnalysisResult {
 
 /// Look for an "optimal" hash table size for a given set of hash codes.
 #[mutants::skip]
-pub fn analyze_hash_codes<I>(hash_codes: I) -> HashCodeAnalysisResult
-where
-    I: Iterator<Item = u64>,
-{
+pub fn analyze_hash_codes(hash_codes: impl Iterator<Item = u64>) -> HashCodeAnalysisResult {
     // What is a satisfactory rate of hash collisions?
     const ACCEPTABLE_COLLISION_PERCENTAGE: usize = 5;
 

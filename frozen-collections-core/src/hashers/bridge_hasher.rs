@@ -37,3 +37,16 @@ where
         Self::new(BH::default())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hash_one() {
+        let bh = DefaultBuildHasher::default();
+        let hasher = BridgeHasher::new(bh);
+        let value = "test_string";
+        assert_eq!(hasher.hash_one(&value), bh.hash_one(value));
+    }
+}

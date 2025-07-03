@@ -1,115 +1,178 @@
 //! Duplicate removal utility functions for frozen collections.
 
+use core::cmp::Ordering;
+use core::ops::Index;
 use hashbrown::HashSet as HashbrownSet;
 use hashbrown::HashTable as HashbrownTable;
 
 #[cfg(not(feature = "std"))]
-use alloc::vec::Vec;
+use {alloc::boxed::Box, alloc::vec::Vec};
 
-/// Remove duplicates from a vector, keeping the last occurrence of each duplicate.
-///
-/// This assumes the input vector is fairly short as time complexity is very high.
-#[mutants::skip]
-pub fn dedup_by_keep_last_slow<T, F>(unsorted_entries: &mut Vec<T>, mut cmp: F)
-where
-    F: FnMut(&mut T, &mut T) -> bool,
-{
-    if unsorted_entries.len() < 2 {
-        return;
-    }
+pub struct DeduppedVec<T> {
+    inner: Vec<T>,
+}
 
-    let mut dupes = HashbrownSet::new();
-    for i in 0..unsorted_entries.len() {
-        for j in (i + 1)..unsorted_entries.len() {
-            let (s0, s1) = unsorted_entries.split_at_mut(j);
-            if cmp(&mut s0[i], &mut s1[0]) {
-                _ = dupes.insert(i);
-                break;
+impl<T> DeduppedVec<T> {
+    pub fn using_eq(mut entries: Vec<T>, cmp: impl Fn(&T, &T) -> bool) -> Self {
+        if entries.len() >= 2 {
+            let mut dupes = HashbrownSet::new();
+            for i in 0..entries.len() {
+                for j in (i + 1)..entries.len() {
+                    let (s0, s1) = entries.split_at_mut(j);
+                    if cmp(&mut s0[i], &mut s1[0]) {
+                        _ = dupes.insert(i);
+                        break;
+                    }
+                }
+            }
+
+            if !dupes.is_empty() {
+                let mut index = 0;
+                entries.retain(|_| {
+                    let result = !dupes.contains(&index);
+                    index += 1;
+                    result
+                });
             }
         }
+
+        Self { inner: entries }
     }
 
-    if dupes.is_empty() {
-        return;
+    pub fn using_cmp(entries: Vec<T>, cmp: impl Fn(&T, &T) -> Ordering) -> Self {
+        let v = SortedAndDeduppedVec::new(entries, cmp);
+        Self { inner: v.inner }
     }
 
-    let mut index = 0;
-    unsorted_entries.retain(|_| {
-        let result = !dupes.contains(&index);
-        index += 1;
-        result
-    });
-}
+    pub fn using_hash(mut entries: Vec<T>, hasher: impl Fn(&T) -> u64, eq: impl Fn(&T, &T) -> bool) -> Self {
+        if entries.len() >= 2 {
+            let mut dupes = Vec::new();
+            let mut keep = HashbrownTable::with_capacity(entries.len());
+            for (index, value) in entries.iter().enumerate() {
+                let hash = hasher(value);
 
-/// Remove duplicates from a vector, keeping the last occurrence of each duplicate.
-///
-/// This assumes the input vector is sorted.
-pub fn dedup_by_keep_last<T, F>(sorted_entries: &mut Vec<T>, mut cmp: F)
-where
-    F: FnMut(&mut T, &mut T) -> bool,
-{
-    if sorted_entries.len() < 2 {
-        return;
-    }
+                let r = keep.find_entry(hash, |other| eq(value, &entries[*other]));
+                if let Ok(entry) = r {
+                    dupes.push(*entry.get());
+                    _ = entry.remove();
+                }
 
-    let mut dupes = HashbrownSet::new();
-    for i in 0..sorted_entries.len() - 1 {
-        let (s0, s1) = sorted_entries.split_at_mut(i + 1);
-        if cmp(&mut s0[i], &mut s1[0]) {
-            _ = dupes.insert(i);
-        }
-    }
+                _ = keep.insert_unique(hash, index, |x| hasher(&entries[*x]));
+            }
 
-    if dupes.is_empty() {
-        return;
-    }
+            if !dupes.is_empty() {
+                // remove the duplicates from the input vector
 
-    let mut index = 0;
-    sorted_entries.retain(|_| {
-        let result = !dupes.contains(&index);
-        index += 1;
-        result
-    });
-}
-
-/// Remove duplicates from a vector, keeping the last occurrence of each duplicate.
-#[mutants::skip]
-pub fn dedup_by_hash_keep_last<T, F, G>(unsorted_entries: &mut Vec<T>, hasher: F, mut eq: G)
-where
-    F: Fn(&T) -> u64,
-    G: FnMut(&T, &T) -> bool,
-{
-    if unsorted_entries.len() < 2 {
-        return;
-    }
-
-    let mut dupes = Vec::new();
-    let mut keep = HashbrownTable::with_capacity(unsorted_entries.len());
-    for (index, value) in unsorted_entries.iter().enumerate() {
-        let hash = hasher(value);
-
-        let r = keep.find_entry(hash, |other| eq(value, &unsorted_entries[*other]));
-        if let Ok(entry) = r {
-            dupes.push(*entry.get());
-            _ = entry.remove();
+                let mut index = 0;
+                entries.retain(|_| {
+                    let result = !dupes.contains(&index);
+                    index += 1;
+                    result
+                });
+            }
         }
 
-        _ = keep.insert_unique(hash, index, |x| hasher(&unsorted_entries[*x]));
+        Self { inner: entries }
     }
 
-    if dupes.is_empty() {
-        // no duplicates found, we're done
-        return;
+    pub fn into_boxed_slice(self) -> Box<[T]> {
+        self.inner.into_boxed_slice()
     }
 
-    // remove the duplicates from the input vector
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
 
-    let mut index = 0;
-    unsorted_entries.retain(|_| {
-        let result = !dupes.contains(&index);
-        index += 1;
-        result
-    });
+    pub const fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.inner.iter()
+    }
+}
+
+impl<T> From<SortedAndDeduppedVec<T>> for DeduppedVec<T> {
+    fn from(sorted_and_dedupped: SortedAndDeduppedVec<T>) -> Self {
+        Self {
+            inner: sorted_and_dedupped.inner,
+        }
+    }
+}
+
+#[expect(
+    clippy::from_over_into,
+    reason = "Implementing From is not possible in this case because of the orphan rule"
+)]
+impl<T> Into<Vec<T>> for DeduppedVec<T> {
+    fn into(self) -> Vec<T> {
+        self.inner
+    }
+}
+
+pub struct SortedAndDeduppedVec<T> {
+    inner: Vec<T>,
+}
+
+impl<T> SortedAndDeduppedVec<T> {
+    pub fn new(mut entries: Vec<T>, cmp: impl Fn(&T, &T) -> Ordering) -> Self {
+        entries.sort_by(|x, y| cmp(x, y));
+
+        if entries.len() >= 2 {
+            let mut dupes = HashbrownSet::new();
+            for i in 0..entries.len() - 1 {
+                let (s0, s1) = entries.split_at_mut(i + 1);
+                if cmp(&s0[i], &s1[0]) == Ordering::Equal {
+                    _ = dupes.insert(i);
+                }
+            }
+
+            if !dupes.is_empty() {
+                let mut index = 0;
+                entries.retain(|_| {
+                    let result = !dupes.contains(&index);
+                    index += 1;
+                    result
+                });
+            }
+        }
+
+        Self { inner: entries }
+    }
+
+    pub fn into_boxed_slice(self) -> Box<[T]> {
+        self.inner.into_boxed_slice()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.inner.iter()
+    }
+
+    pub const fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    pub const fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+#[expect(
+    clippy::from_over_into,
+    reason = "Implementing From is not possible in this case because of the orphan rule"
+)]
+impl<T> Into<Vec<T>> for SortedAndDeduppedVec<T> {
+    fn into(self) -> Vec<T> {
+        self.inner
+    }
+}
+
+impl<T> Index<usize> for SortedAndDeduppedVec<T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.inner[index]
+    }
 }
 
 /// Look for the first duplicate value if any (assumes `values` is a relatively small array).
@@ -135,14 +198,14 @@ mod tests {
 
     #[test]
     fn test_slow_dedup_by_keep_last_no_duplicates() {
-        let mut vec = vec![(1, "one"), (2, "two"), (3, "three")];
-        dedup_by_keep_last_slow(&mut vec, |x, y| x.0.eq(&y.0));
-        assert_eq!(vec, vec![(1, "one"), (2, "two"), (3, "three")]);
+        let vec = vec![(1, "one"), (2, "two"), (3, "three")];
+        let entries = DeduppedVec::using_eq(vec, |x, y| x.0.eq(&y.0));
+        assert_eq!(entries.inner, vec![(1, "one"), (2, "two"), (3, "three")]);
     }
 
     #[test]
     fn test_slow_dedup_by_keep_last_with_duplicates() {
-        let mut vec = vec![
+        let vec = vec![
             (1, "one"),
             (2, "two"),
             (2, "two duplicate"),
@@ -150,22 +213,23 @@ mod tests {
             (3, "three duplicate"),
             (3, "three last"),
         ];
-        dedup_by_keep_last_slow(&mut vec, |x, y| x.0.eq(&y.0));
-        assert_eq!(vec, vec![(1, "one"), (2, "two duplicate"), (3, "three last")]);
+
+        let entries = DeduppedVec::using_eq(vec, |x, y| x.0.eq(&y.0));
+        assert_eq!(entries.inner, vec![(1, "one"), (2, "two duplicate"), (3, "three last")]);
     }
 
     #[test]
     fn test_slow_dedup_by_keep_last_empty_vector() {
-        let mut vec: Vec<(u8, &str)> = Vec::new();
-        dedup_by_keep_last_slow(&mut vec, |x, y| x.0.eq(&y.0));
-        assert!(vec.is_empty());
+        let vec: Vec<(u32, &str)> = Vec::new();
+        let entries = DeduppedVec::using_eq(vec, |x, y| x.0.eq(&y.0));
+        assert!(entries.inner.is_empty());
     }
 
     #[test]
     fn test_slow_dedup_by_key_keep_last_all_same_entries() {
-        let mut vec = vec![(1, "one"), (1, "one duplicate"), (1, "one last")];
-        dedup_by_keep_last_slow(&mut vec, |x, y| x.0.eq(&y.0));
-        assert_eq!(vec, vec![(1, "one last")]);
+        let vec = vec![(1, "one"), (1, "one duplicate"), (1, "one last")];
+        let entries = DeduppedVec::using_eq(vec, |x, y| x.0.eq(&y.0));
+        assert_eq!(entries.inner, vec![(1, "one last")]);
     }
 
     #[test]

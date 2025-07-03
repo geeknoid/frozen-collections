@@ -5,6 +5,7 @@ use crate::hash_tables::HashTableSlot;
 use crate::traits::{CollectionMagnitude, Len, SmallCollection};
 
 use crate::hash_tables::decl_macros::hash_table_funcs;
+use crate::utils::DeduppedVec;
 #[cfg(not(feature = "std"))]
 use {alloc::boxed::Box, alloc::string::String, alloc::string::ToString, alloc::vec::Vec};
 
@@ -37,10 +38,7 @@ where
     ///
     /// This function assumes that there are no duplicates in the input vector.
     #[expect(clippy::unwrap_in_result, reason = "Guaranteed not to happen")]
-    pub(crate) fn new<F>(mut entries: Vec<T>, hash: F) -> Result<Self, String>
-    where
-        F: Fn(&T) -> u64,
-    {
+    pub(crate) fn new(entries: DeduppedVec<T>, hash: impl Fn(&T) -> u64) -> Result<Self, String> {
         if entries.is_empty() {
             return Ok(Self::default());
         } else if entries.len() > CM::MAX_CAPACITY {
@@ -50,6 +48,7 @@ where
         let num_hash_slots = analyze_hash_codes(entries.iter().map(&hash)).num_hash_slots;
 
         let mut prep_items = Vec::with_capacity(entries.len());
+        let mut entries: Vec<T> = entries.into();
         while let Some(entry) = entries.pop() {
             let hash_code = hash(&entry);
 
@@ -108,6 +107,7 @@ where
         self.entries.len()
     }
 
+    #[cfg(any(feature = "emit", feature = "macros"))]
     pub(crate) fn has_collisions(&self) -> bool {
         self.slots.iter().any(|slot| {
             let min: usize = slot.min_index.into();

@@ -6,7 +6,7 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{LargeCollection, Len, Map, MapExtras, MapIteration, MapQuery};
-use crate::utils::dedup_by_hash_keep_last;
+use crate::utils::DeduppedVec;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::{BuildHasher, Hash};
 use core::ops::Index;
@@ -63,14 +63,14 @@ where
         clippy::missing_panics_doc,
         reason = "Guaranteed not to panic because the map is a LargeCollection"
     )]
-    pub fn with_hasher(mut entries: Vec<(K, V)>, bh: BH) -> Self
+    pub fn with_hasher(entries: Vec<(K, V)>, bh: BH) -> Self
     where
         K: Eq + Hash,
     {
-        dedup_by_hash_keep_last(&mut entries, |x| bh.hash_one(&x.0), |x, y| x.0 == y.0);
+        let entries = DeduppedVec::using_hash(entries, |x| bh.hash_one(&x.0), |x, y| x.0 == y.0);
 
         Self {
-            map_impl: HashMap::with_hasher_half_baked(entries, BridgeHasher::new(bh)).unwrap(),
+            map_impl: HashMap::from_dedupped(entries, BridgeHasher::new(bh)).unwrap(),
         }
     }
 
