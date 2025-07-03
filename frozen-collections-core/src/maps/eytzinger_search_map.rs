@@ -45,7 +45,7 @@ impl<K, V> EytzingerSearchMap<K, V> {
     /// Creates a frozen map.
     #[must_use]
     pub(crate) fn from_sorted_and_dedupped(entries: SortedAndDeduppedVec<(K, V)>) -> Self {
-        let mut entries: Vec<(K, V)> = entries.into();
+        let mut entries = entries.into_vec();
         eytzinger_sort(&mut entries);
         Self {
             entries: entries.into_boxed_slice(),

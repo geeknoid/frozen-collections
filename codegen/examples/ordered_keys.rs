@@ -7,7 +7,7 @@ use alloc::string::{String, ToString};
 use alloc::vec;
 use core::hint::black_box;
 use frozen_collections::FzOrderedMap;
-use frozen_collections::maps::{BinarySearchMap, EytzingerSearchMap};
+use frozen_collections::maps::EytzingerSearchMap;
 
 #[derive(Ord, PartialOrd, PartialEq, Eq, Clone)]
 struct MyKey {
@@ -63,11 +63,9 @@ fn main() {
 
     let fm = FzOrderedMap::new(v.clone());
     let esm = EytzingerSearchMap::new(v.clone());
-    let bsm = BinarySearchMap::new(v.clone());
 
     _ = black_box(call_fz_ordered_map(&fm, &v[0].0));
     _ = black_box(call_eytzinger_search_map(&esm, &v[0].0));
-    _ = black_box(call_binary_search_map(&bsm, &v[0].0));
 }
 
 #[inline(never)]
@@ -77,10 +75,5 @@ fn call_fz_ordered_map(map: &FzOrderedMap<MyKey, i32>, key: &MyKey) -> bool {
 
 #[inline(never)]
 fn call_eytzinger_search_map(map: &EytzingerSearchMap<MyKey, i32>, key: &MyKey) -> bool {
-    map.contains_key(key)
-}
-
-#[inline(never)]
-fn call_binary_search_map(map: &BinarySearchMap<MyKey, i32>, key: &MyKey) -> bool {
     map.contains_key(key)
 }

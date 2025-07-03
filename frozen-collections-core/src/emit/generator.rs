@@ -3,7 +3,7 @@
 use crate::emit::collection_entry::CollectionEntry;
 use crate::hash_tables::HashTable;
 use crate::traits::{CollectionMagnitude, Hasher, LargeCollection, MediumCollection, Scalar, SmallCollection};
-use crate::utils::{DeduppedVec, SortedAndDeduppedVec, eytzinger_sort};
+use crate::utils::{DeduppedVec, SortedAndDeduppedVec};
 use alloc::vec;
 use proc_macro2::{Literal, TokenStream};
 use quote::{ToTokens, quote};
@@ -133,11 +133,11 @@ impl Generator {
     where
         K: Scalar,
     {
-        let entries: Vec<CollectionEntry<K>> = entries.into();
+        let entries = entries.into_vec();
 
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = Self::inject_underscores(self.len.to_token_stream());
+        let len = &self.len;
         let min_key = Self::inject_underscores(entries[0].key.index().to_token_stream());
         let max_key = Self::inject_underscores(entries[entries.len() - 1].key.index().to_token_stream());
 
@@ -162,12 +162,12 @@ impl Generator {
 
     #[cfg(feature = "emit")]
     pub(super) fn gen_inline_eytzinger_search<K>(&self, entries: SortedAndDeduppedVec<CollectionEntry<K>>) -> Output {
-        let mut entries: Vec<CollectionEntry<K>> = entries.into();
-        eytzinger_sort(&mut entries);
+        let mut entries = entries.into_vec();
+        crate::utils::eytzinger_sort(&mut entries);
 
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = Self::inject_underscores(self.len.to_token_stream());
+        let len = &self.len;
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineEytzingerSearchMap);
         let mut generics = quote!(<#key_type, #value_type, #len>);
@@ -200,7 +200,7 @@ impl Generator {
     {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = Self::inject_underscores(self.len.to_token_stream());
+        let len = &self.len;
         let (ht, magnitude, num_slots, collisions) = self.gen_inline_hash_table_components(entries, hasher);
 
         let mut ty = if collisions {
@@ -229,16 +229,40 @@ impl Generator {
     }
 
     pub(super) fn gen_inline_scan<K>(&self, entries: DeduppedVec<CollectionEntry<K>>) -> Output {
-        let entries: Vec<CollectionEntry<K>> = entries.into();
+        let entries = entries.into_vec();
 
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = Self::inject_underscores(self.len.to_token_stream());
+        let len = &self.len;
 
         let mut ty = quote!(::frozen_collections::inline_maps::InlineScanMap);
         let mut generics = quote!(<#key_type, #value_type, #len>);
         let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new_raw([
+            #(
+                #entries,
+            )*
+        ]));
+
+        if self.gen_set {
+            ty = quote!(::frozen_collections::inline_sets::InlineScanSet);
+            generics = quote!(<#key_type, #len>);
+            type_sig = quote!(#ty::#generics);
+            ctor = quote!(#type_sig::new(#ctor));
+        }
+
+        Output { ctor, type_sig }
+    }
+
+    pub fn gen_inline_scan_vec<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
+        let key_type = &self.key_type;
+        let value_type = &self.value_type;
+        let len = &self.len;
+
+        let mut ty = quote!(::frozen_collections::inline_maps::InlineScanMap);
+        let mut generics = quote!(<#key_type, #value_type, #len>);
+        let mut type_sig = quote!(#ty::#generics);
+        let mut ctor = quote!(#type_sig::new(vec![
             #(
                 #entries,
             )*
@@ -270,11 +294,11 @@ impl Generator {
             lookup[index_in_lookup] = index_in_entries;
         }
 
-        let entries: Vec<CollectionEntry<K>> = entries.into();
+        let entries = entries.into_vec();
 
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = Self::inject_underscores(self.len.to_token_stream());
+        let len = &self.len;
         let magnitude = Self::collection_magnitude(count);
         let lookup = lookup.iter().map(|x| Literal::usize_unsuffixed(*x));
         let num_slots = Literal::usize_unsuffixed(lookup.len());
@@ -303,29 +327,6 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_scan<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
-        let key_type = &self.key_type;
-        let value_type = &self.value_type;
-
-        let mut ty = quote!(::frozen_collections::maps::ScanMap);
-        let mut generics = quote!(<#key_type, #value_type>);
-        let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new(vec![
-            #(
-                #entries,
-            )*
-        ]));
-
-        if self.gen_set {
-            ty = quote!(::frozen_collections::sets::ScanSet);
-            generics = quote!(<#key_type>);
-            type_sig = quote!(#ty::#generics);
-            ctor = quote!(#type_sig::new(#ctor));
-        }
-
-        Output { ctor, type_sig }
-    }
-
     fn gen_inline_hash_table_components<K, H>(
         &self,
         entries: DeduppedVec<CollectionEntry<K>>,
@@ -336,7 +337,7 @@ impl Generator {
     {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
-        let len = Self::inject_underscores(self.len.to_token_stream());
+        let len = &self.len;
 
         let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash_one(&x.key)).unwrap();
         let collisions = ht.has_collisions();

@@ -76,7 +76,17 @@ impl<T> DeduppedVec<T> {
     }
 
     pub fn into_boxed_slice(self) -> Box<[T]> {
-        self.inner.into_boxed_slice()
+        self.inner.into()
+    }
+
+    pub fn into_vec(self) -> Vec<T> {
+        self.inner
+    }
+
+    pub fn into_array<const N: usize>(self) -> [T; N] {
+        self.inner
+            .try_into()
+            .unwrap_or_else(|_| panic!("Cannot convert to array of size {N}: length mismatch"))
     }
 
     pub const fn is_empty(&self) -> bool {
@@ -97,16 +107,6 @@ impl<T> From<SortedAndDeduppedVec<T>> for DeduppedVec<T> {
         Self {
             inner: sorted_and_dedupped.inner,
         }
-    }
-}
-
-#[expect(
-    clippy::from_over_into,
-    reason = "Implementing From is not possible in this case because of the orphan rule"
-)]
-impl<T> Into<Vec<T>> for DeduppedVec<T> {
-    fn into(self) -> Vec<T> {
-        self.inner
     }
 }
 
@@ -141,7 +141,11 @@ impl<T> SortedAndDeduppedVec<T> {
     }
 
     pub fn into_boxed_slice(self) -> Box<[T]> {
-        self.inner.into_boxed_slice()
+        self.inner.into()
+    }
+
+    pub fn into_vec(self) -> Vec<T> {
+        self.inner
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
@@ -154,16 +158,6 @@ impl<T> SortedAndDeduppedVec<T> {
 
     pub const fn len(&self) -> usize {
         self.inner.len()
-    }
-}
-
-#[expect(
-    clippy::from_over_into,
-    reason = "Implementing From is not possible in this case because of the orphan rule"
-)]
-impl<T> Into<Vec<T>> for SortedAndDeduppedVec<T> {
-    fn into(self) -> Vec<T> {
-        self.inner
     }
 }
 

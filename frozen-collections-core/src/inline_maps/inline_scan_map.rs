@@ -5,9 +5,13 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery};
+use crate::utils::DeduppedVec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Equivalent;
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 #[cfg(feature = "serde")]
 use {
@@ -32,6 +36,19 @@ pub struct InlineScanMap<K, V, const SZ: usize> {
 }
 
 impl<K, V, const SZ: usize> InlineScanMap<K, V, SZ> {
+    /// Creates a frozen map.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number of entries in the array differs from the size of the map as specified by the `SZ` generic argument.
+    #[must_use]
+    pub fn new(entries: Vec<(K, V)>) -> Self
+    where
+        K: Eq,
+    {
+        Self::new_raw(DeduppedVec::using_eq(entries, |x, y| x.0.eq(&y.0)).into_array())
+    }
+
     /// Creates a frozen map.
     #[must_use]
     pub const fn new_raw(processed_entries: [(K, V); SZ]) -> Self {
