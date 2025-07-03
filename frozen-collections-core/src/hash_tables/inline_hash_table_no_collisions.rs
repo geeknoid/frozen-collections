@@ -38,7 +38,7 @@ where
     CM: CollectionMagnitude,
 {
     #[inline]
-    pub(crate) fn find(&self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&T> {
+    pub(crate) fn find(&self, hash_code: u64, eq: impl Fn(&T) -> bool) -> Option<&T> {
         #[expect(clippy::cast_possible_truncation, reason = "Truncation on 32 bit systems is fine")]
         let hash_slot_index = (hash_code & self.mask) as usize;
 
@@ -58,7 +58,7 @@ where
     }
 
     #[inline]
-    pub(crate) fn find_mut(&mut self, hash_code: u64, mut eq: impl FnMut(&T) -> bool) -> Option<&mut T> {
+    pub(crate) fn find_mut(&mut self, hash_code: u64, eq: impl Fn(&T) -> bool) -> Option<&mut T> {
         #[expect(clippy::cast_possible_truncation, reason = "Truncation on 32 bit systems is fine")]
         let hash_slot_index = (hash_code & self.mask) as usize;
 

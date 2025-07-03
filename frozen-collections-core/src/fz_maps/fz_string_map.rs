@@ -4,7 +4,7 @@ use crate::hashers::{BridgeHasher, LeftRangeHasher, RightRangeHasher};
 use crate::maps::decl_macros::{debug_trait_funcs, index_trait_funcs, len_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs};
 use crate::maps::{HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{LargeCollection, Len, Map, MapExtras, MapIteration, MapQuery};
-use crate::utils::dedup_by_keep_last;
+use crate::utils::DeduppedVec;
 use core::array;
 use core::fmt::{Debug, Formatter, Result};
 use core::hash::BuildHasher;
@@ -59,34 +59,33 @@ impl<V, BH> FzStringMap<Box<str>, V, BH> {
         clippy::missing_panics_doc,
         reason = "Guaranteed not to panic because the map is a LargeCollection"
     )]
-    pub fn with_hasher(mut entries: Vec<(impl AsRef<str>, V)>, bh: BH) -> Self
+    pub fn with_hasher(entries: Vec<(impl AsRef<str>, V)>, bh: BH) -> Self
     where
         BH: BuildHasher,
     {
-        entries.sort_by(|x, y| x.0.as_ref().cmp(y.0.as_ref()));
-        dedup_by_keep_last(&mut entries, |x, y| x.0.as_ref().eq(y.0.as_ref()));
-
         let entries: Vec<(Box<str>, V)> = entries
             .into_iter()
             .map(|(k, v)| (k.as_ref().to_string().into_boxed_str(), v))
             .collect();
+
+        let entries = DeduppedVec::using_cmp(entries, |x, y| x.0.as_ref().cmp(y.0.as_ref()));
 
         Self {
             map_impl: {
                 match analyze_slice_keys(entries.iter().map(|x| x.0.as_ref().as_bytes()), &bh) {
                     SliceKeyAnalysisResult::General | SliceKeyAnalysisResult::Length => {
                         let h = BridgeHasher::new(bh);
-                        MapTypes::Hash(HashMap::with_hasher_half_baked(entries, h).unwrap())
+                        MapTypes::Hash(HashMap::from_dedupped(entries, h).unwrap())
                     }
 
                     SliceKeyAnalysisResult::LeftHandSubslice(range) => {
                         let h = LeftRangeHasher::new(bh, range);
-                        MapTypes::LeftRange(HashMap::with_hasher_half_baked(entries, h).unwrap())
+                        MapTypes::LeftRange(HashMap::from_dedupped(entries, h).unwrap())
                     }
 
                     SliceKeyAnalysisResult::RightHandSubslice(range) => {
                         let h = RightRangeHasher::new(bh, range);
-                        MapTypes::RightRange(HashMap::with_hasher_half_baked(entries, h).unwrap())
+                        MapTypes::RightRange(HashMap::from_dedupped(entries, h).unwrap())
                     }
                 }
             },

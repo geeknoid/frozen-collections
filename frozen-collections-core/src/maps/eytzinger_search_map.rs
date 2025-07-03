@@ -5,7 +5,7 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery};
-use crate::utils::{dedup_by_keep_last, eytzinger_search_by, eytzinger_sort};
+use crate::utils::{SortedAndDeduppedVec, eytzinger_search_by, eytzinger_sort};
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
@@ -34,21 +34,21 @@ pub struct EytzingerSearchMap<K, V> {
 impl<K, V> EytzingerSearchMap<K, V> {
     /// Creates a frozen map.
     #[must_use]
-    pub fn new(mut entries: Vec<(K, V)>) -> Self
+    pub fn new(entries: Vec<(K, V)>) -> Self
     where
         K: Ord,
     {
-        entries.sort_by(|x, y| x.0.cmp(&y.0));
-        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
-        eytzinger_sort(&mut entries);
-        Self::new_raw(entries)
+        let entries = SortedAndDeduppedVec::new(entries, |x, y| x.0.cmp(&y.0));
+        Self::from_sorted_and_dedupped(entries)
     }
 
     /// Creates a frozen map.
     #[must_use]
-    pub(crate) fn new_raw(processed_entries: Vec<(K, V)>) -> Self {
+    pub(crate) fn from_sorted_and_dedupped(entries: SortedAndDeduppedVec<(K, V)>) -> Self {
+        let mut entries: Vec<(K, V)> = entries.into();
+        eytzinger_sort(&mut entries);
         Self {
-            entries: processed_entries.into_boxed_slice(),
+            entries: entries.into_boxed_slice(),
         }
     }
 

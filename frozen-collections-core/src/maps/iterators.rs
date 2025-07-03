@@ -26,16 +26,12 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
         self.inner.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.inner.count()
     }
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (k, v)| f(acc, (k, v)))
@@ -86,16 +82,12 @@ impl<'a, K, V> Iterator for IterMut<'a, K, V> {
         self.inner.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.inner.count()
     }
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (k, v)| f(acc, (k, v)))
@@ -149,7 +141,6 @@ impl<'a, K, V> Iterator for Keys<'a, K, V> {
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (k, _)| f(acc, k))
@@ -208,7 +199,6 @@ impl<'a, K, V> Iterator for Values<'a, K, V> {
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (_, v)| f(acc, v))
@@ -262,16 +252,12 @@ impl<'a, K, V> Iterator for ValuesMut<'a, K, V> {
         self.inner.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.inner.count()
     }
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (_, v)| f(acc, v))
@@ -320,16 +306,12 @@ impl<K, V> Iterator for IntoIter<K, V> {
         self.inner.size_hint()
     }
 
-    fn count(self) -> usize
-    where
-        Self: Sized,
-    {
+    fn count(self) -> usize {
         self.inner.count()
     }
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (k, v)| f(acc, (k, v)))
@@ -385,7 +367,6 @@ impl<K, V> Iterator for IntoKeys<K, V> {
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (k, _)| f(acc, k))
@@ -431,7 +412,6 @@ impl<K, V> Iterator for IntoValues<K, V> {
 
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
-        Self: Sized,
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (_, v)| f(acc, v))

@@ -1,16 +1,13 @@
-use crate::DefaultBuildHasher;
 use crate::traits::Hasher;
 use crate::utils::cold;
 use core::hash::{BuildHasher, Hash};
-
-#[cfg(not(feature = "std"))]
-use alloc::string::String;
+use foldhash::fast::FixedState;
 
 /// Hashes a portion of a right-aligned slice.
 ///
 #[doc = include_str!("../doc_snippets/private_api_warning.md")]
 #[derive(Clone, Debug)]
-pub struct InlineRightRangeHasher<const RANGE_START: usize, const RANGE_END: usize, BH = DefaultBuildHasher> {
+pub struct InlineRightRangeHasher<const RANGE_START: usize, const RANGE_END: usize, BH = FixedState> {
     bh: BH,
 }
 
@@ -81,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_right_range_hasher_hash_slice() {
-        let hasher = InlineRightRangeHasher::<1, 3>::new(DefaultBuildHasher::default());
+        let hasher = InlineRightRangeHasher::<1, 3>::new(FixedState::default());
         assert_eq!(
             hasher.hash_one(vec![1, 2, 3, 4].as_slice()),
             hasher.bh.hash_one(vec![2, 3].as_slice())
@@ -95,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_right_range_hasher_hash_string() {
-        let hasher = InlineRightRangeHasher::<3, 5>::new(DefaultBuildHasher::default());
+        let hasher = InlineRightRangeHasher::<3, 5>::new(FixedState::default());
         assert_eq!(hasher.hash_one(&"abcdef".to_string()), hasher.bh.hash_one(b"bc"));
         assert_eq!(hasher.hash_one(&"abcdefghijklmn".to_string()), hasher.bh.hash_one(b"jk"));
         assert_eq!(hasher.hash_one(&"a".to_string()), 0);
@@ -103,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_right_range_hasher_hash_str_ref() {
-        let hasher = InlineRightRangeHasher::<1, 3>::new(DefaultBuildHasher::default());
+        let hasher = InlineRightRangeHasher::<1, 3>::new(FixedState::default());
         assert_eq!(hasher.hash_one(&"abcd"), hasher.bh.hash_one(b"bc"));
         assert_eq!(hasher.hash_one(&"abcdefghijklmn"), hasher.bh.hash_one(b"lm"));
         assert_eq!(hasher.hash_one(&"a"), 0);
@@ -111,7 +108,7 @@ mod tests {
 
     #[test]
     fn test_right_range_hasher_hash_str() {
-        let hasher = InlineRightRangeHasher::<1, 3>::new(DefaultBuildHasher::default());
+        let hasher = InlineRightRangeHasher::<1, 3>::new(FixedState::default());
         assert_eq!(hasher.hash_one("abcd"), hasher.bh.hash_one(b"bc"));
         assert_eq!(hasher.hash_one("abcdefghijklmn"), hasher.bh.hash_one(b"lm"));
         assert_eq!(hasher.hash_one("a"), 0);

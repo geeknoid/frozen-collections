@@ -9,7 +9,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.7.0"
+version = "0.8.0"
 edition = "2024"
 categories = ["data-structures", "no-std"]
 keywords = ["map", "set", "collection"]
@@ -20,15 +20,15 @@ readme = "README.md"
 rust-version = "1.87.0"
 
 [workspace.dependencies]
-frozen-collections = { version = "0.7.0", path = "frozen-collections", default-features = false }
-frozen-collections-core = { version = "0.7.0", path = "frozen-collections-core", default-features = false }
-frozen-collections-macros = { version = "0.7.0", path = "frozen-collections-macros", default-features = false }
+frozen-collections = { version = "0.8.0", path = "frozen-collections", default-features = false }
+frozen-collections-core = { version = "0.8.0", path = "frozen-collections-core", default-features = false }
+frozen-collections-macros = { version = "0.8.0", path = "frozen-collections-macros", default-features = false }
 
 const-random = "0.1.18"
 criterion = "0.6.0"
 equivalent = "1.0.2"
 foldhash = { version = "0.1.5", default-features = false }
-hashbrown = { version = "0.15.3", default-features = false }
+hashbrown = { version = "0.15.4", default-features = false }
 mutants = "0.0.3"
 proc-macro-error2 = "2.0.1"
 proc-macro2 = "1.0.95"
@@ -37,7 +37,7 @@ rand = "0.9.1"
 rand_chacha = "0.9.0"
 serde = { version = "1.0.219", default-features = false }
 serde_json = "1.0.140"
-syn = { version = "2.0.101", default-features = false }
+syn = { version = "2.0.104", default-features = false }
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"

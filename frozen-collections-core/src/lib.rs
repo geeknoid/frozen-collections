@@ -26,11 +26,8 @@ mod utils;
 #[cfg(feature = "macros")]
 pub mod macros;
 
-#[cfg(feature = "emit")]
+#[cfg(any(feature = "emit", feature = "macros"))]
 pub mod emit;
-
-#[cfg(all(feature = "macros", not(feature = "emit")))]
-mod emit;
 
 /// The default hash builder used by the frozen collections.
 #[cfg(test)]

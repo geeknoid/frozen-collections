@@ -5,7 +5,7 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery};
-use crate::utils::dedup_by_keep_last_slow;
+use crate::utils::DeduppedVec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Equivalent;
@@ -33,19 +33,18 @@ pub struct ScanMap<K, V> {
 impl<K, V> ScanMap<K, V> {
     /// Creates a frozen map.
     #[must_use]
-    pub fn new(mut entries: Vec<(K, V)>) -> Self
+    pub fn new(entries: Vec<(K, V)>) -> Self
     where
         K: Eq,
     {
-        dedup_by_keep_last_slow(&mut entries, |x, y| x.0.eq(&y.0));
-        Self::new_raw(entries)
+        Self::from_dedupped(DeduppedVec::using_eq(entries, |x, y| x.0.eq(&y.0)))
     }
 
     /// Creates a frozen map.
     #[must_use]
-    pub(crate) fn new_raw(processed_entries: Vec<(K, V)>) -> Self {
+    pub(crate) fn from_dedupped(entries: DeduppedVec<(K, V)>) -> Self {
         Self {
-            entries: processed_entries.into_boxed_slice(),
+            entries: entries.into_boxed_slice(),
         }
     }
 

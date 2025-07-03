@@ -5,7 +5,7 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery, Scalar};
-use crate::utils::dedup_by_keep_last;
+use crate::utils::SortedAndDeduppedVec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
@@ -39,13 +39,11 @@ impl<K, V> DenseScalarLookupMap<K, V> {
     ///
     /// Fails if all the keys in the input vector, after sorting and dedupping,
     /// don't represent a continuous range of values.
-    pub fn new(mut entries: Vec<(K, V)>) -> core::result::Result<Self, String>
+    pub fn new(entries: Vec<(K, V)>) -> core::result::Result<Self, String>
     where
         K: Scalar,
     {
-        entries.sort_by_key(|x| x.0);
-        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
-
+        let entries = SortedAndDeduppedVec::new(entries, |x, y| x.0.cmp(&y.0));
         if entries.is_empty() {
             return Ok(Self::default());
         }
@@ -54,7 +52,7 @@ impl<K, V> DenseScalarLookupMap<K, V> {
         let max = entries[entries.len() - 1].0.index();
 
         if entries.len() == max - min + 1 {
-            Ok(Self::new_raw(entries))
+            Ok(Self::from_sorted_and_dedupped(entries))
         } else {
             Err("keys must be in a contiguous range <= usize::MAX in size".to_string())
         }
@@ -65,14 +63,14 @@ impl<K, V> DenseScalarLookupMap<K, V> {
     /// This function assumes that `min` <= `max` and that the vector is sorted according to the
     /// order of the [`Ord`] trait.
     #[must_use]
-    pub(crate) fn new_raw(processed_entries: Vec<(K, V)>) -> Self
+    pub(crate) fn from_sorted_and_dedupped(entries: SortedAndDeduppedVec<(K, V)>) -> Self
     where
         K: Scalar,
     {
         Self {
-            min: processed_entries[0].0.index(),
-            max: processed_entries[processed_entries.len() - 1].0.index(),
-            entries: processed_entries.into_boxed_slice(),
+            min: entries[0].0.index(),
+            max: entries[entries.len() - 1].0.index(),
+            entries: entries.into_boxed_slice(),
         }
     }
 

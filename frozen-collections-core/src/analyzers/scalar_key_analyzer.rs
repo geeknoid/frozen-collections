@@ -15,10 +15,7 @@ pub enum ScalarKeyAnalysisResult {
 
 /// Look for well-known patterns we can optimize for with integer keys.
 #[mutants::skip]
-pub fn analyze_scalar_keys<I>(keys: I) -> ScalarKeyAnalysisResult
-where
-    I: Iterator<Item: Scalar>,
-{
+pub fn analyze_scalar_keys(keys: impl Iterator<Item: Scalar>) -> ScalarKeyAnalysisResult {
     const MAX_SPARSE_MULTIPLIER: usize = 10;
     const ALWAYS_SPARSE_THRESHOLD: usize = 128;
 

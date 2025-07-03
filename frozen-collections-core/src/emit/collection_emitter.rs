@@ -1,20 +1,19 @@
 use crate::analyzers::{ScalarKeyAnalysisResult, SliceKeyAnalysisResult, analyze_scalar_keys, analyze_slice_keys};
 use crate::emit::collection_entry::CollectionEntry;
 use crate::emit::generator::{Generator, Output};
-use crate::hashers::{LeftRangeHasher, LengthHasher, RightRangeHasher, ScalarHasher};
-use crate::traits::Scalar;
-use crate::utils::dedup_by_keep_last;
-use core::hash::BuildHasher;
-use foldhash::fast::RandomState;
-use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
+use crate::hashers::{BridgeHasher, LeftRangeHasher, LengthHasher, RightRangeHasher, ScalarHasher};
+use crate::traits::{Hasher, Scalar};
+use crate::utils::{DeduppedVec, SortedAndDeduppedVec};
+use foldhash::fast::FixedState;
+use proc_macro2::{Literal, TokenStream};
+use quote::{ToTokens, format_ident, quote};
 use syn::{Type, Visibility, parse_quote};
-
-#[cfg(not(feature = "std"))]
-use {alloc::string::String, alloc::string::ToString, alloc::vec::Vec};
 
 #[cfg(feature = "macros")]
 use crate::emit::NonLiteralKey;
+
+#[cfg(not(feature = "std"))]
+use {alloc::string::String, alloc::string::ToString, alloc::vec::Vec};
 
 /// Emits frozen collection source code for use within a Rust build script.
 ///
@@ -219,6 +218,16 @@ impl CollectionEmitter {
         self
     }
 
+    #[cfg(test)]
+    const fn get_seed() -> u64 {
+        0x_dead_beef
+    }
+
+    #[cfg(not(test))]
+    const fn get_seed() -> u64 {
+        const_random::const_random!(u64)
+    }
+
     /// Emits a frozen hash collection.
     ///
     /// If the emitter's value type has been set, this emits a map. Otherwise, it emits a set.
@@ -230,16 +239,23 @@ impl CollectionEmitter {
     where
         K: core::hash::Hash + Eq,
     {
-        let hasher = RandomState::default();
-        crate::utils::dedup_by_hash_keep_last(&mut entries, |x| hasher.hash_one(&x.key), |x, y| x.key == y.key);
-
         self.clean_values(&mut entries);
+
+        let seed = Self::get_seed();
+        let hasher = BridgeHasher::new(FixedState::with_seed(seed));
+        let entries = DeduppedVec::using_hash(entries, |x| hasher.hash_one(&x.key), |x, y| x.key == y.key);
 
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
             generator.gen_inline_scan(entries)
         } else {
-            generator.gen_inline_hash_with_bridge(entries)
+            let seed = Generator::inject_underscores(seed.to_token_stream());
+            generator.gen_inline_hash(
+                entries,
+                &hasher,
+                &quote!(::frozen_collections::hashers::BridgeHasher<::frozen_collections::foldhash::FixedState>),
+                &quote!(::frozen_collections::hashers::BridgeHasher::new(::frozen_collections::foldhash::FixedState::with_seed(#seed))),
+            )
         };
 
         Ok(self.postflight(output))
@@ -257,13 +273,13 @@ impl CollectionEmitter {
     where
         K: Ord,
     {
-        entries.sort_by(|x, y| x.key.cmp(&y.key));
-        dedup_by_keep_last(&mut entries, |x, y| x.key == y.key);
         self.clean_values(&mut entries);
+
+        let entries = SortedAndDeduppedVec::new(entries, |x, y| x.key.cmp(&y.key));
 
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            generator.gen_inline_scan(entries)
+            generator.gen_inline_scan(entries.into())
         } else {
             generator.gen_inline_eytzinger_search(entries)
         };
@@ -282,10 +298,9 @@ impl CollectionEmitter {
     where
         K: Scalar,
     {
-        entries.sort_by(|x, y| x.key.cmp(&y.key));
-        dedup_by_keep_last(&mut entries, |x, y| x.key == y.key);
-
         self.clean_values(&mut entries);
+
+        let entries = SortedAndDeduppedVec::new(entries, |x, y| x.key.cmp(&y.key));
 
         let analysis = analyze_scalar_keys(entries.iter().map(|x| x.key));
 
@@ -295,9 +310,14 @@ impl CollectionEmitter {
             ScalarKeyAnalysisResult::SparseRange => generator.gen_inline_sparse_scalar_lookup(entries),
             ScalarKeyAnalysisResult::General => {
                 if entries.len() < 8 {
-                    generator.gen_inline_scan(entries)
+                    generator.gen_inline_scan(entries.into())
                 } else {
-                    generator.gen_inline_hash_with_hasher(entries, &ScalarHasher {}, &quote! { ScalarHasher })
+                    generator.gen_inline_hash(
+                        entries.into(),
+                        &ScalarHasher,
+                        &quote! { ::frozen_collections::hashers::ScalarHasher },
+                        &quote! { ::frozen_collections::hashers::ScalarHasher {} },
+                    )
                 }
             }
         };
@@ -313,10 +333,9 @@ impl CollectionEmitter {
     ///
     /// This function fails if the emitter was misconfigured.
     pub fn emit_string_collection(self, mut entries: Vec<CollectionEntry<String>>) -> Result<TokenStream, String> {
-        entries.sort_by(|x, y| x.key.cmp(&y.key));
-        dedup_by_keep_last(&mut entries, |x, y| x.key == y.key);
-
         self.clean_values(&mut entries);
+
+        let entries = DeduppedVec::using_cmp(entries, |x, y| x.key.cmp(&y.key));
 
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
@@ -324,25 +343,57 @@ impl CollectionEmitter {
         } else {
             let iter = entries.iter().map(|x| x.key.as_bytes());
 
-            let bh = foldhash::fast::FixedState::with_seed(generator.seed);
+            let seed = Self::get_seed();
+            let bh = FixedState::with_seed(seed);
             let analysis = analyze_slice_keys(iter, &bh);
 
             match analysis {
                 SliceKeyAnalysisResult::LeftHandSubslice(range) => {
                     let hasher = LeftRangeHasher::new(bh, range.clone());
-                    generator.gen_inline_hash_with_range(entries, range, &quote!(InlineLeftRangeHasher), &hasher)
+                    let seed = Generator::inject_underscores(seed.to_token_stream());
+                    let range_start = Generator::inject_underscores(Literal::usize_unsuffixed(range.start).to_token_stream());
+                    let range_end = Generator::inject_underscores(Literal::usize_unsuffixed(range.end).to_token_stream());
+
+                    generator.gen_inline_hash(
+                        entries,
+                        &hasher,
+                        &quote! {::frozen_collections::hashers::InlineLeftRangeHasher::<#range_start, #range_end, ::frozen_collections::foldhash::FixedState> },
+                        &quote! {::frozen_collections::hashers::InlineLeftRangeHasher::<#range_start, #range_end, ::frozen_collections::foldhash::FixedState>::new(::frozen_collections::foldhash::FixedState::with_seed(#seed))})
                 }
 
                 SliceKeyAnalysisResult::RightHandSubslice(range) => {
                     let hasher = RightRangeHasher::new(bh, range.clone());
-                    generator.gen_inline_hash_with_range(entries, range, &quote!(InlineRightRangeHasher), &hasher)
+                    let seed = Generator::inject_underscores(seed.to_token_stream());
+                    let range_start = Generator::inject_underscores(Literal::usize_unsuffixed(range.start).to_token_stream());
+                    let range_end = Generator::inject_underscores(Literal::usize_unsuffixed(range.end).to_token_stream());
+
+                    generator.gen_inline_hash(
+                        entries,
+                        &hasher,
+                        &quote! {::frozen_collections::hashers::InlineRightRangeHasher::<#range_start, #range_end, ::frozen_collections::foldhash::FixedState> },
+                        &quote! {::frozen_collections::hashers::InlineRightRangeHasher::<#range_start, #range_end, ::frozen_collections::foldhash::FixedState>::new(::frozen_collections::foldhash::FixedState::with_seed(#seed))})
                 }
 
                 SliceKeyAnalysisResult::Length => {
-                    generator.gen_inline_hash_with_hasher(entries, &LengthHasher {}, &quote! { LengthHasher })
+                    let hasher = LengthHasher;
+
+                    generator.gen_inline_hash(
+                        entries,
+                        &hasher,
+                        &quote! { ::frozen_collections::hashers::LengthHasher },
+                        &quote! { ::frozen_collections::hashers::LengthHasher },
+                    )
                 }
 
-                SliceKeyAnalysisResult::General => generator.gen_inline_hash_with_bridge(entries),
+                SliceKeyAnalysisResult::General => {
+                    let hasher = BridgeHasher::new(bh);
+                    let seed = Generator::inject_underscores(seed.to_token_stream());
+
+                    generator.gen_inline_hash(entries,
+                                              &hasher,
+                                              &quote!(::frozen_collections::hashers::BridgeHasher<::frozen_collections::foldhash::FixedState>),
+                                              &quote!(::frozen_collections::hashers::BridgeHasher::new(::frozen_collections::foldhash::FixedState::with_seed(#seed))))
+                }
             }
         };
 
@@ -353,9 +404,9 @@ impl CollectionEmitter {
     pub(crate) fn emit_hash_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            generator.gen_inline_scan(entries)
+            generator.gen_scan(entries)
         } else {
-            generator.gen_hash_with_bridge(entries)
+            generator.gen_fz_hash(entries)
         };
 
         Ok(self.postflight(output))
@@ -365,9 +416,9 @@ impl CollectionEmitter {
     pub(crate) fn emit_ordered_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            generator.gen_inline_scan(entries)
+            generator.gen_scan(entries)
         } else {
-            generator.gen_eytzinger_search(entries)
+            generator.gen_fz_ordered(entries)
         };
 
         Ok(self.postflight(output))
@@ -377,7 +428,7 @@ impl CollectionEmitter {
     pub(crate) fn emit_scalar_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 8 {
-            generator.gen_inline_scan(entries)
+            generator.gen_scan(entries)
         } else {
             generator.gen_fz_scalar(entries)
         };
@@ -389,7 +440,7 @@ impl CollectionEmitter {
     pub(crate) fn emit_string_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            generator.gen_inline_scan(entries)
+            generator.gen_scan(entries)
         } else {
             generator.gen_fz_string(entries)
         };

@@ -4,7 +4,7 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{EytzingerSearchMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery};
-use crate::utils::{dedup_by_keep_last, eytzinger_sort};
+use crate::utils::SortedAndDeduppedVec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
@@ -42,18 +42,14 @@ pub struct FzOrderedMap<K, V> {
 impl<K, V> FzOrderedMap<K, V> {
     /// Creates a frozen ordered map.
     #[must_use]
-    pub fn new(mut entries: Vec<(K, V)>) -> Self
+    pub fn new(entries: Vec<(K, V)>) -> Self
     where
         K: Ord + Eq,
     {
-        entries.sort_by(|x, y| x.0.cmp(&y.0));
-        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
+        let entries = SortedAndDeduppedVec::new(entries, |x, y| x.0.cmp(&y.0));
 
         Self {
-            map_impl: {
-                eytzinger_sort(&mut entries);
-                EytzingerSearchMap::new_raw(entries)
-            },
+            map_impl: { EytzingerSearchMap::from_sorted_and_dedupped(entries) },
         }
     }
 

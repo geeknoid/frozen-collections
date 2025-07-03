@@ -52,10 +52,7 @@ fn emit_loop(file: &mut BufWriter<File>, name: &str) {
     writeln!(file, "    }});").unwrap();
 }
 
-fn emit_scalar_suite<F>(file: &mut BufWriter<File>, size: usize, literal_producer: F)
-where
-    F: Fn(&mut BufWriter<File>, usize),
-{
+fn emit_scalar_suite(file: &mut BufWriter<File>, size: usize, literal_producer: impl Fn(&mut BufWriter<File>, usize)) {
     writeln!(file, "    let frozen = fz_scalar_set!({{").unwrap();
     literal_producer(file, size);
     writeln!(file, "    }});").unwrap();
@@ -89,10 +86,7 @@ where
     emit_loop(file, "fz_scalar_set");
 }
 
-fn emit_string_suite<F>(file: &mut BufWriter<File>, size: usize, literal_producer: F)
-where
-    F: Fn(&mut BufWriter<File>, usize),
-{
+fn emit_string_suite(file: &mut BufWriter<File>, size: usize, literal_producer: impl Fn(&mut BufWriter<File>, usize)) {
     writeln!(file, "    let frozen = fz_string_set!({{").unwrap();
     literal_producer(file, size);
     writeln!(file, "    }});").unwrap();
@@ -142,10 +136,7 @@ where
     emit_loop(file, "fz_string_set");
 }
 
-fn emit_hashed_suite<F>(file: &mut BufWriter<File>, size: usize, literal_producer: F)
-where
-    F: Fn(&mut BufWriter<File>, usize),
-{
+fn emit_hashed_suite(file: &mut BufWriter<File>, size: usize, literal_producer: impl Fn(&mut BufWriter<File>, usize)) {
     writeln!(file, "    let frozen = fz_hash_set!({{").unwrap();
     literal_producer(file, size);
     writeln!(file, "    }});").unwrap();
@@ -179,10 +170,7 @@ where
     emit_loop(file, "fz_hash_set");
 }
 
-fn emit_ordered_suite<F>(file: &mut BufWriter<File>, size: usize, literal_producer: F)
-where
-    F: Fn(&mut BufWriter<File>, usize),
-{
+fn emit_ordered_suite(file: &mut BufWriter<File>, size: usize, literal_producer: impl Fn(&mut BufWriter<File>, usize)) {
     writeln!(file, "    let frozen = fz_ordered_set!({{").unwrap();
     literal_producer(file, size);
     writeln!(file, "    }});").unwrap();

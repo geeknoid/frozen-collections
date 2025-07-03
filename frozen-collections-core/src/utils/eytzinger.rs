@@ -43,10 +43,7 @@ pub fn eytzinger_sort<T>(data: &mut [T]) {
 ///
 /// The slice must have been previously sorted with the `eytzinger` method.
 #[inline]
-pub fn eytzinger_search_by<'a, T: 'a, F>(data: &'a [T], mut f: F) -> Option<usize>
-where
-    F: FnMut(&'a T) -> Ordering,
-{
+pub fn eytzinger_search_by<'a, T: 'a>(data: &'a [T], f: impl Fn(&'a T) -> Ordering) -> Option<usize> {
     let mut i = 0;
     loop {
         match data.get(i) {
@@ -71,10 +68,7 @@ where
 
 #[inline]
 #[expect(clippy::module_name_repetitions, "This is fine")]
-pub fn eytzinger_search_by<'a, T: 'a, F>(data: &'a [T], mut f: F) -> Option<usize>
-where
-    F: FnMut(&'a T) -> Ordering,
-{
+pub fn eytzinger_search_by<'a, T: 'a, F>(data: &'a [T], f: impl Fn(&'a T) -> Ordering) -> Option<usize>{
 /*
     let mut i = 1;
     while (1 << NUM_PREFETCH_LEVELS) * i < data.len() {

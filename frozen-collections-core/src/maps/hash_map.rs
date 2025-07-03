@@ -1,4 +1,3 @@
-use crate::DefaultBuildHasher;
 use crate::hash_tables::HashTable;
 use crate::hashers::BridgeHasher;
 use crate::maps::decl_macros::{
@@ -8,9 +7,8 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{CollectionMagnitude, Hasher, Len, Map, MapExtras, MapIteration, MapQuery, SmallCollection};
-use crate::utils::dedup_by_hash_keep_last;
+use crate::utils::DeduppedVec;
 use core::fmt::{Debug, Formatter, Result};
-use core::hash::Hash;
 use core::ops::Index;
 use equivalent::Equivalent;
 
@@ -36,24 +34,6 @@ pub struct HashMap<K, V, CM = SmallCollection, H = BridgeHasher> {
     hasher: H,
 }
 
-impl<K, V, CM> HashMap<K, V, CM, BridgeHasher<DefaultBuildHasher>>
-where
-    CM: CollectionMagnitude,
-{
-    /// Creates a frozen map.
-    ///
-    /// # Errors
-    ///
-    /// Fails if the number of entries in the vector, after deduplication, exceeds the
-    /// magnitude of the collection as specified by the `CM` generic argument.
-    pub fn new(entries: Vec<(K, V)>) -> core::result::Result<Self, String>
-    where
-        K: Hash + Eq,
-    {
-        Self::with_hasher(entries, BridgeHasher::default())
-    }
-}
-
 impl<K, V, CM, H> HashMap<K, V, CM, H>
 where
     CM: CollectionMagnitude,
@@ -64,14 +44,13 @@ where
     ///
     /// Fails if the number of entries in the vector, after deduplication, exceeds the
     /// magnitude of the collection as specified by the `CM` generic argument.
-    pub fn with_hasher(mut entries: Vec<(K, V)>, hasher: H) -> core::result::Result<Self, String>
+    pub fn with_hasher(entries: Vec<(K, V)>, hasher: H) -> core::result::Result<Self, String>
     where
         K: Eq,
         H: Hasher<K>,
     {
-        dedup_by_hash_keep_last(&mut entries, |x| hasher.hash_one(&x.0), |x, y| x.0 == y.0);
-
-        Self::with_hasher_half_baked(entries, hasher)
+        let entries = DeduppedVec::using_hash(entries, |x| hasher.hash_one(&x.0), |x, y| x.0 == y.0);
+        Self::from_dedupped(entries, hasher)
     }
 
     /// Creates a frozen map.
@@ -80,18 +59,16 @@ where
     ///
     /// Fails if the number of entries in the vector, after deduplication, exceeds the
     /// magnitude of the collection as specified by the `CM` generic argument.
-    pub(crate) fn with_hasher_half_baked(processed_entries: Vec<(K, V)>, hasher: H) -> core::result::Result<Self, String>
+    pub(crate) fn from_dedupped(entries: DeduppedVec<(K, V)>, hasher: H) -> core::result::Result<Self, String>
     where
         H: Hasher<K>,
     {
         let c = &hasher;
         let h = |entry: &(K, V)| c.hash_one(&entry.0);
-        Ok(Self::new_raw(HashTable::<(K, V), CM>::new(processed_entries, h)?, hasher))
-    }
-
-    /// Creates a frozen map.
-    pub(crate) const fn new_raw(table: HashTable<(K, V), CM>, hasher: H) -> Self {
-        Self { entries: table, hasher }
+        Ok(Self {
+            entries: HashTable::<(K, V), CM>::new(entries, h)?,
+            hasher,
+        })
     }
 
     hash_primary_funcs!();

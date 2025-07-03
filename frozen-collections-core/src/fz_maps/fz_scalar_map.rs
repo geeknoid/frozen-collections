@@ -7,7 +7,7 @@ use crate::maps::{
     DenseScalarLookupMap, HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, SparseScalarLookupMap, Values, ValuesMut,
 };
 use crate::traits::{LargeCollection, Len, Map, MapExtras, MapIteration, MapQuery, Scalar};
-use crate::utils::dedup_by_keep_last;
+use crate::utils::SortedAndDeduppedVec;
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
@@ -49,18 +49,17 @@ impl<K, V> FzScalarMap<K, V> {
     /// Creates a frozen map.
     #[must_use]
     #[expect(clippy::missing_panics_doc, reason = "Guaranteed to work because the map is a LargeCollection")]
-    pub fn new(mut entries: Vec<(K, V)>) -> Self
+    pub fn new(entries: Vec<(K, V)>) -> Self
     where
         K: Scalar,
     {
-        entries.sort_by(|x, y| x.0.cmp(&y.0));
-        dedup_by_keep_last(&mut entries, |x, y| x.0.eq(&y.0));
+        let entries = SortedAndDeduppedVec::new(entries, |x, y| x.0.cmp(&y.0));
 
         Self {
             map_impl: match analyze_scalar_keys(entries.iter().map(|x| x.0)) {
-                ScalarKeyAnalysisResult::DenseRange => MapTypes::Dense(DenseScalarLookupMap::new_raw(entries)),
-                ScalarKeyAnalysisResult::SparseRange => MapTypes::Sparse(SparseScalarLookupMap::new_raw(entries)),
-                ScalarKeyAnalysisResult::General => MapTypes::Hash(HashMap::with_hasher_half_baked(entries, ScalarHasher {}).unwrap()),
+                ScalarKeyAnalysisResult::DenseRange => MapTypes::Dense(DenseScalarLookupMap::from_sorted_and_dedupped(entries)),
+                ScalarKeyAnalysisResult::SparseRange => MapTypes::Sparse(SparseScalarLookupMap::from_sorted_and_dedupped(entries)),
+                ScalarKeyAnalysisResult::General => MapTypes::Hash(HashMap::from_dedupped(entries.into(), ScalarHasher {}).unwrap()),
             },
         }
     }

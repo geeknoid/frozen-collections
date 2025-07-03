@@ -22,6 +22,7 @@ where
     }
 
     /// Returns whether the hash slot is completely empty.
+    #[cfg(any(feature = "emit", feature = "macros"))]
     pub(crate) fn is_empty(&self) -> bool {
         self.max_index.into() == 0_usize
     }
