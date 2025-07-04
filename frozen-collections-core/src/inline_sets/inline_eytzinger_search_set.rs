@@ -1,8 +1,8 @@
 use crate::inline_maps::InlineEytzingerSearchMap;
 use crate::sets::decl_macros::{
-    bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, common_primary_funcs, debug_trait_funcs, eytzinger_search_primary_funcs,
-    into_iterator_ref_trait_funcs, into_iterator_trait_funcs, partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs,
-    set_query_trait_funcs, sub_trait_funcs,
+    bitand_trait_funcs, bitor_trait_funcs, bitxor_trait_funcs, common_primary_funcs, debug_trait_funcs, into_iterator_ref_trait_funcs,
+    into_iterator_trait_funcs, partial_eq_trait_funcs, set_extras_trait_funcs, set_iteration_trait_funcs, set_query_trait_funcs,
+    sub_trait_funcs,
 };
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, Set, SetExtras, SetIteration, SetOps, SetQuery};
@@ -41,7 +41,26 @@ impl<T, const SZ: usize> InlineEytzingerSearchSet<T, SZ> {
         Self { map }
     }
 
-    eytzinger_search_primary_funcs!();
+    #[doc = include_str!("../doc_snippets/get_from_set.md")]
+    #[inline]
+    #[must_use]
+    pub fn get<Q>(&self, value: &Q) -> Option<&T>
+    where
+        Q: ?Sized + Comparable<T>,
+    {
+        Some(self.map.get_key_value(value)?.0)
+    }
+
+    #[doc = include_str!("../doc_snippets/contains.md")]
+    #[inline]
+    #[must_use]
+    pub fn contains<Q>(&self, value: &Q) -> bool
+    where
+        Q: ?Sized + Comparable<T>,
+    {
+        self.get(value).is_some()
+    }
+
     common_primary_funcs!(const_len);
 }
 

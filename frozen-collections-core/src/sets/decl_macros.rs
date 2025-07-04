@@ -1,27 +1,3 @@
-macro_rules! binary_search_primary_funcs {
-    () => {
-        #[doc = include_str!("../doc_snippets/get_from_set.md")]
-        #[inline]
-        #[must_use]
-        pub fn get<Q>(&self, value: &Q) -> Option<&T>
-        where
-            Q: ?Sized + Comparable<T>,
-        {
-            Some(self.map.get_key_value(value)?.0)
-        }
-
-        #[doc = include_str!("../doc_snippets/contains.md")]
-        #[inline]
-        #[must_use]
-        pub fn contains<Q>(&self, value: &Q) -> bool
-        where
-            Q: ?Sized + Comparable<T>,
-        {
-            self.get(value).is_some()
-        }
-    };
-}
-
 macro_rules! bitand_trait_funcs {
     () => {
         type Output = hashbrown::HashSet<T>;
@@ -83,74 +59,12 @@ macro_rules! common_primary_funcs {
             self.len() == 0
         }
     };
-
-    (@len non_const_len) => {
-        #[doc = include_str!("../doc_snippets/len.md")]
-        #[must_use]
-        pub fn len(&self) -> usize {
-            self.map.len()
-        }
-
-        #[doc = include_str!("../doc_snippets/is_empty.md")]
-        #[must_use]
-        pub fn is_empty(&self) -> bool {
-            self.len() == 0
-        }
-    };
 }
 
 macro_rules! debug_trait_funcs {
     () => {
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
             f.debug_set().entries(self.iter()).finish()
-        }
-    };
-}
-
-macro_rules! dense_scalar_lookup_primary_funcs {
-    () => {
-        #[doc = include_str!("../doc_snippets/get_from_set.md")]
-        #[inline]
-        #[must_use]
-        pub fn get<Q>(&self, value: &Q) -> Option<&T>
-        where
-            Q: ?Sized + Comparable<T> + Scalar,
-        {
-            Some(self.map.get_key_value(value)?.0)
-        }
-
-        #[doc = include_str!("../doc_snippets/contains.md")]
-        #[inline]
-        #[must_use]
-        pub fn contains<Q>(&self, value: &Q) -> bool
-        where
-            Q: ?Sized + Comparable<T> + Scalar,
-        {
-            self.get(value).is_some()
-        }
-    };
-}
-
-macro_rules! eytzinger_search_primary_funcs {
-    () => {
-        #[doc = include_str!("../doc_snippets/get_from_set.md")]
-        #[inline]
-        #[must_use]
-        pub fn get<Q>(&self, value: &Q) -> Option<&T>
-        where
-            Q: ?Sized + Comparable<T>,
-        {
-            Some(self.map.get_key_value(value)?.0)
-        }
-
-        #[doc = include_str!("../doc_snippets/contains.md")]
-        #[inline]
-        #[must_use]
-        pub fn contains<Q>(&self, value: &Q) -> bool
-        where
-            Q: ?Sized + Comparable<T>,
-        {
-            self.get(value).is_some()
         }
     };
 }
@@ -215,30 +129,6 @@ macro_rules! partial_eq_trait_funcs {
     };
 }
 
-macro_rules! scan_primary_funcs {
-    () => {
-        #[doc = include_str!("../doc_snippets/get_from_set.md")]
-        #[inline]
-        #[must_use]
-        pub fn get<Q>(&self, value: &Q) -> Option<&T>
-        where
-            Q: ?Sized + Equivalent<T>,
-        {
-            Some(self.map.get_key_value(value)?.0)
-        }
-
-        #[doc = include_str!("../doc_snippets/contains.md")]
-        #[inline]
-        #[must_use]
-        pub fn contains<Q>(&self, value: &Q) -> bool
-        where
-            Q: ?Sized + Equivalent<T>,
-        {
-            self.get(value).is_some()
-        }
-    };
-}
-
 #[cfg(feature = "serde")]
 macro_rules! serialize_trait_funcs {
     () => {
@@ -281,30 +171,6 @@ macro_rules! set_query_trait_funcs {
     };
 }
 
-macro_rules! sparse_scalar_lookup_primary_funcs {
-    () => {
-        #[doc = include_str!("../doc_snippets/get_from_set.md")]
-        #[inline]
-        #[must_use]
-        pub fn get<Q>(&self, value: &Q) -> Option<&T>
-        where
-            Q: ?Sized + Comparable<T> + Scalar,
-        {
-            Some(self.map.get_key_value(value)?.0)
-        }
-
-        #[doc = include_str!("../doc_snippets/contains.md")]
-        #[inline]
-        #[must_use]
-        pub fn contains<Q>(&self, value: &Q) -> bool
-        where
-            Q: ?Sized + Comparable<T> + Scalar,
-        {
-            self.get(value).is_some()
-        }
-    };
-}
-
 macro_rules! sub_trait_funcs {
     () => {
         type Output = hashbrown::HashSet<T>;
@@ -315,23 +181,18 @@ macro_rules! sub_trait_funcs {
     };
 }
 
-pub(crate) use binary_search_primary_funcs;
 pub(crate) use bitand_trait_funcs;
 pub(crate) use bitor_trait_funcs;
 pub(crate) use bitxor_trait_funcs;
 pub(crate) use common_primary_funcs;
 pub(crate) use debug_trait_funcs;
-pub(crate) use dense_scalar_lookup_primary_funcs;
-pub(crate) use eytzinger_search_primary_funcs;
 pub(crate) use hash_primary_funcs;
 pub(crate) use into_iterator_ref_trait_funcs;
 pub(crate) use into_iterator_trait_funcs;
 pub(crate) use partial_eq_trait_funcs;
-pub(crate) use scan_primary_funcs;
 pub(crate) use set_extras_trait_funcs;
 pub(crate) use set_iteration_trait_funcs;
 pub(crate) use set_query_trait_funcs;
-pub(crate) use sparse_scalar_lookup_primary_funcs;
 pub(crate) use sub_trait_funcs;
 
 #[cfg(feature = "serde")]

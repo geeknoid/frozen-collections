@@ -1,67 +1,3 @@
-macro_rules! binary_search_primary_funcs {
-    () => {
-        #[doc = include_str!("../doc_snippets/get.md")]
-        #[inline]
-        pub fn get<Q>(&self, key: &Q) -> Option<&V>
-        where
-            Q: ?Sized + Comparable<K>,
-        {
-            self.entries
-                .binary_search_by(|entry| key.compare(&entry.0).reverse())
-                .map(|index| {
-                    // SAFETY: We are guaranteed that the index is valid because binary_search_by returns an in-range index
-                    let entry = unsafe { self.entries.get_unchecked(index) };
-                    &entry.1
-                })
-                .ok()
-        }
-
-        #[doc = include_str!("../doc_snippets/get_mut.md")]
-        #[inline]
-        pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
-        where
-            Q: ?Sized + Comparable<K>,
-        {
-            self.entries
-                .binary_search_by(|entry| key.compare(&entry.0).reverse())
-                .map(|index| {
-                    // SAFETY: We are guaranteed that the index is valid because binary_search_by returns an in-range index
-                    let entry = unsafe { self.entries.get_unchecked_mut(index) };
-                    &mut entry.1
-                })
-                .ok()
-        }
-
-        #[doc = include_str!("../doc_snippets/get_key_value.md")]
-        #[inline]
-        pub fn get_key_value<Q>(&self, key: &Q) -> Option<(&K, &V)>
-        where
-            Q: ?Sized + Comparable<K>,
-        {
-            self.entries
-                .binary_search_by(|entry| key.compare(&entry.0).reverse())
-                .map(|index| {
-                    // SAFETY: We are guaranteed that the index is valid because binary_search_by returns an in-range index
-                    let entry = unsafe { self.entries.get_unchecked(index) };
-                    (&entry.0, &entry.1)
-                })
-                .ok()
-        }
-
-        #[doc = include_str!("../doc_snippets/contains_key.md")]
-        #[inline]
-        #[must_use]
-        pub fn contains_key<Q>(&self, key: &Q) -> bool
-        where
-            Q: ?Sized + Comparable<K>,
-        {
-            self.get(key).is_some()
-        }
-
-        get_disjoint_mut_funcs!("Ord");
-    };
-}
-
 macro_rules! common_primary_funcs {
     ($const_len:ident, $($entries:ident)+) => {
         #[doc = include_str!("../doc_snippets/iter.md")]
@@ -730,7 +666,6 @@ macro_rules! sparse_scalar_lookup_primary_funcs {
     };
 }
 
-pub(crate) use binary_search_primary_funcs;
 pub(crate) use common_primary_funcs;
 pub(crate) use debug_trait_funcs;
 pub(crate) use dense_scalar_lookup_primary_funcs;

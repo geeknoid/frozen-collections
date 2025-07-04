@@ -5,11 +5,10 @@ mod common;
 use common::*;
 use frozen_collections::*;
 use frozen_collections_core::hashers::BridgeHasher;
-use frozen_collections_core::inline_maps::{InlineBinarySearchMap, InlineEytzingerSearchMap};
-use frozen_collections_core::inline_sets::{InlineBinarySearchSet, InlineEytzingerSearchSet};
+use frozen_collections_core::inline_maps::InlineEytzingerSearchMap;
+use frozen_collections_core::inline_sets::InlineEytzingerSearchSet;
 use frozen_collections_core::macros::fz_scalar_map_macro;
 use frozen_collections_core::maps::*;
-use frozen_collections_core::sets::*;
 use hashbrown::HashMap as HashbrownMap;
 use hashbrown::HashSet as HashbrownSet;
 use quote::quote;
@@ -93,25 +92,6 @@ macro_rules! test_all {
         test_map_iter_mut(&mut m, &map_reference);
         test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
 
-        let s = EytzingerSearchSet::new(m);
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
-
-        let mut m = BinarySearchMap::new(map_input.clone());
-        test_map(&m, &map_reference, &map_other);
-        test_map_ops(&m, &map_reference);
-        test_map_iter(&m, &map_reference);
-        test_map_iter_mut(&mut m, &map_reference);
-        test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
-
-        let s = BinarySearchSet::new(m);
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
-
         let mut m = ScanMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
@@ -119,24 +99,12 @@ macro_rules! test_all {
         test_map_iter_mut(&mut m, &map_reference);
         test_map_serialization::<_, _, _, FzHashMap<_, _>>(&m);
 
-        let s = ScanSet::new(m);
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzHashSet<_>>(&s);
-
         if let Ok(mut m) = DenseScalarLookupMap::new(map_input.clone()) {
             test_map(&m, &map_reference, &map_other);
             test_map_ops(&m, &map_reference);
             test_map_iter(&m, &map_reference);
             test_map_iter_mut(&mut m, &map_reference);
             test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
-
-            let s = DenseScalarLookupSet::new(m);
-            test_set(&s, &set_reference, &set_other);
-            test_set_ops(&s, &set_reference, &set_other);
-            test_set_iter(&s, &set_reference);
-            test_set_serialization::<_, _, FzScalarSet<_>>(&s);
         }
 
         let mut m = SparseScalarLookupMap::<_, _>::new(map_input.clone());
@@ -146,24 +114,12 @@ macro_rules! test_all {
         test_map_iter_mut(&mut m, &map_reference);
         test_map_serialization::<_, _, _, FzScalarMap<_, _>>(&m);
 
-        let s = SparseScalarLookupSet::new(m);
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzScalarSet<_>>(&s);
-
         let mut m = HashMap::<_, _>::with_hasher(map_input.clone(), BridgeHasher::default()).unwrap();
         test_map(&m, &map_reference, &map_other);
         test_map_ops(&m, &map_reference);
         test_map_iter(&m, &map_reference);
         test_map_iter_mut(&mut m, &map_reference);
         test_map_serialization::<_, _, _, FzHashMap<_, _>>(&m);
-
-        let s = HashSet::new(m);
-        test_set(&s, &set_reference, &set_other);
-        test_set_ops(&s, &set_reference, &set_other);
-        test_set_iter(&s, &set_reference);
-        test_set_serialization::<_, _, FzHashSet<_>>(&s);
 
         let mut m = FzOrderedMap::new(map_input.clone());
         test_map(&m, &map_reference, &map_other);
@@ -423,22 +379,14 @@ fn test_common() {
 
 #[test]
 fn test_set_defaults() {
-    test_set_default::<BinarySearchSet<i32>, i32>();
-    test_set_default::<ScanSet<i32>, i32>();
-    test_set_default::<DenseScalarLookupSet<i32>, i32>();
-    test_set_default::<SparseScalarLookupSet<i32>, i32>();
-    test_set_default::<HashSet<i32>, i32>();
-
     test_set_default::<FzHashSet<i32>, i32>();
     test_set_default::<FzOrderedSet<i32>, i32>();
     test_set_default::<FzScalarSet<i32>, i32>();
-
     test_set_default::<FzStringSet<Box<str>>, Box<str>>();
 }
 
 #[test]
 fn test_map_defaults() {
-    test_map_default::<BinarySearchMap<i32, i32>, i32>();
     test_map_default::<ScanMap<i32, i32>, i32>();
     test_map_default::<DenseScalarLookupMap<i32, i32>, i32>();
     test_map_default::<SparseScalarLookupMap<i32, i32>, i32>();
@@ -460,24 +408,6 @@ fn test_set_empties() {
 
     test_set_empty(&hashbrown::HashSet::<i32>::default());
     test_set_empty(&hashbrown::HashSet::<i32>::from_iter(vec![]));
-
-    test_set_empty(&EytzingerSearchSet::<i32>::default());
-    test_set_empty(&EytzingerSearchSet::<i32>::new(EytzingerSearchMap::new(vec![])));
-
-    test_set_empty(&BinarySearchSet::<i32>::default());
-    test_set_empty(&BinarySearchSet::<i32>::new(BinarySearchMap::new(vec![])));
-
-    test_set_empty(&ScanSet::<i32>::default());
-    test_set_empty(&ScanSet::<i32>::new(ScanMap::new(vec![])));
-
-    test_set_empty(&DenseScalarLookupSet::<i32>::default());
-    test_set_empty(&DenseScalarLookupSet::<i32>::new(DenseScalarLookupMap::new(vec![]).unwrap()));
-
-    test_set_empty(&SparseScalarLookupSet::<i32>::default());
-    test_set_empty(&SparseScalarLookupSet::<i32>::new(SparseScalarLookupMap::new(vec![])));
-
-    test_set_empty(&HashSet::<i32>::default());
-    test_set_empty(&HashSet::<i32>::new(HashMap::with_hasher(vec![], BridgeHasher::default()).unwrap()));
 
     test_set_empty(&FzHashSet::<i32>::default());
     test_set_empty(&FzHashSet::<i32>::from(FzHashMap::new(vec![])));
@@ -510,9 +440,6 @@ fn test_map_empties() {
 
     test_map_empty(&EytzingerSearchMap::<i32, i32>::default());
     test_map_empty(&EytzingerSearchMap::<i32, i32>::new(vec![]));
-
-    test_map_empty(&BinarySearchMap::<i32, i32>::default());
-    test_map_empty(&BinarySearchMap::<i32, i32>::new(vec![]));
 
     test_map_empty(&ScanMap::<i32, i32>::default());
     test_map_empty(&ScanMap::<i32, i32>::new(vec![]));
@@ -623,39 +550,6 @@ fn string_type_serialization() {
 
     let s: serde_json::Result<FzStringSet<Box<str>>> = serde_json::from_str("{XXX: XXX,}");
     assert!(s.is_err());
-}
-
-#[test]
-fn binary_search() {
-    let mut m = InlineBinarySearchMap::<i32, (), 10>::new_raw([
-        (1, ()),
-        (2, ()),
-        (3, ()),
-        (4, ()),
-        (5, ()),
-        (6, ()),
-        (7, ()),
-        (8, ()),
-        (9, ()),
-        (10, ()),
-    ]);
-    let map_reference = HashbrownMap::<i32, ()>::from_iter(m.clone());
-    let map_other = HashbrownMap::<i32, ()>::from_iter(m.clone());
-
-    test_map(&m, &map_reference, &map_other);
-    test_map_ops(&m, &map_reference);
-    test_map_iter(&m, &map_reference);
-    test_map_iter_mut(&mut m, &map_reference);
-    test_map_serialization::<_, _, _, FzOrderedMap<_, _>>(&m);
-
-    let s = InlineBinarySearchSet::<i32, 10>::new(m);
-    let set_reference = HashbrownSet::<i32>::from_iter(s.clone());
-    let set_other = HashbrownSet::<i32>::from_iter(s.clone());
-
-    test_set(&s, &set_reference, &set_other);
-    test_set_iter(&s, &set_reference);
-    test_set_ops(&s, &set_reference, &set_other);
-    test_set_serialization::<_, _, FzOrderedSet<_>>(&s);
 }
 
 #[test]

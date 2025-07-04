@@ -48,7 +48,7 @@ where
         let num_hash_slots = analyze_hash_codes(entries.iter().map(&hash)).num_hash_slots;
 
         let mut prep_items = Vec::with_capacity(entries.len());
-        let mut entries: Vec<T> = entries.into();
+        let mut entries = entries.into_vec();
         while let Some(entry) = entries.pop() {
             let hash_code = hash(&entry);
 

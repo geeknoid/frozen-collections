@@ -404,7 +404,7 @@ impl CollectionEmitter {
     pub(crate) fn emit_hash_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            generator.gen_scan(entries)
+            generator.gen_inline_scan_vec(entries)
         } else {
             generator.gen_fz_hash(entries)
         };
@@ -416,7 +416,7 @@ impl CollectionEmitter {
     pub(crate) fn emit_ordered_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            generator.gen_scan(entries)
+            generator.gen_inline_scan_vec(entries)
         } else {
             generator.gen_fz_ordered(entries)
         };
@@ -428,7 +428,7 @@ impl CollectionEmitter {
     pub(crate) fn emit_scalar_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 8 {
-            generator.gen_scan(entries)
+            generator.gen_inline_scan_vec(entries)
         } else {
             generator.gen_fz_scalar(entries)
         };
@@ -440,7 +440,7 @@ impl CollectionEmitter {
     pub(crate) fn emit_string_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
         let generator = self.preflight(entries.len())?;
         let output = if entries.len() < 4 {
-            generator.gen_scan(entries)
+            generator.gen_inline_scan_vec(entries)
         } else {
             generator.gen_fz_string(entries)
         };
