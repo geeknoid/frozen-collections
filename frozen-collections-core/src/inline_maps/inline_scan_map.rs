@@ -51,10 +51,8 @@ impl<K, V, const SZ: usize> InlineScanMap<K, V, SZ> {
 
     /// Creates a frozen map.
     #[must_use]
-    pub const fn new_raw(processed_entries: [(K, V); SZ]) -> Self {
-        Self {
-            entries: processed_entries,
-        }
+    pub const fn new_raw(dedupped_entries: [(K, V); SZ]) -> Self {
+        Self { entries: dedupped_entries }
     }
 
     scan_primary_funcs!();

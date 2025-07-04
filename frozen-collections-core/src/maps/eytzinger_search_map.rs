@@ -5,7 +5,7 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery};
-use crate::utils::{SortedAndDeduppedVec, eytzinger_search_by, eytzinger_sort};
+use crate::utils::{SortedAndDeduppedVec, eytzinger_layout, eytzinger_search_by};
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
@@ -46,7 +46,7 @@ impl<K, V> EytzingerSearchMap<K, V> {
     #[must_use]
     pub(crate) fn from_sorted_and_dedupped(entries: SortedAndDeduppedVec<(K, V)>) -> Self {
         let mut entries = entries.into_vec();
-        eytzinger_sort(&mut entries);
+        eytzinger_layout(&mut entries);
         Self {
             entries: entries.into_boxed_slice(),
         }

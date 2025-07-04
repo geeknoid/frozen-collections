@@ -58,29 +58,6 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
-    pub fn gen_fz_ordered<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
-        let key_type = &self.key_type;
-        let value_type = &self.value_type;
-
-        let mut ty = quote!(::frozen_collections::FzOrderedMap);
-        let mut generics = quote!(<#key_type, #value_type>);
-        let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new(vec![
-            #(
-                #entries,
-            )*
-        ]));
-
-        if self.gen_set {
-            ty = quote!(::frozen_collections::FzOrderedSet);
-            generics = quote!(<#key_type>);
-            type_sig = quote!(#ty::#generics);
-            ctor = quote!(#type_sig::from(#ctor));
-        }
-
-        Output { ctor, type_sig }
-    }
-
     #[cfg(feature = "macros")]
     pub(super) fn gen_fz_scalar<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
@@ -163,7 +140,7 @@ impl Generator {
     #[cfg(feature = "emit")]
     pub(super) fn gen_inline_eytzinger_search<K>(&self, entries: SortedAndDeduppedVec<CollectionEntry<K>>) -> Output {
         let mut entries = entries.into_vec();
-        crate::utils::eytzinger_sort(&mut entries);
+        crate::utils::eytzinger_layout(&mut entries);
 
         let key_type = &self.key_type;
         let value_type = &self.value_type;
@@ -173,6 +150,30 @@ impl Generator {
         let mut generics = quote!(<#key_type, #value_type, #len>);
         let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new_raw([
+            #(
+                #entries,
+            )*
+        ]));
+
+        if self.gen_set {
+            ty = quote!(::frozen_collections::inline_sets::InlineEytzingerSearchSet);
+            generics = quote!(<#key_type, #len>);
+            type_sig = quote!(#ty::#generics);
+            ctor = quote!(#type_sig::new(#ctor));
+        }
+
+        Output { ctor, type_sig }
+    }
+
+    pub(super) fn gen_inline_eytzinger_search_vec<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
+        let key_type = &self.key_type;
+        let value_type = &self.value_type;
+        let len = &self.len;
+
+        let mut ty = quote!(::frozen_collections::inline_maps::InlineEytzingerSearchMap);
+        let mut generics = quote!(<#key_type, #value_type, #len>);
+        let mut type_sig = quote!(#ty::#generics);
+        let mut ctor = quote!(#type_sig::new(vec![
             #(
                 #entries,
             )*

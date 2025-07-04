@@ -42,12 +42,12 @@ where
 {
     /// Creates a frozen map.
     #[must_use]
-    pub const fn new_raw(processed_entries: [(K, V); SZ], lookup: [CM; LTSZ], min: usize, max: usize) -> Self {
+    pub const fn new_raw(sorted_and_dedupped_entries: [(K, V); SZ], lookup: [CM; LTSZ], min: usize, max: usize) -> Self {
         Self {
             min,
             max,
             lookup,
-            entries: processed_entries,
+            entries: sorted_and_dedupped_entries,
         }
     }
 
