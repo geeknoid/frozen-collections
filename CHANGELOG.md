@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## 0.8.0 - 2025-07-04
+
+### Changed
+
 - Save a few cycles in the hashing collections.
 
 - Renamed the DefaultHashBuilder type to DefaultBuildHasher which makes more sense.
