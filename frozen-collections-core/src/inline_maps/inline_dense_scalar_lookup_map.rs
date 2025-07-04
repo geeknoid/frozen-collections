@@ -39,11 +39,11 @@ impl<K, V, const SZ: usize> InlineDenseScalarLookupMap<K, V, SZ> {
     /// This function assumes that `min` <= `max` and that the vector is sorted according to the
     /// order of the [`Ord`] trait.
     #[must_use]
-    pub const fn new_raw(processed_entries: [(K, V); SZ], min: usize, max: usize) -> Self {
+    pub const fn new_raw(sorted_and_dedupped_entries: [(K, V); SZ], min: usize, max: usize) -> Self {
         Self {
             min,
             max,
-            entries: processed_entries,
+            entries: sorted_and_dedupped_entries,
         }
     }
 

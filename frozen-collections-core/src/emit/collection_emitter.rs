@@ -418,7 +418,7 @@ impl CollectionEmitter {
         let output = if entries.len() < 4 {
             generator.gen_inline_scan_vec(entries)
         } else {
-            generator.gen_fz_ordered(entries)
+            generator.gen_inline_eytzinger_search_vec(entries)
         };
 
         Ok(self.postflight(output))

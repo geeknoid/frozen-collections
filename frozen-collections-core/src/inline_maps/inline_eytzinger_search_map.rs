@@ -5,12 +5,14 @@ use crate::maps::decl_macros::{
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{Len, Map, MapExtras, MapIteration, MapQuery};
+use crate::utils::{SortedAndDeduppedVec, eytzinger_layout, eytzinger_search_by};
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
-use utils::eytzinger_search_by;
 
-use crate::utils;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+
 #[cfg(feature = "serde")]
 use {
     crate::maps::decl_macros::serialize_trait_funcs,
@@ -37,11 +39,30 @@ pub struct InlineEytzingerSearchMap<K, V, const SZ: usize> {
 impl<K, V, const SZ: usize> InlineEytzingerSearchMap<K, V, SZ> {
     /// Creates a frozen map.
     ///
-    /// This function assumes the vector is sorted according to the ordering of the [`Ord`] trait.
+    /// # Panics
+    ///
+    /// Panics if the number of entries in the array differs from the size of the map as specified by the `SZ` generic argument.
     #[must_use]
-    pub const fn new_raw(processed_entries: [(K, V); SZ]) -> Self {
+    pub fn new(entries: Vec<(K, V)>) -> Self
+    where
+        K: Ord,
+    {
+        let mut entries = SortedAndDeduppedVec::new(entries, |x, y| x.0.cmp(&y.0)).into_vec();
+        eytzinger_layout(&mut entries);
+        Self::new_raw(
+            entries
+                .try_into()
+                .unwrap_or_else(|_| panic!("Cannot convert to array of size {SZ}: length mismatch")),
+        )
+    }
+
+    /// Creates a frozen map.
+    ///
+    /// This function assumes the vector is sorted according to the Eytzinger layout.
+    #[must_use]
+    pub const fn new_raw(eytzinger_layout_dedupped_entries: [(K, V); SZ]) -> Self {
         Self {
-            entries: processed_entries,
+            entries: eytzinger_layout_dedupped_entries,
         }
     }
 

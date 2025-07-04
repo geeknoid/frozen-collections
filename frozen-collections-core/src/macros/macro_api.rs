@@ -276,7 +276,7 @@ mod tests {
         check_impl(":: InlineHashSet", quote!({ "1", "2", "3", "4" }));
 
         check_impl(":: InlineScanSet", quote!({ Foo(1), Foo(2), Foo(3),}));
-        check_impl(":: FzOrderedSet", quote!({ Foo(1), Foo(2), Foo(3), Foo(4) }));
+        check_impl(":: InlineEytzingerSearchSet", quote!({ Foo(1), Foo(2), Foo(3), Foo(4) }));
 
         check_impl(":: InlineScanSet", quote!({ x, 2, 3, 4, 5, 6, 7 }));
         check_impl(":: FzScalarSet", quote!({ x, 2, 3, 4, 5, 6, 7, 8 }));

@@ -6,7 +6,7 @@
 use core::cmp::Ordering;
 
 /// Sorts the slice in-place using the Eytzinger layout.
-pub fn eytzinger_sort<T>(data: &mut [T]) {
+pub fn eytzinger_layout<T>(sorted_entries: &mut [T]) {
     const fn get_eytzinger_index(original_index: usize, slice_len: usize) -> usize {
         let ipk = (original_index + 2).next_power_of_two().trailing_zeros() as usize;
         let li = original_index + 1 - (1 << (ipk - 1));
@@ -20,13 +20,13 @@ pub fn eytzinger_sort<T>(data: &mut [T]) {
     }
 
     let mut map = hashbrown::HashMap::new();
-    for mut i in 0..data.len() {
-        let mut target = get_eytzinger_index(i, data.len());
+    for mut i in 0..sorted_entries.len() {
+        let mut target = get_eytzinger_index(i, sorted_entries.len());
         if target < i {
             target = map.remove(&target).unwrap();
         }
 
-        data.swap(i, target);
+        sorted_entries.swap(i, target);
 
         if let Some(x) = map.remove(&i) {
             i = x;
