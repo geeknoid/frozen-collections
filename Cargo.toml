@@ -25,7 +25,7 @@ frozen-collections-core = { version = "0.8.0", path = "frozen-collections-core",
 frozen-collections-macros = { version = "0.8.0", path = "frozen-collections-macros", default-features = false }
 
 const-random = "0.1.18"
-criterion = "0.7.0"
+criterion = "0.8.0"
 equivalent = "1.0.2"
 foldhash = { version = "0.1.5", default-features = false }
 hashbrown = { version = "0.15.4", default-features = false }
