@@ -29,7 +29,7 @@ criterion = "0.7.0"
 equivalent = "1.0.2"
 foldhash = { version = "0.1.5", default-features = false }
 hashbrown = { version = "0.15.4", default-features = false }
-mutants = "0.0.3"
+mutants = "0.0.4"
 proc-macro-error2 = "2.0.1"
 proc-macro2 = "1.0.95"
 quote = "1.0.40"
