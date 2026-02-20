@@ -250,13 +250,13 @@ mod test {
             input.push((i, i));
         }
 
-        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(input, BridgeHasher::default()).is_ok());
+        let _ = HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(input, BridgeHasher::default()).unwrap();
 
         let mut input: Vec<(i32, i32)> = Vec::new();
         for i in 0..256 {
             input.push((i, i));
         }
 
-        assert!(HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(input, BridgeHasher::default()).is_err());
+        let _ = HashMap::<_, _, SmallCollection, BridgeHasher>::with_hasher(input, BridgeHasher::default()).unwrap_err();
     }
 }

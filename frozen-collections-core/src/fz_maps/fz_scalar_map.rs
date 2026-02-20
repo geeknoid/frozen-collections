@@ -59,7 +59,9 @@ impl<K, V> FzScalarMap<K, V> {
             map_impl: match analyze_scalar_keys(entries.iter().map(|x| x.0)) {
                 ScalarKeyAnalysisResult::DenseRange => MapTypes::Dense(DenseScalarLookupMap::from_sorted_and_dedupped(entries)),
                 ScalarKeyAnalysisResult::SparseRange => MapTypes::Sparse(SparseScalarLookupMap::from_sorted_and_dedupped(entries)),
-                ScalarKeyAnalysisResult::General => MapTypes::Hash(HashMap::from_dedupped(entries.into(), ScalarHasher {}).unwrap()),
+                ScalarKeyAnalysisResult::General => {
+                    MapTypes::Hash(HashMap::from_dedupped(entries.into(), ScalarHasher {}).expect("failed to create hash map"))
+                }
             },
         }
     }

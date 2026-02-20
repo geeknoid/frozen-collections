@@ -45,8 +45,9 @@ mod tests {
     #[test]
     fn test_hash_one() {
         let bh = DefaultBuildHasher::default();
+        let bh2 = DefaultBuildHasher::default();
         let hasher = BridgeHasher::new(bh);
         let value = "test_string";
-        assert_eq!(hasher.hash_one(&value), bh.hash_one(value));
+        assert_eq!(hasher.hash_one(&value), bh2.hash_one(value));
     }
 }

@@ -11,8 +11,7 @@ macro_rules! impl_unsigned_scalar {
         $(
             impl Scalar for $t {
                 #[inline]
-                #[allow(clippy::cast_possible_truncation, reason = "Normal")]
-                #[allow(trivial_numeric_casts, reason = "Normal")]
+                #[allow(clippy::allow_attributes, clippy::cast_possible_truncation, trivial_numeric_casts, reason = "macro instantiations vary")]
                 fn index(&self) -> usize {
                     *self as usize
                 }
@@ -26,9 +25,7 @@ macro_rules! impl_signed_scalar {
         $(
             impl Scalar for $t {
                 #[inline]
-                #[allow(clippy::cast_sign_loss, reason = "Normal")]
-                #[allow(clippy::cast_possible_truncation, reason = "Normal")]
-                #[allow(trivial_numeric_casts, reason = "Normal")]
+                #[allow(clippy::allow_attributes, clippy::cast_sign_loss, clippy::cast_possible_truncation, trivial_numeric_casts, reason = "macro instantiations vary")]
                 fn index(&self) -> usize {
                     ((*self as $unsigned_ty) ^ $mask) as usize
                 }
@@ -42,8 +39,7 @@ macro_rules! impl_unsigned_nz_scalar {
         $(
             impl Scalar for $t {
                 #[inline]
-                #[allow(clippy::cast_possible_truncation, reason = "Normal")]
-                #[allow(trivial_numeric_casts, reason = "Normal")]
+                #[allow(clippy::allow_attributes, clippy::cast_possible_truncation, trivial_numeric_casts, reason = "macro instantiations vary")]
                 fn index(&self) -> usize {
                     (*self).get() as usize
                 }
@@ -57,9 +53,7 @@ macro_rules! impl_signed_nz_scalar {
         $(
             impl Scalar for $t {
                 #[inline]
-                #[allow(clippy::cast_sign_loss, reason = "Normal")]
-                #[allow(clippy::cast_possible_truncation, reason = "Normal")]
-                #[allow(trivial_numeric_casts, reason = "Normal")]
+                #[allow(clippy::allow_attributes, clippy::cast_sign_loss, clippy::cast_possible_truncation, trivial_numeric_casts, reason = "macro instantiations vary")]
                 fn index(&self) -> usize {
                     (((*self).get() as $unsigned_ty) ^ $mask) as usize
                 }

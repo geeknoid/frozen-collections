@@ -477,7 +477,10 @@ impl CollectionEmitter {
         let visibility = &self.visibility;
 
         if self.is_static {
-            let symbol_name = format_ident!("{}", self.symbol_name.as_ref().unwrap());
+            let symbol_name = format_ident!(
+                "{}",
+                self.symbol_name.as_ref().expect("symbol_name is required for static collections")
+            );
             if self.const_keys && self.const_values {
                 if let Some(alias_name) = self.alias_name.as_ref() {
                     let alias_name = format_ident!("{}", alias_name);
@@ -565,14 +568,14 @@ mod tests {
             .symbol_name("SYMBOL")
             .static_instance(true);
         let result = emitter.preflight(10);
-        assert!(result.is_ok());
+        let _ = result.unwrap();
     }
 
     #[test]
     fn test_preflight_valid_mutable() {
         let emitter = CollectionEmitter::new(&parse_quote! { i32 }).symbol_name("SYMBOL").mutable(true);
         let result = emitter.preflight(10);
-        assert!(result.is_ok());
+        let _ = result.unwrap();
     }
 
     #[test]
@@ -581,14 +584,14 @@ mod tests {
             .symbol_name("SYMBOL")
             .alias_name("Alias");
         let result = emitter.preflight(10);
-        assert!(result.is_ok());
+        let _ = result.unwrap();
     }
 
     #[test]
     fn test_preflight_valid() {
         let emitter = CollectionEmitter::new(&parse_quote! { i32 });
         let result = emitter.preflight(10);
-        assert!(result.is_ok());
+        let _ = result.unwrap();
     }
 
     #[test]

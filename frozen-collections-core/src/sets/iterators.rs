@@ -171,12 +171,13 @@ where
         let h1 = self.s1_iter.size_hint();
         let h2 = self.s2_iter.size_hint();
 
-        let mut max_bound = None;
-        if let Some(h1x) = h1.1 {
-            if let Some(h2x) = h2.1 {
-                max_bound = h1x.checked_add(h2x);
-            }
-        }
+        let max_bound = if let Some(h1x) = h1.1
+            && let Some(h2x) = h2.1
+        {
+            h1x.checked_add(h2x)
+        } else {
+            None
+        };
 
         (max(h1.0, h2.0), max_bound)
     }

@@ -60,7 +60,7 @@ impl<K, V> DenseScalarLookupMap<K, V> {
 
     /// Creates a new frozen map.
     ///
-    /// This function assumes that `min` <= `max` and that the vector is sorted according to the
+    /// This function assumes that `min <= max` and that the vector is sorted according to the
     /// order of the [`Ord`] trait.
     #[must_use]
     pub(crate) fn from_sorted_and_dedupped(entries: SortedAndDeduppedVec<(K, V)>) -> Self

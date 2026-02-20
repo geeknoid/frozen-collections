@@ -1,90 +1,202 @@
 name: main
+
 permissions:
   contents: read
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
-
-env:
-  CARGO_TERM_COLOR: always
+  push:
+    branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
-      CARGO_TERM_COLOR: always
+  testing:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v5
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      # prep
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          toolchain: stable
-      - name: Install cargo-hack
-        run: cargo install cargo-hack
-      - name: Build
-        run: cargo hack build --each-feature --verbose
-      - name: Tests
-        run: cargo test --verbose
-      - name: Doc Tests
-        run: cargo test --doc --verbose
-      - name: Delete Cargo.lock
-        run: rm Cargo.lock
-      - name: Publish Dry-Run
-        run: cargo publish -p frozen-collections-core --dry-run
+          enable-sccache: true
+          rust-toolchain: RUST_MSRV, RUST_NIGHTLY
+          cargo-tools: CARGO_NEXTEST_VERSION
 
-  analysis:
-    runs-on: ubuntu-latest
-    env:
-      CARGO_TERM_COLOR: always
+      # execute
+      - name: Build
+        run: cargo build --all-targets --verbose --color always
+      - name: Tests
+        if: success() || failure()
+        run: cargo nextest run --verbose
+      - name: Docs
+        if: success() || failure()
+        env:
+          RUSTDOCFLAGS: "--cfg docsrs -D warnings"
+        run: cargo +${{ env.RUST_NIGHTLY }} doc --no-deps --verbose --all-features
+      - name: Doc Tests
+        if: success() || failure()
+        run: cargo test --doc --verbose --all-features
+
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v5
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      # prep
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          toolchain: stable
-          components: clippy, rustfmt
-      - name: Install Rust Nightly
-        uses: actions-rs/toolchain@v1
+          enable-sccache: true
+          rust-toolchain: RUST_MSRV
+
+      # execute
+      - name: Release Build
+        run: cargo build --verbose --color always --release
+
+  static-analysis:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      # prep
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          toolchain: nightly
-          components: miri
-      - name: Install cargo-audit
-        run: cargo install cargo-audit
-      - name: Install cargo-machete
-        run: cargo install cargo-machete
+          enable-sccache: true
+          rust-toolchain: RUST_LATEST
+          rust-components: clippy, rustfmt
+          cargo-tools: CARGO_ENSURE_NO_DEFAULT_FEATURES_VERSION, CARGO_DENY_VERSION, CARGO_SORT_VERSION
+
+      # execute
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
-      - name: Audit
-        run: cargo audit
-      - name: Machete
-        run: cargo machete
-      - name: Format
+      - name: Source Format
+        if: success() || failure()
         run: cargo fmt -- --check
-      - name: Docs
-        run: RUSTDOCFLAGS='--deny warnings' cargo doc --no-deps --all-features
+      - name: Cargo.toml Format
+        if: success() || failure()
+        run: cargo sort --check --grouped
+      - name: Default Features
+        if: success() || failure()
+        run: cargo ensure-no-default-features
+      - name: Dependency Validation
+        if: success() || failure()
+        run: cargo deny --all-features --color always check all
+
+  spell-check:
+    runs-on: ubuntu-latest
+    steps:
+      # prep
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 1
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          rust-toolchain: RUST_LATEST
+          cargo-tools: CARGO_SPELLCHECK_VERSION
+
+      - name: Check Spelling
+        run: cargo spellcheck --cfg spellcheck.toml --code 1
+
+  extended-analysis:
+    name: extended-analysis (${{ matrix.os }})
+    if: github.event_name == 'pull_request'
+    needs: [testing, static-analysis]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    steps:
+      # prep
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          enable-sccache: true
+          rust-toolchain: RUST_NIGHTLY
+          rust-components: miri
+          cargo-tools: CARGO_UDEPS_VERSION, CARGO_CAREFUL_VERSION, CARGO_NEXTEST_VERSION
+
+      # execute
+      - name: Udeps
+        run: cargo +${{ env.RUST_NIGHTLY }} udeps --all-features --color always
+      - name: Careful
+        if: success() || failure()
+        run: cargo +${{ env.RUST_NIGHTLY }} careful nextest run --all-features --color always --target ${{ matrix.target }}
       - name: Miri
-        run: cargo +nightly miri test --test omni_tests
+        if: success() || failure()
+        run: cargo +${{ env.RUST_NIGHTLY }} miri test --all-features
+
+  mutation-testing:
+    if: github.event_name == 'pull_request'
+    needs: [testing]
+    runs-on: ubuntu-latest
+    steps:
+      # prep
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          enable-sccache: true
+          enable-wild-linker: true
+          rust-toolchain: RUST_NIGHTLY
+          cargo-tools: CARGO_MUTANTS_VERSION
+
+      # execute
+      - name: Generate PR Diff
+        run: git diff origin/main...HEAD >diff.txt
+      - name: Mutate Diff
+        timeout-minutes: 45
+        run: cargo mutants --test-workspace=true --colors=never --jobs=2 --build-timeout=120 --cap-lints=true --in-diff diff.txt
 
   coverage:
-    runs-on: ubuntu-latest
-    env:
-      CARGO_TERM_COLOR: always
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v5
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      # prep
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup
+        uses: ./.github/actions/setup
         with:
-          toolchain: stable
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Generate code coverage
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+          enable-sccache: true
+          rust-toolchain: RUST_NIGHTLY
+          rust-components: llvm-tools-preview
+          cargo-tools: CARGO_LLVM_COV_VERSION
+
+      # execute
+      - name: Generate Coverage
+        run: cargo +${{ env.RUST_NIGHTLY }} llvm-cov --all-features --workspace --lcov --output-path lcov-all.info
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v5.5.2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          files: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: lcov-all.info
           fail_ci_if_error: true

@@ -1,6 +1,8 @@
 //! Generates benchmark code.
 
-use rand::Rng;
+#![expect(clippy::unwrap_used, reason = "panicking on failure is standard in build scripts")]
+
+use rand::RngExt;
 use rand_chacha::ChaChaRng;
 use rand_chacha::rand_core::SeedableRng;
 use std::env;
@@ -18,6 +20,7 @@ fn emit_benchmark_preamble(name: &str) -> BufWriter<File> {
     let dest_path = Path::new(&out_dir).join(format!("{name}.rs"));
     let mut file = BufWriter::new(File::create(dest_path).unwrap());
 
+    writeln!(file, "#[allow(clippy::allow_attributes, reason = \"Generated code\")]").unwrap();
     writeln!(file, "#[allow(clippy::unreadable_literal, reason = \"Generated code\")]").unwrap();
     writeln!(file, "#[allow(clippy::items_after_statements, reason = \"Generated code\")]").unwrap();
     writeln!(file, "#[allow(clippy::explicit_auto_deref, reason = \"Generated code\")]").unwrap();

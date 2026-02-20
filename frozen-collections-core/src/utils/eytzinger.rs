@@ -23,7 +23,7 @@ pub fn eytzinger_layout<T>(sorted_entries: &mut [T]) {
     for mut i in 0..sorted_entries.len() {
         let mut target = get_eytzinger_index(i, sorted_entries.len());
         if target < i {
-            target = map.remove(&target).unwrap();
+            target = map.remove(&target).expect("eytzinger index not found in map");
         }
 
         sorted_entries.swap(i, target);

@@ -223,5 +223,5 @@ fn non_literal_key_string_map() {
     assert!(m.contains_key(s1));
     assert!(!m.contains_key("Foo"));
 
-    assert!(fz_string_map_macro(quote!({s0: 2, s1: 3, s2: 4, s3: 3})).is_ok());
+    let _ = fz_string_map_macro(quote!({s0: 2, s1: 3, s2: 4, s3: 3})).unwrap();
 }

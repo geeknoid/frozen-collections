@@ -70,7 +70,7 @@ where
         let entries = DeduppedVec::using_hash(entries, |x| bh.hash_one(&x.0), |x, y| x.0 == y.0);
 
         Self {
-            map_impl: HashMap::from_dedupped(entries, BridgeHasher::new(bh)).unwrap(),
+            map_impl: HashMap::from_dedupped(entries, BridgeHasher::new(bh)).expect("failed to create hash map"),
         }
     }
 

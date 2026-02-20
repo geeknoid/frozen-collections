@@ -63,11 +63,11 @@ where
     }
 
     fn get_disjoint_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
-        self.get_many_mut(keys)
+        self.get_disjoint_mut(keys)
     }
 
     unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N] {
         // SAFETY: This method is unsafe because it assumes that the keys are disjoint and valid.
-        unsafe { self.get_many_unchecked_mut(keys) }
+        unsafe { self.get_disjoint_unchecked_mut(keys) }
     }
 }

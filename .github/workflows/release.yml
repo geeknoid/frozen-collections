@@ -1,0 +1,39 @@
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - v[0-9]+.*
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: taiki-e/create-gh-release-action@v1.9.2
+        with:
+          changelog: CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-crates:
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: rust-lang/crates-io-auth-action@v1.0.3
+        id: auth
+      - run: cargo publish -p frozen-collections-core
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+      - run: cargo publish -p frozen-collections-macros
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+      - run: cargo publish -p frozen-collections
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}

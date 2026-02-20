@@ -3,6 +3,7 @@ name = "codegen"
 version = "0.0.0"
 publish = false
 edition.workspace = true
+license.workspace = true
 rust-version.workspace = true
 
 [dev-dependencies]

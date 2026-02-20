@@ -75,17 +75,17 @@ impl<V, BH> FzStringMap<Box<str>, V, BH> {
                 match analyze_slice_keys(entries.iter().map(|x| x.0.as_ref().as_bytes()), &bh) {
                     SliceKeyAnalysisResult::General | SliceKeyAnalysisResult::Length => {
                         let h = BridgeHasher::new(bh);
-                        MapTypes::Hash(HashMap::from_dedupped(entries, h).unwrap())
+                        MapTypes::Hash(HashMap::from_dedupped(entries, h).expect("failed to create hash map"))
                     }
 
                     SliceKeyAnalysisResult::LeftHandSubslice(range) => {
                         let h = LeftRangeHasher::new(bh, range);
-                        MapTypes::LeftRange(HashMap::from_dedupped(entries, h).unwrap())
+                        MapTypes::LeftRange(HashMap::from_dedupped(entries, h).expect("failed to create hash map"))
                     }
 
                     SliceKeyAnalysisResult::RightHandSubslice(range) => {
                         let h = RightRangeHasher::new(bh, range);
-                        MapTypes::RightRange(HashMap::from_dedupped(entries, h).unwrap())
+                        MapTypes::RightRange(HashMap::from_dedupped(entries, h).expect("failed to create hash map"))
                     }
                 }
             },

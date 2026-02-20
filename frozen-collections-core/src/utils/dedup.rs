@@ -86,7 +86,7 @@ impl<T> DeduppedVec<T> {
     pub fn into_array<const N: usize>(self) -> [T; N] {
         self.inner
             .try_into()
-            .unwrap_or_else(|_| panic!("Cannot convert to array of size {N}: length mismatch"))
+            .unwrap_or_else(|_| unreachable!("cannot convert to array: length mismatch"))
     }
 
     pub const fn is_empty(&self) -> bool {

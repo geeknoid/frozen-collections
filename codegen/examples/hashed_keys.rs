@@ -1,6 +1,7 @@
 //! Validates quality of generated code
 
 #![no_std]
+#![expect(clippy::unwrap_used, reason = "example code")]
 extern crate alloc;
 
 use alloc::string::{String, ToString};

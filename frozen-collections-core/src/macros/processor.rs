@@ -189,8 +189,8 @@ where
             parse_str::<Expr>(&format!("{lit}{suffix}"))?
         };
 
-        if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(k, key, entry.value.unwrap()));
+        if let Some(value) = entry.value {
+            coll_entries.push(CollectionEntry::map_entry(k, key, value));
         } else {
             coll_entries.push(CollectionEntry::set_entry(k, key));
         }
@@ -208,8 +208,8 @@ fn handle_literal_string_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -
     for entry in entries {
         let ls = parse2::<LitStr>(entry.key.to_token_stream())?;
 
-        if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(ls.value(), entry.key, entry.value.unwrap()));
+        if let Some(value) = entry.value {
+            coll_entries.push(CollectionEntry::map_entry(ls.value(), entry.key, value));
         } else {
             coll_entries.push(CollectionEntry::set_entry(ls.value(), entry.key));
         }
@@ -225,8 +225,8 @@ fn handle_literal_string_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -
 fn handle_non_literal_scalar_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
-        if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, entry.value.unwrap()));
+        if let Some(value) = entry.value {
+            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, value));
         } else {
             coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
         }
@@ -242,8 +242,8 @@ fn handle_non_literal_scalar_keys(emitter: CollectionEmitter, entries: Vec<Entry
 fn handle_non_literal_string_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
-        if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, entry.value.unwrap()));
+        if let Some(value) = entry.value {
+            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, value));
         } else {
             coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
         }
@@ -259,8 +259,8 @@ fn handle_non_literal_string_keys(emitter: CollectionEmitter, entries: Vec<Entry
 fn handle_hashed_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
-        if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, entry.value.unwrap()));
+        if let Some(value) = entry.value {
+            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, value));
         } else {
             coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
         }
@@ -276,8 +276,8 @@ fn handle_hashed_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::R
 fn handle_ordered_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
-        if entry.value.is_some() {
-            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, entry.value.unwrap()));
+        if let Some(value) = entry.value {
+            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, value));
         } else {
             coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
         }
