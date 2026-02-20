@@ -1,5 +1,7 @@
 //! Builds source generation tests
 
+#![expect(clippy::unwrap_used, reason = "panicking on failure is standard in build scripts")]
+
 use std::env;
 use std::fs::File;
 use std::io::{BufWriter, Write};

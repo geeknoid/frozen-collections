@@ -1,11 +1,11 @@
 [workspace]
-resolver = "3"
+resolver = "2"
 members = [
+    "codegen",
     "frozen-collections",
     "frozen-collections-core",
     "frozen-collections-macros",
-    "codegen",
-    "srcgen"
+    "srcgen",
 ]
 
 [workspace.package]
@@ -17,27 +17,26 @@ repository = "https://github.com/geeknoid/frozen-collections"
 license = "MIT"
 authors = ["Martin Taillefer <martin@taillefer.org>"]
 readme = "README.md"
-rust-version = "1.87.0"
+rust-version = "1.90.0"
 
 [workspace.dependencies]
+const-random = { version = "0.1.18", default-features = false }
+criterion = { version = "0.8.2", default-features = false }
+equivalent = { version = "1.0.2", default-features = false }
+foldhash = { version = "0.2.0", default-features = false }
 frozen-collections = { version = "0.8.0", path = "frozen-collections", default-features = false }
 frozen-collections-core = { version = "0.8.0", path = "frozen-collections-core", default-features = false }
 frozen-collections-macros = { version = "0.8.0", path = "frozen-collections-macros", default-features = false }
-
-const-random = "0.1.18"
-criterion = "0.7.0"
-equivalent = "1.0.2"
-foldhash = { version = "0.1.5", default-features = false }
-hashbrown = { version = "0.15.4", default-features = false }
-mutants = "0.0.3"
-proc-macro-error2 = "2.0.1"
-proc-macro2 = "1.0.95"
-quote = "1.0.40"
-rand = "0.9.1"
-rand_chacha = "0.9.0"
-serde = { version = "1.0.219", default-features = false }
-serde_json = "1.0.140"
-syn = { version = "2.0.104", default-features = false }
+hashbrown = { version = "0.16.1", default-features = false }
+mutants = { version = "0.0.4", default-features = false }
+proc-macro-error2 = { version = "2.0.1", default-features = false }
+proc-macro2 = { version = "1.0.106", default-features = false }
+quote = { version = "1.0.44", default-features = false }
+rand = { version = "0.10.0", default-features = false }
+rand_chacha = { version = "0.10.0", default-features = false }
+serde = { version = "1.0.228", default-features = false }
+serde_json = { version = "1.0.149", default-features = false }
+syn = { version = "2.0.117", default-features = false }
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
@@ -55,6 +54,9 @@ unused_macro_rules = "warn"
 unused_qualifications = "warn"
 unused_results = "warn"
 
+# Allow cfg attributes for coverage builds
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage,coverage_nightly)'] }
+
 [workspace.lints.clippy]
 cargo = { level = "warn", priority = -1 }
 complexity = { level = "warn", priority = -1 }
@@ -66,7 +68,9 @@ style = { level = "warn", priority = -1 }
 
 # Explicitly enabled lints from the `restriction` group.
 alloc_instead_of_core = "warn"
+allow_attributes = "warn"
 allow_attributes_without_reason = "warn"
+assertions_on_result_states = "warn"
 as_underscore = "warn"
 as_pointer_underscore = "warn"
 clone_on_ref_ptr = "warn"
@@ -86,6 +90,7 @@ multiple_unsafe_ops_per_block = "warn"
 mutex_atomic = "warn"
 mutex_integer = "warn"
 needless_raw_strings = "warn"
+panic = "warn"
 print_stderr = "warn"
 print_stdout = "warn"
 rc_buffer = "warn"
@@ -98,7 +103,6 @@ semicolon_outside_block = "warn"
 std_instead_of_core = "warn"
 string_lit_chars_any = "warn"
 string_slice = "warn"
-string_to_string = "warn"
 suspicious_xor_used_as_pow = "warn"
 try_err = "warn"
 undocumented_unsafe_blocks = "warn"
@@ -108,6 +112,7 @@ unnecessary_self_imports = "warn"
 unneeded_field_pattern = "warn"
 unused_result_ok = "warn"
 unwrap_in_result = "warn"
+unwrap_used = "warn"
 
 # turn off annoying ones...
 too_many_lines = "allow"
@@ -123,3 +128,7 @@ codegen-units = 1
 lto = "fat"
 debug = true
 strip = "none"
+
+[profile.mutants]
+inherits = "test"
+debug = "none"

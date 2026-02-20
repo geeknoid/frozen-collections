@@ -9,6 +9,7 @@ pub struct HashCodeAnalysisResult {
     pub num_hash_slots: usize,
 
     /// The number of collisions when using the recommended table size.
+    #[expect(clippy::allow_attributes, reason = "allow needed: lint conditionally fires")]
     #[allow(dead_code, reason = "used in tests")]
     pub num_hash_collisions: usize,
 }
@@ -112,8 +113,9 @@ pub fn analyze_hash_codes(hash_codes: impl Iterator<Item = u64>) -> HashCodeAnal
 
 #[cfg(test)]
 mod tests {
+    use rand::RngExt;
+    use rand::SeedableRng;
     use rand::rngs::StdRng;
-    use rand::{Rng, SeedableRng};
 
     use super::*;
 

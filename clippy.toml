@@ -1,0 +1,5 @@
+absolute-paths-max-segments = 3
+allow-panic-in-tests = true
+allow-unwrap-in-tests = true
+avoid-breaking-exported-api = false
+semicolon-outside-block-ignore-multiline = true

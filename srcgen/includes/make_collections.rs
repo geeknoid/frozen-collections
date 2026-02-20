@@ -2,6 +2,7 @@ use frozen_collections::emit::{CollectionEmitter, CollectionEntry};
 use proc_macro2::TokenStream;
 use syn::parse_quote;
 
+#[allow(clippy::allow_attributes, clippy::unwrap_used, reason = "build script / test helper code")]
 fn make_static_collections() -> Vec<TokenStream> {
     let mut v = Vec::new();
 

@@ -1,0 +1,3 @@
+[toolchain]
+# This needs to match RUST_LATEST in constants.env.
+channel = "1.93.0"

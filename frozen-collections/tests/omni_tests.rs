@@ -527,10 +527,10 @@ fn str_type_serialization() {
     assert_eq_set(&s1, &s2);
 
     let m: serde_json::Result<FzStringMap<Box<str>, i32>> = serde_json::from_str("[\"123\": 2]");
-    assert!(m.is_err());
+    let _ = m.unwrap_err();
 
     let s: serde_json::Result<FzStringSet<Box<str>>> = serde_json::from_str("{XXX: XXX,}");
-    assert!(s.is_err());
+    let _ = s.unwrap_err();
 }
 
 #[test]
@@ -546,10 +546,10 @@ fn string_type_serialization() {
     assert_eq_set(&s1, &s2);
 
     let m: serde_json::Result<FzStringMap<Box<str>, i32>> = serde_json::from_str("[\"123\": 2]");
-    assert!(m.is_err());
+    let _ = m.unwrap_err();
 
     let s: serde_json::Result<FzStringSet<Box<str>>> = serde_json::from_str("{XXX: XXX,}");
-    assert!(s.is_err());
+    let _ = s.unwrap_err();
 }
 
 #[test]

@@ -37,7 +37,6 @@ where
     /// Creates a new hash table.
     ///
     /// This function assumes that there are no duplicates in the input vector.
-    #[expect(clippy::unwrap_in_result, reason = "Guaranteed not to happen")]
     pub(crate) fn new(entries: DeduppedVec<T>, hash: impl Fn(&T) -> u64) -> Result<Self, String> {
         if entries.is_empty() {
             return Ok(Self::default());
@@ -75,11 +74,11 @@ where
                 final_entries.push(item.entry);
                 num_entries_in_hash_slot += 1;
 
-                if let Some(last) = prep_items.last() {
-                    if last.hash_slot_index == hash_slot_index {
-                        item = prep_items.pop().expect("Ensure by the call to last() above");
-                        continue;
-                    }
+                if let Some(last) = prep_items.last()
+                    && last.hash_slot_index == hash_slot_index
+                {
+                    item = prep_items.pop().expect("Ensure by the call to last() above");
+                    continue;
                 }
 
                 break;

@@ -6,6 +6,7 @@ use hashbrown::HashSet as HashbrownSet;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+#[allow(clippy::allow_attributes, clippy::unwrap_used, reason = "test helper code")]
 pub fn test_set<ST, T>(set: &ST, reference: &HashbrownSet<T>, other: &HashbrownSet<T>)
 where
     T: Hash + Eq + Clone + Debug + Default,
@@ -145,6 +146,7 @@ where
     assert!(!set.contains(&T::default()));
 }
 
+#[allow(clippy::allow_attributes, clippy::unwrap_used, reason = "test helper code")]
 pub fn test_set_serialization<T, ST, ST2>(set: &ST)
 where
     T: Hash + Eq + Clone + Debug + Default,
@@ -156,7 +158,7 @@ where
     assert_eq_set(set, &set2);
 
     let set2: serde_json::Result<ST2> = serde_json::from_str("{XXX: XXX,}");
-    assert!(set2.is_err());
+    let _ = set2.unwrap_err();
 }
 
 pub fn assert_eq_set<T, ST, ST2>(set: &ST, reference: &ST2)

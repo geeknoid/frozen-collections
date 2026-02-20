@@ -52,7 +52,7 @@ impl<K, V, const SZ: usize> InlineEytzingerSearchMap<K, V, SZ> {
         Self::new_raw(
             entries
                 .try_into()
-                .unwrap_or_else(|_| panic!("Cannot convert to array of size {SZ}: length mismatch")),
+                .unwrap_or_else(|_| unreachable!("cannot convert to array: length mismatch")),
         )
     }
 

@@ -10,6 +10,7 @@ use serde::de::DeserializeOwned;
 #[cfg(not(miri))]
 use std::panic;
 
+#[allow(clippy::allow_attributes, clippy::unwrap_used, reason = "test helper code")]
 pub fn test_map<MT, K, V>(map: &MT, reference: &HashbrownMap<K, V>, other: &HashbrownMap<K, V>)
 where
     K: Hash + Eq + Clone + Debug + Default,
@@ -185,6 +186,7 @@ where
     assert!(!map.contains_key(&K::default()));
 }
 
+#[allow(clippy::allow_attributes, clippy::unwrap_used, reason = "test helper code")]
 pub fn test_map_serialization<K, V, MT, MT2>(map: &MT)
 where
     K: Hash + Eq + Clone + Debug + Default,
@@ -197,7 +199,7 @@ where
     assert_eq_map(map, &map2);
 
     let map2: serde_json::Result<MT2> = serde_json::from_str("[\"123\": 2]");
-    assert!(map2.is_err());
+    let _ = map2.unwrap_err();
 }
 
 pub fn assert_eq_map<K, V, MT, MT2>(map: &MT, reference: &MT2)

@@ -340,7 +340,7 @@ impl Generator {
         let value_type = &self.value_type;
         let len = &self.len;
 
-        let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash_one(&x.key)).unwrap();
+        let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash_one(&x.key)).expect("failed to create hash table");
         let collisions = ht.has_collisions();
         let slots = ht.slots;
         let num_slots = Literal::usize_unsuffixed(slots.len());
@@ -434,6 +434,6 @@ impl Generator {
             output.extend_from_slice(&full[index..]);
         }
 
-        parse_str(&output.into_iter().collect::<String>()).unwrap()
+        parse_str(&output.into_iter().collect::<String>()).expect("failed to parse generated code")
     }
 }

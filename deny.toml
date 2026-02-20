@@ -1,0 +1,19 @@
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "Zlib",
+    "BSL-1.0",
+    "OpenSSL",
+    "MPL-2.0",                  # Mozilla Public License 2.0 (OSI approved, FSF Free/Libre)
+    "CDLA-Permissive-2.0",      # Community Data License Agreement Permissive 2.0
+    "CC0-1.0",                   # Creative Commons Zero v1.0 Universal (CC0 1.0) Public Domain Dedication
+]
+
+confidence-threshold = 0.8
+unused-allowed-license = "allow"
