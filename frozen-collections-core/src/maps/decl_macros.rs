@@ -610,7 +610,7 @@ macro_rules! sparse_scalar_lookup_primary_funcs {
 
         #[doc = include_str!("../doc_snippets/get_mut.md")]
         #[inline]
-        fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
+        pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
         where
             Q: Comparable<K> + Scalar,
         {

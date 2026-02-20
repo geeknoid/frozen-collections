@@ -29,6 +29,7 @@ where
     #[inline]
     fn hash_one(&self, value: &[T]) -> u64 {
         if value.len() < self.range.end {
+            cold();
             return 0;
         }
 

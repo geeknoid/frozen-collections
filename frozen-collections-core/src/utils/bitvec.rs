@@ -11,7 +11,7 @@ pub struct BitVec {
 impl BitVec {
     pub(crate) fn with_capacity(capacity: usize) -> Self {
         Self {
-            bits: (0..(capacity as u64).div_ceil(64)).collect(),
+            bits: alloc::vec![0u64; capacity.div_ceil(64)].into_boxed_slice(),
             len: capacity,
         }
     }
@@ -43,6 +43,11 @@ mod tests {
 
         let mut bitvec = BitVec::with_capacity(LEN);
         assert_eq!(2, bitvec.bits.len());
+
+        // verify all bits are false immediately after construction
+        for i in 0..LEN {
+            assert!(!bitvec.get(i));
+        }
 
         bitvec.clear_all();
         for i in 0..LEN {
