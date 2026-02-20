@@ -478,8 +478,67 @@ where
 mod tests {
     use super::*;
     use crate::maps::{IntoIter as MapIntoIter, Iter as MapIter};
+    use crate::traits::{Len, SetExtras, SetQuery};
     use alloc::{format, vec};
     use hashbrown::HashSet as HashbrownSet;
+
+    /// A wrapper around `HashbrownSet` whose iterator reports an unbounded upper size hint.
+    struct UnboundedHintSet<T>(HashbrownSet<T>);
+
+    struct UnboundedHintIter<'a, T>(hashbrown::hash_set::Iter<'a, T>);
+
+    impl<'a, T> Iterator for UnboundedHintIter<'a, T> {
+        type Item = &'a T;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next()
+        }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            (self.0.size_hint().0, None)
+        }
+    }
+
+    impl<T> Len for UnboundedHintSet<T> {
+        fn len(&self) -> usize {
+            self.0.len()
+        }
+    }
+
+    impl<T: core::hash::Hash + Eq> SetQuery<T> for UnboundedHintSet<T> {
+        fn contains(&self, value: &T) -> bool {
+            self.0.contains(value)
+        }
+    }
+
+    impl<T: core::hash::Hash + Eq> SetIteration<T> for UnboundedHintSet<T> {
+        type Iterator<'a>
+            = UnboundedHintIter<'a, T>
+        where
+            T: 'a,
+            Self: 'a;
+
+        fn iter(&self) -> Self::Iterator<'_> {
+            UnboundedHintIter(self.0.iter())
+        }
+    }
+
+    impl<T: core::hash::Hash + Eq> SetExtras<T> for UnboundedHintSet<T> {
+        fn get(&self, value: &T) -> Option<&T> {
+            self.0.get(value)
+        }
+    }
+
+    impl<T: core::hash::Hash + Eq> IntoIterator for UnboundedHintSet<T> {
+        type Item = T;
+        type IntoIter = hashbrown::hash_set::IntoIter<T>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            self.0.into_iter()
+        }
+    }
+
+    impl<T: core::hash::Hash + Eq> Set<T> for UnboundedHintSet<T> {}
 
     #[test]
     fn test_iter() {
@@ -778,5 +837,28 @@ mod tests {
         let into_iter = IntoIter::new(map_into_iter);
 
         assert_eq!(into_iter.len(), 2);
+    }
+
+    #[test]
+    fn test_union_size_hint_with_unbounded_iterator() {
+        let set1 = UnboundedHintSet(vec!["Alice", "Bob"].into_iter().collect());
+        let set2 = vec!["Bob", "Charlie"].into_iter().collect::<HashbrownSet<_>>();
+
+        // Exercise all UnboundedHintSet trait methods for coverage
+        assert_eq!(set1.len(), 2);
+        assert!(set1.contains(&"Alice"));
+        assert_eq!(set1.get(&"Alice"), Some(&"Alice"));
+
+        let union = Union::new(&set1, &set2);
+        let (lower, upper) = union.size_hint();
+        assert_eq!(lower, 2);
+        assert_eq!(upper, None);
+
+        // Iterate to exercise UnboundedHintIter::next
+        assert_eq!(union.count(), 3);
+
+        // Exercise IntoIterator
+        let set3 = UnboundedHintSet(vec![1, 2].into_iter().collect());
+        assert_eq!(set3.into_iter().count(), 2);
     }
 }
