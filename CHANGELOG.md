@@ -1,15 +1,30 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## Unreleased
-
-### Added
+## 0.9.0 - 2026-02-22
 
 ### Changed
+
+- Changed the layout in the core hash table types to improve cache
+  locality.
+
+- Implement contains_key as a first-class method on the low-level map types
+  to help out the compiler by avoiding format a reference to the value when
+  we don't care about it.
+
+- FzStringMap/Set now go into turbo mode if all the keys are of
+  different lengths by using their lengths as hash code, eliminating
+  the need to actually hash anything.
+
+- Removed a needless temp allocation when building FzStringMap and FzStringSet.
+
+### Fixed
+
+- Fix a bug in the hash code analysis which lead to some maps not applying the right
+  optimization strategy.
+
+- Added a missing compiler hint in one of the hashing paths.
+
+- Added the missing ability to deserialize a FzStringMap using a custom hash builder.
 
 ## 0.8.0 - 2025-07-04
 
@@ -19,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Renamed the DefaultHashBuilder type to DefaultBuildHasher which makes more sense.
 
-- Fixed a couple bugs where undedupped vectors where being used when they should have been dedupped.
+- Fixed a couple bugs where undedupped vectors were being used when they should have been dedupped.
 
 - Fixed a bug where fz_ordered_map/set would sometimes produce non-working maps due to the
   data vector not being sorted correctly.

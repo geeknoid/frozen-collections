@@ -40,9 +40,9 @@ String sets where the values are random but share a common prefix.
 """
 
 hashed = """
-Sets with a complex key type that is hashable.
+Sets with a complex value type that is hashable.
 """
 
 ordered = """
-Sets with a complex key type that is ordered.
+Sets with a complex value type that is ordered.
 """

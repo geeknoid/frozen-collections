@@ -41,6 +41,7 @@ pub struct FzOrderedMap<K, V> {
 
 impl<K, V> FzOrderedMap<K, V> {
     /// Creates a frozen ordered map.
+    #[doc = include_str!("../doc_snippets/duplicate_keys.md")]
     #[must_use]
     pub fn new(entries: Vec<(K, V)>) -> Self
     where

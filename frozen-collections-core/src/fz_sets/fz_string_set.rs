@@ -1,7 +1,7 @@
 use crate::DefaultBuildHasher;
 use crate::fz_maps::FzStringMap;
 use crate::maps::decl_macros::len_trait_funcs;
-use crate::sets::decl_macros::{debug_trait_funcs, partial_eq_trait_funcs};
+use crate::sets::decl_macros::{debug_trait_funcs, partial_eq_trait_funcs, set_query_trait_funcs};
 use crate::sets::{IntoIter, Iter};
 use crate::traits::{Len, Set, SetExtras, SetIteration, SetOps, SetQuery};
 use core::fmt::Debug;
@@ -9,7 +9,7 @@ use core::hash::BuildHasher;
 use core::ops::{BitAnd, BitOr, BitXor, Sub};
 
 #[cfg(not(feature = "std"))]
-use {alloc::boxed::Box, alloc::vec::Vec};
+use alloc::vec::Vec;
 
 #[cfg(feature = "serde")]
 use {
@@ -21,34 +21,34 @@ use {
     serde::{Deserialize, Deserializer, Serialize, Serializer},
 };
 
+#[cfg(not(feature = "std"))]
+use alloc::boxed::Box;
+
 /// A set optimized for fast read access with string values.
 ///
 #[doc = include_str!("../doc_snippets/about.md")]
 #[doc = include_str!("../doc_snippets/hash_warning.md")]
-///
-/// # Alternate Choices
-///
-/// If your values are known at compile time, consider using the various `fz_*_set` macros instead of
-/// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzStringSet<K, BH = DefaultBuildHasher> {
-    map: FzStringMap<K, (), BH>,
+pub struct FzStringSet<BH = DefaultBuildHasher> {
+    map: FzStringMap<(), BH>,
 }
 
-impl FzStringSet<Box<str>, DefaultBuildHasher> {
+impl FzStringSet<DefaultBuildHasher> {
     /// Creates a new frozen set.
+    #[doc = include_str!("../doc_snippets/duplicate_values.md")]
     #[must_use]
     pub fn new(entries: Vec<impl AsRef<str>>) -> Self {
         Self::with_hasher(entries, DefaultBuildHasher::default())
     }
 }
 
-impl<BH> FzStringSet<Box<str>, BH> {
+impl<BH> FzStringSet<BH> {
     /// Creates a new frozen set which uses the given hash builder to hash values.
+    #[doc = include_str!("../doc_snippets/duplicate_values.md")]
     #[must_use]
     pub fn with_hasher(entries: Vec<impl AsRef<str>>, bh: BH) -> Self
     where
-        BH: BuildHasher,
+        BH: BuildHasher + Clone + Send + Sync + 'static,
     {
         Self {
             map: FzStringMap::with_hasher(entries.into_iter().map(|x| (x, ())).collect(), bh),
@@ -57,7 +57,7 @@ impl<BH> FzStringSet<Box<str>, BH> {
 
     #[doc = include_str!("../doc_snippets/get_from_set.md")]
     #[inline]
-    #[expect(clippy::borrowed_box, reason = "By design")]
+    #[expect(clippy::borrowed_box, reason = "Key type is Box<str>")]
     pub fn get(&self, value: impl AsRef<str>) -> Option<&Box<str>>
     where
         BH: BuildHasher,
@@ -100,7 +100,7 @@ impl<BH> FzStringSet<Box<str>, BH> {
     }
 }
 
-impl<BH> Default for FzStringSet<Box<str>, BH>
+impl<BH> Default for FzStringSet<BH>
 where
     BH: Default,
 {
@@ -111,40 +111,40 @@ where
     }
 }
 
-impl<BH> From<FzStringMap<Box<str>, (), BH>> for FzStringSet<Box<str>, BH> {
-    fn from(map: FzStringMap<Box<str>, (), BH>) -> Self {
+impl<BH> From<FzStringMap<(), BH>> for FzStringSet<BH> {
+    fn from(map: FzStringMap<(), BH>) -> Self {
         Self { map }
     }
 }
 
-impl<T, const N: usize, BH> From<[T; N]> for FzStringSet<Box<str>, BH>
+impl<T, const N: usize, BH> From<[T; N]> for FzStringSet<BH>
 where
     T: AsRef<str>,
-    BH: BuildHasher + Default,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
 {
     fn from(entries: [T; N]) -> Self {
         Self::from(FzStringMap::from_iter(entries.into_iter().map(|x| (x, ()))))
     }
 }
 
-impl<T, BH> FromIterator<T> for FzStringSet<Box<str>, BH>
+impl<T, BH> FromIterator<T> for FzStringSet<BH>
 where
     T: AsRef<str>,
-    BH: BuildHasher + Default,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
 {
     fn from_iter<IT: IntoIterator<Item = T>>(iter: IT) -> Self {
         Self::from(FzStringMap::from_iter(iter.into_iter().map(|x| (x, ()))))
     }
 }
 
-impl<Q, BH> Set<Box<str>, Q> for FzStringSet<Box<str>, BH>
+impl<Q, BH> Set<Box<str>, Q> for FzStringSet<BH>
 where
     Q: AsRef<str>,
     BH: BuildHasher,
 {
 }
 
-impl<Q, BH> SetExtras<Box<str>, Q> for FzStringSet<Box<str>, BH>
+impl<Q, BH> SetExtras<Box<str>, Q> for FzStringSet<BH>
 where
     Q: AsRef<str>,
     BH: BuildHasher,
@@ -155,18 +155,15 @@ where
     }
 }
 
-impl<Q, BH> SetQuery<Q> for FzStringSet<Box<str>, BH>
+impl<Q, BH> SetQuery<Q> for FzStringSet<BH>
 where
     Q: AsRef<str>,
     BH: BuildHasher,
 {
-    #[inline]
-    fn contains(&self, value: &Q) -> bool {
-        self.contains(value)
-    }
+    set_query_trait_funcs!();
 }
 
-impl<BH> SetIteration<Box<str>> for FzStringSet<Box<str>, BH> {
+impl<BH> SetIteration<Box<str>> for FzStringSet<BH> {
     type Iterator<'a>
         = Iter<'a, Box<str>>
     where
@@ -177,11 +174,11 @@ impl<BH> SetIteration<Box<str>> for FzStringSet<Box<str>, BH> {
     }
 }
 
-impl<BH> Len for FzStringSet<Box<str>, BH> {
+impl<BH> Len for FzStringSet<BH> {
     len_trait_funcs!();
 }
 
-impl<ST, BH> BitOr<&ST> for &FzStringSet<Box<str>, BH>
+impl<ST, BH> BitOr<&ST> for &FzStringSet<BH>
 where
     ST: Set<Box<str>>,
     BH: BuildHasher + Default,
@@ -193,7 +190,7 @@ where
     }
 }
 
-impl<ST, BH> BitAnd<&ST> for &FzStringSet<Box<str>, BH>
+impl<ST, BH> BitAnd<&ST> for &FzStringSet<BH>
 where
     ST: Set<Box<str>>,
     BH: BuildHasher + Default,
@@ -205,7 +202,7 @@ where
     }
 }
 
-impl<ST, BH> BitXor<&ST> for &FzStringSet<Box<str>, BH>
+impl<ST, BH> BitXor<&ST> for &FzStringSet<BH>
 where
     ST: Set<Box<str>>,
     BH: BuildHasher + Default,
@@ -217,7 +214,7 @@ where
     }
 }
 
-impl<ST, BH> Sub<&ST> for &FzStringSet<Box<str>, BH>
+impl<ST, BH> Sub<&ST> for &FzStringSet<BH>
 where
     ST: Set<Box<str>>,
     BH: BuildHasher + Default,
@@ -229,7 +226,7 @@ where
     }
 }
 
-impl<BH> IntoIterator for FzStringSet<Box<str>, BH> {
+impl<BH> IntoIterator for FzStringSet<BH> {
     type Item = Box<str>;
     type IntoIter = IntoIter<Box<str>>;
 
@@ -238,7 +235,7 @@ impl<BH> IntoIterator for FzStringSet<Box<str>, BH> {
     }
 }
 
-impl<'a, BH> IntoIterator for &'a FzStringSet<Box<str>, BH> {
+impl<'a, BH> IntoIterator for &'a FzStringSet<BH> {
     type Item = &'a Box<str>;
     type IntoIter = Iter<'a, Box<str>>;
 
@@ -247,7 +244,7 @@ impl<'a, BH> IntoIterator for &'a FzStringSet<Box<str>, BH> {
     }
 }
 
-impl<ST, BH> PartialEq<ST> for FzStringSet<Box<str>, BH>
+impl<ST, BH> PartialEq<ST> for FzStringSet<BH>
 where
     ST: SetQuery<Box<str>>,
     BH: BuildHasher + Default,
@@ -255,21 +252,21 @@ where
     partial_eq_trait_funcs!();
 }
 
-impl<BH> Eq for FzStringSet<Box<str>, BH> where BH: BuildHasher + Default {}
+impl<BH> Eq for FzStringSet<BH> where BH: BuildHasher + Default {}
 
-impl<BH> Debug for FzStringSet<Box<str>, BH> {
+impl<BH> Debug for FzStringSet<BH> {
     debug_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
-impl Serialize for FzStringSet<Box<str>> {
+impl Serialize for FzStringSet {
     serialize_trait_funcs!();
 }
 
 #[cfg(feature = "serde")]
-impl<'de, BH> Deserialize<'de> for FzStringSet<Box<str>, BH>
+impl<'de, BH> Deserialize<'de> for FzStringSet<BH>
 where
-    BH: BuildHasher + Default,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -287,9 +284,9 @@ struct StrSetVisitor<BH> {
 #[cfg(feature = "serde")]
 impl<'de, BH> Visitor<'de> for StrSetVisitor<BH>
 where
-    BH: BuildHasher + Default,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
 {
-    type Value = FzStringSet<Box<str>, BH>;
+    type Value = FzStringSet<BH>;
 
     fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
         formatter.write_str("a set with string values")

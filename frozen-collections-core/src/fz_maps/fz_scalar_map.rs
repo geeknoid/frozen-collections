@@ -47,6 +47,7 @@ pub struct FzScalarMap<K, V> {
 
 impl<K, V> FzScalarMap<K, V> {
     /// Creates a frozen map.
+    #[doc = include_str!("../doc_snippets/duplicate_keys.md")]
     #[must_use]
     #[expect(clippy::missing_panics_doc, reason = "Guaranteed to work because the map is a LargeCollection")]
     pub fn new(entries: Vec<(K, V)>) -> Self
