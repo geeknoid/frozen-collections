@@ -254,7 +254,7 @@ pub use frozen_collections_core::traits::{CollectionMagnitude, Hasher, LargeColl
 /// # Alternate Choices
 ///
 /// If your keys are integers or enum variants, you should use the [`fz_scalar_map!`] macro instead.
-/// If your keys are strings, you should use the [`fz_string_map`] macro instead. Both of these will
+/// If your keys are strings, you should use the [`fz_string_map!`] macro instead. Both of these will
 /// deliver better performance since they are specifically optimized for those key types.
 ///
 /// # Example
@@ -496,7 +496,7 @@ pub use frozen_collections_macros::fz_hash_set;
 /// # Alternate Choices
 ///
 /// If your keys are integers or enum variants, you should use the [`fz_scalar_map!`] macro instead.
-/// If your keys are strings, you should use the [`fz_string_map`] macro instead. Both of these will
+/// If your keys are strings, you should use the [`fz_string_map!`] macro instead. Both of these will
 /// deliver better performance since they are specifically optimized for those key types.
 ///
 /// # Example
@@ -1089,8 +1089,8 @@ pub mod emit {
     pub use frozen_collections_core::emit::*;
 }
 
-pub use frozen_collections_core::fz_maps::*;
-pub use frozen_collections_core::fz_sets::*;
+pub use frozen_collections_core::fz_maps::{FzHashMap, FzOrderedMap, FzScalarMap, FzStringMap};
+pub use frozen_collections_core::fz_sets::{FzHashSet, FzOrderedSet, FzScalarSet, FzStringSet};
 
 #[doc(hidden)]
 pub mod sets {

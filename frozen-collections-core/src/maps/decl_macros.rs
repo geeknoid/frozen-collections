@@ -147,7 +147,8 @@ macro_rules! dense_scalar_lookup_primary_funcs {
         where
             Q: Comparable<K> + Scalar,
         {
-            self.get(key).is_some()
+            let index = key.index();
+            index >= self.min && index <= self.max
         }
 
         get_disjoint_mut_funcs!("Scalar");
@@ -208,7 +209,7 @@ macro_rules! eytzinger_search_primary_funcs {
         where
             Q: ?Sized + Comparable<K>,
         {
-            self.get(key).is_some()
+            eytzinger_search_by(&self.entries, |entry| key.compare(&entry.0).reverse()).is_some()
         }
 
         get_disjoint_mut_funcs!("Ord");
@@ -323,7 +324,8 @@ macro_rules! hash_primary_funcs {
             Q: ?Sized + Equivalent<K>,
             H: Hasher<Q>,
         {
-            self.get(key).is_some()
+            self.entries
+                .contains(self.hasher.hash_one(key), |entry| key.equivalent(&entry.0))
         }
 
         #[doc = include_str!("../doc_snippets/get_disjoint_mut.md")]
@@ -547,7 +549,14 @@ macro_rules! scan_primary_funcs {
         where
             Q: ?Sized + Equivalent<K>,
         {
-            self.get(key).is_some()
+            let mut result = false;
+            for entry in &self.entries {
+                if key.equivalent(&entry.0) {
+                    result = true;
+                }
+            }
+
+            result
         }
 
         #[doc = include_str!("../doc_snippets/get_disjoint_mut.md")]
@@ -659,7 +668,16 @@ macro_rules! sparse_scalar_lookup_primary_funcs {
         where
             Q: Comparable<K> + Scalar,
         {
-            self.get(key).is_some()
+            let index = key.index();
+            if index >= self.min && index <= self.max {
+                let index_in_lookup = index - self.min;
+
+                // SAFETY: We are guaranteed that the index is valid because we checked it against min and max
+                let index_in_entries: usize = unsafe { (*self.lookup.get_unchecked(index_in_lookup)).into() };
+                index_in_entries > 0
+            } else {
+                false
+            }
         }
 
         get_disjoint_mut_funcs!("Scalar");

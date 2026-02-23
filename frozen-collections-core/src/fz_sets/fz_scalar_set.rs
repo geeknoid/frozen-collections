@@ -39,6 +39,7 @@ pub struct FzScalarSet<T> {
 
 impl<T> FzScalarSet<T> {
     /// Creates a new frozen set.
+    #[doc = include_str!("../doc_snippets/duplicate_values.md")]
     #[must_use]
     pub fn new(entries: Vec<T>) -> Self
     where

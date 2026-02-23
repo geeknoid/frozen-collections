@@ -44,6 +44,7 @@ pub struct FzHashMap<K, V, BH = DefaultBuildHasher> {
 
 impl<K, V> FzHashMap<K, V, DefaultBuildHasher> {
     /// Creates a frozen map.
+    #[doc = include_str!("../doc_snippets/duplicate_keys.md")]
     #[must_use]
     pub fn new(entries: Vec<(K, V)>) -> Self
     where
@@ -58,6 +59,7 @@ where
     BH: BuildHasher,
 {
     /// Creates a frozen map which uses the given hash builder to hash keys.
+    #[doc = include_str!("../doc_snippets/duplicate_keys.md")]
     #[must_use]
     #[expect(
         clippy::missing_panics_doc,

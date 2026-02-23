@@ -17,9 +17,9 @@ use crate::traits::{CollectionMagnitude, SmallCollection};
 /// lookups by avoiding the need to perform a modulo operation.
 #[derive(Clone, Debug)]
 pub struct InlineHashTable<T, const SZ: usize, const NHS: usize, CM = SmallCollection> {
+    mask: u64,
     slots: [HashTableSlot<CM>; NHS],
     pub(crate) entries: [T; SZ],
-    mask: u64,
 }
 
 impl<T, const SZ: usize, const NHS: usize, CM> InlineHashTable<T, SZ, NHS, CM> {

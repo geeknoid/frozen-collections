@@ -1,8 +1,9 @@
 use crate::DefaultBuildHasher;
 use crate::analyzers::{SliceKeyAnalysisResult, analyze_slice_keys};
-use crate::hashers::{BridgeHasher, LeftRangeHasher, RightRangeHasher};
+use crate::hashers::{BridgeHasher, LeftRangeHasher, LengthHasher, RightRangeHasher, StringHasher};
+use crate::maps::HashMap;
 use crate::maps::decl_macros::{debug_trait_funcs, index_trait_funcs, len_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs};
-use crate::maps::{HashMap, IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
+use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{LargeCollection, Len, Map, MapExtras, MapIteration, MapQuery};
 use crate::utils::DeduppedVec;
 use core::array;
@@ -12,7 +13,7 @@ use core::marker::PhantomData;
 use core::ops::Index;
 
 #[cfg(not(feature = "std"))]
-use {alloc::boxed::Box, alloc::string::ToString, alloc::vec::Vec};
+use {alloc::boxed::Box, alloc::vec::Vec};
 
 #[cfg(feature = "serde")]
 use {
@@ -22,38 +23,28 @@ use {
     serde::{Deserialize, Deserializer, Serialize, Serializer},
 };
 
-#[derive(Clone)]
-enum MapTypes<V, BH> {
-    LeftRange(HashMap<Box<str>, V, LargeCollection, LeftRangeHasher<BH>>),
-    RightRange(HashMap<Box<str>, V, LargeCollection, RightRangeHasher<BH>>),
-    Hash(HashMap<Box<str>, V, LargeCollection, BridgeHasher<BH>>),
-}
-
 /// A map optimized for fast read access with string keys.
 ///
 #[doc = include_str!("../doc_snippets/about.md")]
 #[doc = include_str!("../doc_snippets/hash_warning.md")]
-///
-/// # Alternate Choices
-///
-/// If your keys are known at compile time, consider using the various `fz_*_map` macros instead of
-/// this type as they generally perform better.
 #[derive(Clone)]
-pub struct FzStringMap<K, V, BH = DefaultBuildHasher> {
-    map_impl: MapTypes<V, BH>,
-    _0: PhantomData<K>,
+pub struct FzStringMap<V, BH = DefaultBuildHasher> {
+    map_impl: HashMap<Box<str>, V, LargeCollection, StringHasher>,
+    _bh: PhantomData<BH>,
 }
 
-impl<V> FzStringMap<Box<str>, V, DefaultBuildHasher> {
+impl<V> FzStringMap<V, DefaultBuildHasher> {
     /// Creates a frozen map.
+    #[doc = include_str!("../doc_snippets/duplicate_keys.md")]
     #[must_use]
     pub fn new(entries: Vec<(impl AsRef<str>, V)>) -> Self {
         Self::with_hasher(entries, DefaultBuildHasher::default())
     }
 }
 
-impl<V, BH> FzStringMap<Box<str>, V, BH> {
+impl<V, BH> FzStringMap<V, BH> {
     /// Creates a frozen map which uses the given hash builder to hash keys.
+    #[doc = include_str!("../doc_snippets/duplicate_keys.md")]
     #[must_use]
     #[expect(
         clippy::missing_panics_doc,
@@ -61,35 +52,22 @@ impl<V, BH> FzStringMap<Box<str>, V, BH> {
     )]
     pub fn with_hasher(entries: Vec<(impl AsRef<str>, V)>, bh: BH) -> Self
     where
-        BH: BuildHasher,
+        BH: BuildHasher + Clone + Send + Sync + 'static,
     {
-        let entries: Vec<(Box<str>, V)> = entries
-            .into_iter()
-            .map(|(k, v)| (k.as_ref().to_string().into_boxed_str(), v))
-            .collect();
+        let entries: Vec<(Box<str>, V)> = entries.into_iter().map(|(k, v)| (Box::from(k.as_ref()), v)).collect();
 
-        let entries = DeduppedVec::using_cmp(entries, |x, y| x.0.as_ref().cmp(y.0.as_ref()));
+        let entries = DeduppedVec::using_cmp(entries, |x, y| x.0.cmp(&y.0));
+
+        let hasher = match analyze_slice_keys(entries.iter().map(|x| x.0.as_bytes()), &bh) {
+            SliceKeyAnalysisResult::General => StringHasher::new(BridgeHasher::new(bh)),
+            SliceKeyAnalysisResult::Length => StringHasher::new(LengthHasher),
+            SliceKeyAnalysisResult::LeftHandSubslice(range) => StringHasher::new(LeftRangeHasher::new(bh, range)),
+            SliceKeyAnalysisResult::RightHandSubslice(range) => StringHasher::new(RightRangeHasher::new(bh, range)),
+        };
 
         Self {
-            map_impl: {
-                match analyze_slice_keys(entries.iter().map(|x| x.0.as_ref().as_bytes()), &bh) {
-                    SliceKeyAnalysisResult::General | SliceKeyAnalysisResult::Length => {
-                        let h = BridgeHasher::new(bh);
-                        MapTypes::Hash(HashMap::from_dedupped(entries, h).expect("failed to create hash map"))
-                    }
-
-                    SliceKeyAnalysisResult::LeftHandSubslice(range) => {
-                        let h = LeftRangeHasher::new(bh, range);
-                        MapTypes::LeftRange(HashMap::from_dedupped(entries, h).expect("failed to create hash map"))
-                    }
-
-                    SliceKeyAnalysisResult::RightHandSubslice(range) => {
-                        let h = RightRangeHasher::new(bh, range);
-                        MapTypes::RightRange(HashMap::from_dedupped(entries, h).expect("failed to create hash map"))
-                    }
-                }
-            },
-            _0: PhantomData,
+            map_impl: HashMap::from_dedupped(entries, hasher).expect("failed to create hash map"),
+            _bh: PhantomData,
         }
     }
 
@@ -99,12 +77,7 @@ impl<V, BH> FzStringMap<Box<str>, V, BH> {
     where
         BH: BuildHasher,
     {
-        let key = key.as_ref();
-        match &self.map_impl {
-            MapTypes::LeftRange(m) => m.get(key),
-            MapTypes::RightRange(m) => m.get(key),
-            MapTypes::Hash(m) => m.get(key),
-        }
+        self.map_impl.get(key.as_ref())
     }
 
     #[doc = include_str!("../doc_snippets/get_mut.md")]
@@ -113,27 +86,17 @@ impl<V, BH> FzStringMap<Box<str>, V, BH> {
     where
         BH: BuildHasher,
     {
-        let key = key.as_ref();
-        match &mut self.map_impl {
-            MapTypes::LeftRange(m) => m.get_mut(key),
-            MapTypes::RightRange(m) => m.get_mut(key),
-            MapTypes::Hash(m) => m.get_mut(key),
-        }
+        self.map_impl.get_mut(key.as_ref())
     }
 
     #[doc = include_str!("../doc_snippets/get_key_value.md")]
     #[inline]
-    #[expect(clippy::borrowed_box, reason = "By design")]
+    #[expect(clippy::borrowed_box, reason = "Key type is Box<str>")]
     pub fn get_key_value(&self, key: impl AsRef<str>) -> Option<(&Box<str>, &V)>
     where
         BH: BuildHasher,
     {
-        let key = key.as_ref();
-        match &self.map_impl {
-            MapTypes::LeftRange(m) => m.get_key_value(key),
-            MapTypes::RightRange(m) => m.get_key_value(key),
-            MapTypes::Hash(m) => m.get_key_value(key),
-        }
+        self.map_impl.get_key_value(key.as_ref())
     }
 
     #[doc = include_str!("../doc_snippets/contains_key.md")]
@@ -143,12 +106,7 @@ impl<V, BH> FzStringMap<Box<str>, V, BH> {
     where
         BH: BuildHasher,
     {
-        let key = key.as_ref();
-        match &self.map_impl {
-            MapTypes::LeftRange(m) => m.contains_key(key),
-            MapTypes::RightRange(m) => m.contains_key(key),
-            MapTypes::Hash(m) => m.contains_key(key),
-        }
+        self.map_impl.contains_key(key.as_ref())
     }
 
     #[doc = include_str!("../doc_snippets/get_disjoint_mut.md")]
@@ -158,11 +116,7 @@ impl<V, BH> FzStringMap<Box<str>, V, BH> {
         BH: BuildHasher,
     {
         let keys: [&str; N] = array::from_fn(|i| keys[i].as_ref());
-        match &mut self.map_impl {
-            MapTypes::LeftRange(m) => m.get_disjoint_mut(keys),
-            MapTypes::RightRange(m) => m.get_disjoint_mut(keys),
-            MapTypes::Hash(m) => m.get_disjoint_mut(keys),
-        }
+        self.map_impl.get_disjoint_mut(keys)
     }
 
     #[doc = include_str!("../doc_snippets/get_disjoint_unchecked_mut.md")]
@@ -172,160 +126,112 @@ impl<V, BH> FzStringMap<Box<str>, V, BH> {
         BH: BuildHasher,
     {
         let keys: [&str; N] = array::from_fn(|i| keys[i].as_ref());
-        match &mut self.map_impl {
-            // SAFETY: The caller must ensure that the keys are disjoint.
-            MapTypes::LeftRange(m) => unsafe { m.get_disjoint_unchecked_mut(keys) },
-
-            // SAFETY: The caller must ensure that the keys are disjoint.
-            MapTypes::RightRange(m) => unsafe { m.get_disjoint_unchecked_mut(keys) },
-
-            // SAFETY: The caller must ensure that the keys are disjoint.
-            MapTypes::Hash(m) => unsafe { m.get_disjoint_unchecked_mut(keys) },
-        }
+        // SAFETY: The caller must ensure that the keys are disjoint.
+        unsafe { self.map_impl.get_disjoint_unchecked_mut(keys) }
     }
 
     #[doc = include_str!("../doc_snippets/len.md")]
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
-        match &self.map_impl {
-            MapTypes::LeftRange(m) => m.len(),
-            MapTypes::RightRange(m) => m.len(),
-            MapTypes::Hash(m) => m.len(),
-        }
+        self.map_impl.len()
     }
 
     #[doc = include_str!("../doc_snippets/is_empty.md")]
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        match &self.map_impl {
-            MapTypes::LeftRange(m) => m.is_empty(),
-            MapTypes::RightRange(m) => m.is_empty(),
-            MapTypes::Hash(m) => m.is_empty(),
-        }
+        self.map_impl.is_empty()
     }
 
     #[doc = include_str!("../doc_snippets/iter.md")]
     #[must_use]
     pub fn iter(&self) -> Iter<'_, Box<str>, V> {
-        match &self.map_impl {
-            MapTypes::LeftRange(m) => m.iter(),
-            MapTypes::RightRange(m) => m.iter(),
-            MapTypes::Hash(m) => m.iter(),
-        }
+        self.map_impl.iter()
     }
 
     #[doc = include_str!("../doc_snippets/iter_mut.md")]
     #[must_use]
     pub fn iter_mut(&mut self) -> IterMut<'_, Box<str>, V> {
-        match &mut self.map_impl {
-            MapTypes::LeftRange(m) => m.iter_mut(),
-            MapTypes::RightRange(m) => m.iter_mut(),
-            MapTypes::Hash(m) => m.iter_mut(),
-        }
+        self.map_impl.iter_mut()
     }
 
     #[must_use]
     fn into_iter(self) -> IntoIter<Box<str>, V> {
-        match self.map_impl {
-            MapTypes::LeftRange(m) => m.into_iter(),
-            MapTypes::RightRange(m) => m.into_iter(),
-            MapTypes::Hash(m) => m.into_iter(),
-        }
+        self.map_impl.into_iter()
     }
 
     #[doc = include_str!("../doc_snippets/keys.md")]
     #[must_use]
     pub fn keys(&self) -> Keys<'_, Box<str>, V> {
-        match &self.map_impl {
-            MapTypes::LeftRange(m) => m.keys(),
-            MapTypes::RightRange(m) => m.keys(),
-            MapTypes::Hash(m) => m.keys(),
-        }
+        self.map_impl.keys()
     }
 
     #[doc = include_str!("../doc_snippets/into_keys.md")]
     #[must_use]
     pub fn into_keys(self) -> IntoKeys<Box<str>, V> {
-        match self.map_impl {
-            MapTypes::LeftRange(m) => m.into_keys(),
-            MapTypes::RightRange(m) => m.into_keys(),
-            MapTypes::Hash(m) => m.into_keys(),
-        }
+        self.map_impl.into_keys()
     }
 
     #[doc = include_str!("../doc_snippets/values.md")]
     #[must_use]
     pub fn values(&self) -> Values<'_, Box<str>, V> {
-        match &self.map_impl {
-            MapTypes::LeftRange(m) => m.values(),
-            MapTypes::RightRange(m) => m.values(),
-            MapTypes::Hash(m) => m.values(),
-        }
+        self.map_impl.values()
     }
 
     #[doc = include_str!("../doc_snippets/values_mut.md")]
     #[must_use]
     pub fn values_mut(&mut self) -> ValuesMut<'_, Box<str>, V> {
-        match &mut self.map_impl {
-            MapTypes::LeftRange(m) => m.values_mut(),
-            MapTypes::RightRange(m) => m.values_mut(),
-            MapTypes::Hash(m) => m.values_mut(),
-        }
+        self.map_impl.values_mut()
     }
 
     #[doc = include_str!("../doc_snippets/into_values.md")]
     #[must_use]
     pub fn into_values(self) -> IntoValues<Box<str>, V> {
-        match self.map_impl {
-            MapTypes::LeftRange(m) => m.into_values(),
-            MapTypes::RightRange(m) => m.into_values(),
-            MapTypes::Hash(m) => m.into_values(),
-        }
+        self.map_impl.into_values()
     }
 }
 
-impl<V, BH> Default for FzStringMap<Box<str>, V, BH>
+impl<V, BH> Default for FzStringMap<V, BH>
 where
     BH: Default,
 {
     fn default() -> Self {
         Self {
-            map_impl: MapTypes::Hash(HashMap::default()),
-            _0: PhantomData,
+            map_impl: HashMap::default(),
+            _bh: PhantomData,
         }
     }
 }
 
-impl<K, V, const N: usize, BH> From<[(K, V); N]> for FzStringMap<Box<str>, V, BH>
+impl<K, V, const N: usize, BH> From<[(K, V); N]> for FzStringMap<V, BH>
 where
     K: AsRef<str>,
-    BH: BuildHasher + Default,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
 {
     fn from(entries: [(K, V); N]) -> Self {
         Self::with_hasher(Vec::from(entries), BH::default())
     }
 }
 
-impl<K, V, BH> FromIterator<(K, V)> for FzStringMap<Box<str>, V, BH>
+impl<K, V, BH> FromIterator<(K, V)> for FzStringMap<V, BH>
 where
     K: AsRef<str>,
-    BH: BuildHasher + Default,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
 {
     fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
         Self::with_hasher(iter.into_iter().collect(), BH::default())
     }
 }
 
-impl<V, Q, BH> Map<Box<str>, V, Q> for FzStringMap<Box<str>, V, BH>
+impl<V, Q, BH> Map<Box<str>, V, Q> for FzStringMap<V, BH>
 where
     Q: AsRef<str>,
     BH: BuildHasher,
 {
 }
 
-impl<V, Q, BH> MapExtras<Box<str>, V, Q> for FzStringMap<Box<str>, V, BH>
+impl<V, Q, BH> MapExtras<Box<str>, V, Q> for FzStringMap<V, BH>
 where
     Q: AsRef<str>,
     BH: BuildHasher,
@@ -347,7 +253,7 @@ where
     }
 }
 
-impl<V, Q, BH> MapQuery<Q, V> for FzStringMap<Box<str>, V, BH>
+impl<V, Q, BH> MapQuery<Q, V> for FzStringMap<V, BH>
 where
     Q: AsRef<str>,
     BH: BuildHasher,
@@ -355,7 +261,7 @@ where
     map_query_trait_funcs!();
 }
 
-impl<V, BH> MapIteration<Box<str>, V> for FzStringMap<Box<str>, V, BH>
+impl<V, BH> MapIteration<Box<str>, V> for FzStringMap<V, BH>
 where
     BH: BuildHasher,
 {
@@ -385,6 +291,7 @@ where
     where
         V: 'a,
         BH: 'a;
+
     type ValueMutIterator<'a>
         = ValuesMut<'a, Box<str>, V>
     where
@@ -420,11 +327,11 @@ where
     }
 }
 
-impl<V, BH> Len for FzStringMap<Box<str>, V, BH> {
+impl<V, BH> Len for FzStringMap<V, BH> {
     len_trait_funcs!();
 }
 
-impl<V, Q, BH> Index<&Q> for FzStringMap<Box<str>, V, BH>
+impl<V, Q, BH> Index<&Q> for FzStringMap<V, BH>
 where
     Q: AsRef<str>,
     BH: BuildHasher,
@@ -432,7 +339,7 @@ where
     index_trait_funcs!();
 }
 
-impl<V, BH> IntoIterator for FzStringMap<Box<str>, V, BH> {
+impl<V, BH> IntoIterator for FzStringMap<V, BH> {
     type Item = (Box<str>, V);
     type IntoIter = IntoIter<Box<str>, V>;
 
@@ -441,7 +348,7 @@ impl<V, BH> IntoIterator for FzStringMap<Box<str>, V, BH> {
     }
 }
 
-impl<'a, V, BH> IntoIterator for &'a FzStringMap<Box<str>, V, BH> {
+impl<'a, V, BH> IntoIterator for &'a FzStringMap<V, BH> {
     type Item = (&'a Box<str>, &'a V);
     type IntoIter = Iter<'a, Box<str>, V>;
 
@@ -450,7 +357,7 @@ impl<'a, V, BH> IntoIterator for &'a FzStringMap<Box<str>, V, BH> {
     }
 }
 
-impl<'a, V, BH> IntoIterator for &'a mut FzStringMap<Box<str>, V, BH> {
+impl<'a, V, BH> IntoIterator for &'a mut FzStringMap<V, BH> {
     type Item = (&'a Box<str>, &'a mut V);
     type IntoIter = IterMut<'a, Box<str>, V>;
 
@@ -459,7 +366,7 @@ impl<'a, V, BH> IntoIterator for &'a mut FzStringMap<Box<str>, V, BH> {
     }
 }
 
-impl<V, MT, BH> PartialEq<MT> for FzStringMap<Box<str>, V, BH>
+impl<V, MT, BH> PartialEq<MT> for FzStringMap<V, BH>
 where
     V: PartialEq,
     MT: MapQuery<Box<str>, V>,
@@ -468,14 +375,14 @@ where
     partial_eq_trait_funcs!();
 }
 
-impl<V, BH> Eq for FzStringMap<Box<str>, V, BH>
+impl<V, BH> Eq for FzStringMap<V, BH>
 where
     V: Eq,
     BH: BuildHasher,
 {
 }
 
-impl<V, BH> Debug for FzStringMap<Box<str>, V, BH>
+impl<V, BH> Debug for FzStringMap<V, BH>
 where
     V: Debug,
 {
@@ -483,7 +390,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<V, BH> Serialize for FzStringMap<Box<str>, V, BH>
+impl<V, BH> Serialize for FzStringMap<V, BH>
 where
     V: Serialize,
 {
@@ -491,9 +398,10 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'de, V> Deserialize<'de> for FzStringMap<Box<str>, V>
+impl<'de, V, BH> Deserialize<'de> for FzStringMap<V, BH>
 where
     V: Deserialize<'de>,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
 {
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
@@ -512,9 +420,9 @@ struct StrMapVisitor<V, BH> {
 impl<'de, V, BH> Visitor<'de> for StrMapVisitor<V, BH>
 where
     V: Deserialize<'de>,
-    BH: BuildHasher + Default,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
 {
-    type Value = FzStringMap<Box<str>, V, BH>;
+    type Value = FzStringMap<V, BH>;
 
     fn expecting(&self, formatter: &mut Formatter) -> Result {
         formatter.write_str("a map with string keys")

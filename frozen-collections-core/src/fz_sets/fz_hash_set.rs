@@ -46,6 +46,7 @@ pub struct FzHashSet<T, BH = DefaultBuildHasher> {
 
 impl<T> FzHashSet<T, DefaultBuildHasher> {
     /// Creates a new frozen set.
+    #[doc = include_str!("../doc_snippets/duplicate_values.md")]
     #[must_use]
     pub fn new(entries: Vec<T>) -> Self
     where
@@ -60,6 +61,7 @@ where
     BH: BuildHasher,
 {
     /// Creates a new frozen set which uses the given hash builder to hash values.
+    #[doc = include_str!("../doc_snippets/duplicate_values.md")]
     #[must_use]
     pub fn with_hasher(entries: Vec<T>, bh: BH) -> Self
     where

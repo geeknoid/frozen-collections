@@ -7,6 +7,7 @@ pub use crate::hashers::left_range_hasher::LeftRangeHasher;
 pub use crate::hashers::length_hasher::LengthHasher;
 pub use crate::hashers::right_range_hasher::RightRangeHasher;
 pub use crate::hashers::scalar_hasher::ScalarHasher;
+pub use crate::hashers::string_hasher::StringHasher;
 
 mod bridge_hasher;
 mod inline_left_range_hasher;
@@ -15,3 +16,4 @@ mod left_range_hasher;
 mod length_hasher;
 mod right_range_hasher;
 mod scalar_hasher;
+mod string_hasher;
