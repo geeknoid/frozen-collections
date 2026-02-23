@@ -60,13 +60,14 @@ where
 {
     #[inline]
     fn hash_one(&self, value: &AR) -> u64 {
-        let b = value.as_ref().as_bytes();
+        let value = value.as_ref();
+        let b = value.as_bytes();
         if b.len() < RANGE_END {
             cold();
             return 0;
         }
 
-        let effective_range = value.as_ref().len() - RANGE_END..value.as_ref().len() - RANGE_START;
+        let effective_range = b.len() - RANGE_END..b.len() - RANGE_START;
         self.bh.hash_one(&b[effective_range])
     }
 }

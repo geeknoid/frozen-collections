@@ -26,6 +26,13 @@
 
 - Added the missing ability to deserialize a FzStringMap using a custom hash builder.
 
+- Added missing `FusedIterator` implementation for `maps::Iter`. All other map
+  iterators (`IterMut`, `Keys`, `Values`, `ValuesMut`, `IntoIter`, `IntoKeys`,
+  `IntoValues`) already implemented it.
+
+- Fixed incorrect `Eq` bound on `InlineEytzingerSearchMap`: changed `V: PartialEq`
+  to `V: Eq`, matching every other map type in the codebase.
+
 ## 0.8.0 - 2025-07-04
 
 ### Changed

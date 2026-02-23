@@ -44,6 +44,8 @@ impl<K, V> ExactSizeIterator for Iter<'_, K, V> {
     }
 }
 
+impl<K, V> FusedIterator for Iter<'_, K, V> {}
+
 impl<K, V> Clone for Iter<'_, K, V> {
     fn clone(&self) -> Self {
         Self { inner: self.inner.clone() }
