@@ -155,7 +155,7 @@ where
 impl<K, V, const N: usize> Eq for InlineEytzingerSearchMap<K, V, N>
 where
     K: Ord,
-    V: PartialEq,
+    V: Eq,
 {
 }
 
