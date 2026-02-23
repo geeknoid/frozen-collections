@@ -87,7 +87,7 @@ impl Generator {
         let value_type = &self.value_type;
 
         let mut ty = quote!(::frozen_collections::FzStringMap);
-        let generics = quote!(<#value_type>);
+        let generics = quote!(<Box<str>, #value_type>);
         let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new(vec![
             #(
@@ -97,7 +97,8 @@ impl Generator {
 
         if self.gen_set {
             ty = quote!(::frozen_collections::FzStringSet);
-            type_sig = quote!(#ty);
+            let set_generics = quote!(<Box<str>>);
+            type_sig = quote!(#ty::#set_generics);
             ctor = quote!(#type_sig::from(#ctor));
         }
 

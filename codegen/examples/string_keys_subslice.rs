@@ -2,6 +2,8 @@
 
 #![no_std]
 
+extern crate alloc;
+use alloc::boxed::Box;
 use core::hint::black_box;
 use frozen_collections::{FzStringMap, fz_string_map};
 use hashbrown::HashMap as HashbrownMap;
@@ -34,7 +36,7 @@ fn call_hashbrown_map(map: &HashbrownMap<&str, i32>, key: &str) -> bool {
 }
 
 #[inline(never)]
-fn call_fz_string_map(map: &FzStringMap<i32>, key: &str) -> bool {
+fn call_fz_string_map(map: &FzStringMap<Box<str>, i32>, key: &str) -> bool {
     map.contains_key(key)
 }
 
