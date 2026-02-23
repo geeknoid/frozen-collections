@@ -21,22 +21,26 @@ pub fn eytzinger_layout<T>(sorted_entries: &mut [T]) {
         y - x - 1
     }
 
-    let mut map = hashbrown::HashMap::new();
+    let mut redirects = alloc::vec![usize::MAX; sorted_entries.len()];
     for mut i in 0..sorted_entries.len() {
         let mut target = get_eytzinger_index(i, sorted_entries.len());
-        if target < i {
-            target = map.remove(&target).expect("eytzinger index not found in map");
+        if redirects[target] != usize::MAX {
+            let t = redirects[target];
+            redirects[target] = usize::MAX;
+            target = t;
         }
 
         sorted_entries.swap(i, target);
 
-        if let Some(x) = map.remove(&i) {
-            i = x;
+        if redirects[i] != usize::MAX {
+            let t = redirects[i];
+            redirects[i] = usize::MAX;
+            i = t;
         }
 
         if target != i {
-            _ = map.insert(target, i);
-            _ = map.insert(i, target);
+            redirects[target] = i;
+            redirects[i] = target;
         }
     }
 }
@@ -246,5 +250,29 @@ mod tests {
         let data = make_eytzinger(1);
         assert!(eytzinger_search_by(&data, cmp_fn(0)).is_some());
         assert!(eytzinger_search_by(&data, cmp_fn(1)).is_none());
+    }
+
+    #[test]
+    #[expect(clippy::cast_possible_truncation, clippy::cast_possible_wrap, reason = "test values are tiny")]
+    fn layout_matches_expected() {
+        // For a sorted input [0,1,2,3,4,5,6], the Eytzinger layout should be [3,1,5,0,2,4,6]
+        let data = make_eytzinger(7);
+        assert_eq!(data, vec![3, 1, 5, 0, 2, 4, 6]);
+
+        let data = make_eytzinger(3);
+        assert_eq!(data, vec![1, 0, 2]);
+
+        let data = make_eytzinger(5);
+        assert_eq!(data, vec![3, 1, 4, 0, 2]);
+
+        // Verify the layout is a valid Eytzinger tree for all sizes up to 128:
+        // every element from the sorted input must appear exactly once
+        for n in 1..=128 {
+            let data = make_eytzinger(n);
+            let mut sorted = data.clone();
+            sorted.sort_unstable();
+            let expected: Vec<i32> = (0..n as i32).collect();
+            assert_eq!(sorted, expected, "layout is not a permutation for n={n}");
+        }
     }
 }

@@ -55,7 +55,7 @@ where
 }
 
 /// See if we can use slice lengths instead of hashing
-fn analyze_lengths<T>(keys: &Vec<&[T]>) -> SliceKeyAnalysisResult {
+fn analyze_lengths<T>(keys: &[&[T]]) -> SliceKeyAnalysisResult {
     const ACCEPTABLE_DUPLICATE_RATIO: usize = 20; // 5% duplicates are acceptable
 
     let max_identical = keys.len() / ACCEPTABLE_DUPLICATE_RATIO;
@@ -102,8 +102,6 @@ where
         if s.len() < suffix_len {
             suffix_len = s.len();
         }
-
-        assert!(!keys.is_empty());
 
         for i in 0..prefix_len {
             if s[i] != keys[0][i] {
