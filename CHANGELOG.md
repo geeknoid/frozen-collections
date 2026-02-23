@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.9.0 - 2026-02-22
+## 0.9.0 - 2026-??-??
+
+### Added
+
+- Added FzStringMap::new_for_str and FzStringMap::with_hasher_for_str and their set counterparts which
+  makes it possible to create FzStringMap/Set instances with string literals without needing to have them
+  copied into Box<str>, thus saving on RAM.
 
 ### Changed
 
