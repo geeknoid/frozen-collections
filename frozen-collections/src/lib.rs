@@ -1089,8 +1089,8 @@ pub mod emit {
     pub use frozen_collections_core::emit::*;
 }
 
-pub use frozen_collections_core::fz_maps::{FzHashMap, FzOrderedMap, FzScalarMap, FzStringMap};
-pub use frozen_collections_core::fz_sets::{FzHashSet, FzOrderedSet, FzScalarSet, FzStringSet};
+pub use frozen_collections_core::fz_maps::*;
+pub use frozen_collections_core::fz_sets::*;
 
 #[doc(hidden)]
 pub mod sets {

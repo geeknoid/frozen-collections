@@ -84,10 +84,11 @@ impl Generator {
 
     #[cfg(feature = "macros")]
     pub(super) fn gen_fz_string<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+        let key_type = &self.key_type;
         let value_type = &self.value_type;
 
         let mut ty = quote!(::frozen_collections::FzStringMap);
-        let generics = quote!(<#value_type>);
+        let mut generics = quote!(<#key_type, #value_type>);
         let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new(vec![
             #(
@@ -97,7 +98,8 @@ impl Generator {
 
         if self.gen_set {
             ty = quote!(::frozen_collections::FzStringSet);
-            type_sig = quote!(#ty);
+            generics = quote!(<#key_type>);
+            type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::from(#ctor));
         }
 

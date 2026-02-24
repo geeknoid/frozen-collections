@@ -225,3 +225,55 @@ fn non_literal_key_string_map() {
 
     let _ = fz_string_map_macro(quote!({s0: 2, s1: 3, s2: 4, s3: 3})).unwrap();
 }
+
+#[test]
+fn non_literal_key_string_set() {
+    let s0 = "Zero";
+    let s1 = "One";
+    let s2 = "Two";
+    let s3 = "Three";
+    let s = fz_string_set!({s0, s1, s2, s3});
+    assert_eq!(4, s.len());
+    assert!(s.contains(s0));
+    assert!(s.contains(s1));
+    assert!(s.contains(s2));
+    assert!(s.contains(s3));
+    assert!(!s.contains("Foo"));
+
+    let _ = fz_string_set_macro(quote!({s0, s1, s2, s3})).unwrap();
+}
+
+#[test]
+fn non_literal_key_string_map_large() {
+    let s0 = "Zero";
+    let s1 = "One";
+    let s2 = "Two";
+    let s3 = "Three";
+    let s4 = "Four";
+    let s5 = "Five";
+    let m = fz_string_map!({s0: 0, s1: 1, s2: 2, s3: 3, s4: 4, s5: 5});
+    assert_eq!(6, m.len());
+    assert_eq!(Some(&0), m.get(s0));
+    assert_eq!(Some(&5), m.get(s5));
+    assert!(!m.contains_key("Foo"));
+
+    let _ = fz_string_map_macro(quote!({s0: 0, s1: 1, s2: 2, s3: 3, s4: 4, s5: 5})).unwrap();
+}
+
+#[test]
+fn non_literal_key_string_set_large() {
+    let s0 = "Zero";
+    let s1 = "One";
+    let s2 = "Two";
+    let s3 = "Three";
+    let s4 = "Four";
+    let s5 = "Five";
+    let s = fz_string_set!({s0, s1, s2, s3, s4, s5});
+    assert_eq!(6, s.len());
+    assert!(s.contains(s0));
+    assert!(s.contains(s3));
+    assert!(s.contains(s5));
+    assert!(!s.contains("Foo"));
+
+    let _ = fz_string_set_macro(quote!({s0, s1, s2, s3, s4, s5})).unwrap();
+}

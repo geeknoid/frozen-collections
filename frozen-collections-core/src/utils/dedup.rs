@@ -116,6 +116,22 @@ pub struct SortedAndDeduppedVec<T> {
 
 impl<T> SortedAndDeduppedVec<T> {
     pub fn new(mut entries: Vec<T>, cmp: impl Fn(&T, &T) -> Ordering) -> Self {
+        // Under Miri, sort by indices to avoid Stacked Borrows violations when T
+        // contains types with heap indirection (like Box<str>). Sorting entries
+        // directly via sort_by causes the sort algorithm's internal raw pointer
+        // moves to conflict with Box's deref borrows on heap allocations.
+        #[cfg(miri)]
+        {
+            let mut indices: Vec<usize> = (0..entries.len()).collect();
+            indices.sort_by(|&a, &b| cmp(&entries[a], &entries[b]));
+            let mut slots: Vec<Option<T>> = entries.into_iter().map(Some).collect();
+            entries = Vec::with_capacity(slots.len());
+            for i in indices {
+                entries.push(slots[i].take().expect("slot already taken during dedup reordering"));
+            }
+        }
+
+        #[cfg(not(miri))]
         entries.sort_by(|x, y| cmp(x, y));
 
         if entries.len() >= 2 {
