@@ -24,7 +24,7 @@ where
     /// Returns whether the hash slot is completely empty.
     #[cfg(any(feature = "emit", feature = "macros"))]
     pub(crate) fn is_empty(&self) -> bool {
-        self.max_index.into() == 0_usize
+        self.max_index.into() == self.min_index.into()
     }
 }
 
@@ -35,5 +35,25 @@ impl quote::ToTokens for HashTableSlot<usize> {
         let max_index = proc_macro2::Literal::usize_unsuffixed(self.max_index);
 
         tokens.extend(quote::quote!(::frozen_collections::hash_tables::HashTableSlot::new(#min_index, #max_index)));
+    }
+}
+
+#[cfg(all(test, any(feature = "emit", feature = "macros")))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_empty() {
+        let slot: HashTableSlot<u8> = HashTableSlot::new(0, 0);
+        assert!(slot.is_empty());
+
+        let slot: HashTableSlot<u8> = HashTableSlot::new(0, 1);
+        assert!(!slot.is_empty());
+
+        let slot: HashTableSlot<u8> = HashTableSlot::new(5, 5);
+        assert!(slot.is_empty());
+
+        let slot: HashTableSlot<u8> = HashTableSlot::new(3, 7);
+        assert!(!slot.is_empty());
     }
 }

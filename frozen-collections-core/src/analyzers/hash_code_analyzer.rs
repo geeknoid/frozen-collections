@@ -48,11 +48,11 @@ pub fn analyze_hash_codes(hash_codes: impl Iterator<Item = u64>) -> HashCodeAnal
 
     // the maximum table size we consider, given a scaled growth factor for different input sizes
     let mut max_size = if hash_codes.len() < MEDIUM_INPUT_SIZE_THRESHOLD {
-        hash_codes.len() * MAX_SMALL_INPUT_MULTIPLIER
+        hash_codes.len().saturating_mul(MAX_SMALL_INPUT_MULTIPLIER)
     } else if hash_codes.len() < LARGE_INPUT_SIZE_THRESHOLD {
-        hash_codes.len() * MAX_MEDIUM_INPUT_MULTIPLIER
+        hash_codes.len().saturating_mul(MAX_MEDIUM_INPUT_MULTIPLIER)
     } else {
-        hash_codes.len() * MAX_LARGE_INPUT_MULTIPLIER
+        hash_codes.len().saturating_mul(MAX_LARGE_INPUT_MULTIPLIER)
     };
 
     if !max_size.is_power_of_two() {

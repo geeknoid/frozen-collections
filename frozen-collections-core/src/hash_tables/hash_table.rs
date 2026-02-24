@@ -45,6 +45,8 @@ where
         }
 
         let num_hash_slots = analyze_hash_codes(entries.iter().map(&hash)).num_hash_slots;
+        debug_assert!(num_hash_slots.is_power_of_two(), "num_hash_slots must be a power of two");
+        let mask = (num_hash_slots as u64) - 1;
 
         let mut prep_items = Vec::with_capacity(entries.len());
         let mut entries = entries.into_vec();
@@ -52,7 +54,7 @@ where
             let hash_code = hash(&entry);
 
             #[expect(clippy::cast_possible_truncation, reason = "Truncation ok on 32 bit systems")]
-            let hash_slot_index = (hash_code % num_hash_slots as u64) as usize;
+            let hash_slot_index = (hash_code & mask) as usize;
 
             prep_items.push(PrepItem { hash_slot_index, entry });
         }
@@ -84,10 +86,14 @@ where
                 break;
             }
 
-            slots[hash_slot_index] = HashTableSlot::new(
-                CM::try_from(entry_index).unwrap_or(CM::ZERO),
-                CM::try_from(entry_index + num_entries_in_hash_slot).unwrap_or(CM::ZERO),
-            );
+            #[expect(clippy::panic, reason = "Defensive: entry_index is bounded by entries.len() <= CM::MAX_CAPACITY")]
+            {
+                slots[hash_slot_index] = HashTableSlot::new(
+                    CM::try_from(entry_index).unwrap_or_else(|_| panic!("entry_index exceeds collection magnitude")),
+                    CM::try_from(entry_index + num_entries_in_hash_slot)
+                        .unwrap_or_else(|_| panic!("entry_index + count exceeds collection magnitude")),
+                );
+            }
 
             entry_index += num_entries_in_hash_slot;
         }

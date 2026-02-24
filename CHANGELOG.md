@@ -8,6 +8,10 @@
   makes it possible to create FzStringMap/Set instances with string literals without needing to have them
   copied into Box<str>, thus saving on RAM.
 
+- Added a bunch of examples
+
+- The various iterator types implement the DoubleEndedIterator trait where appropriate
+
 ### Changed
 
 - Changed the layout in the core hash table types to improve cache
