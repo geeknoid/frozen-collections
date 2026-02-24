@@ -26,14 +26,14 @@ pub fn derive_scalar_macro(args: TokenStream) -> syn::Result<TokenStream> {
     for v in &variants.variants {
         if v.fields != Fields::Unit {
             return Err(Error::new_spanned(
-                name,
+                &v.ident,
                 "Scalar can only be used with enums that only contain unit variants",
             ));
         }
 
         if v.discriminant.is_some() {
             return Err(Error::new_spanned(
-                name,
+                &v.ident,
                 "Scalar can only be used with enums that do not have explicit discriminants",
             ));
         }

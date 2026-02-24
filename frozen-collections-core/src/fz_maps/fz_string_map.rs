@@ -2,7 +2,9 @@ use crate::DefaultBuildHasher;
 use crate::analyzers::{SliceKeyAnalysisResult, analyze_slice_keys};
 use crate::hashers::{BridgeHasher, LeftRangeHasher, LengthHasher, RightRangeHasher, StringHasher};
 use crate::maps::HashMap;
-use crate::maps::decl_macros::{debug_trait_funcs, index_trait_funcs, len_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs};
+use crate::maps::decl_macros::{
+    debug_trait_funcs, index_trait_funcs, len_trait_funcs, map_iteration_trait_funcs, map_query_trait_funcs, partial_eq_trait_funcs,
+};
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
 use crate::traits::{LargeCollection, Len, Map, MapExtras, MapIteration, MapQuery};
 use crate::utils::DeduppedVec;
@@ -364,9 +366,6 @@ where
         V: 'a,
         BH: 'a;
 
-    type IntoKeyIterator = IntoKeys<K, V>;
-    type IntoValueIterator = IntoValues<K, V>;
-
     type MutIterator<'a>
         = IterMut<'a, K, V>
     where
@@ -381,33 +380,7 @@ where
         V: 'a,
         BH: 'a;
 
-    fn iter(&self) -> Self::Iterator<'_> {
-        self.iter()
-    }
-
-    fn iter_mut(&mut self) -> Self::MutIterator<'_> {
-        self.iter_mut()
-    }
-
-    fn keys(&self) -> Self::KeyIterator<'_> {
-        self.keys()
-    }
-
-    fn into_keys(self) -> Self::IntoKeyIterator {
-        self.into_keys()
-    }
-
-    fn values(&self) -> Self::ValueIterator<'_> {
-        self.values()
-    }
-
-    fn values_mut(&mut self) -> Self::ValueMutIterator<'_> {
-        self.values_mut()
-    }
-
-    fn into_values(self) -> Self::IntoValueIterator {
-        self.into_values()
-    }
+    map_iteration_trait_funcs!();
 }
 
 impl<K, V, BH> Len for FzStringMap<K, V, BH> {

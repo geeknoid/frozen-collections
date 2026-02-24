@@ -49,7 +49,7 @@ fn emit_loop(file: &mut BufWriter<File>, name: &str) {
     .unwrap();
     writeln!(file, "        b.iter(|| {{").unwrap();
     writeln!(file, "            for key in &probe {{").unwrap();
-    writeln!(file, "                _ = black_box(s.contains(key));").unwrap();
+    writeln!(file, "                _ = black_box(black_box(&s).contains(black_box(key)));").unwrap();
     writeln!(file, "            }}").unwrap();
     writeln!(file, "        }});").unwrap();
     writeln!(file, "    }});").unwrap();

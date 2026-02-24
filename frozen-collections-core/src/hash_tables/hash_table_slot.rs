@@ -24,7 +24,7 @@ where
     /// Returns whether the hash slot is completely empty.
     #[cfg(any(feature = "emit", feature = "macros"))]
     pub(crate) fn is_empty(&self) -> bool {
-        self.max_index.into() == self.min_index.into()
+        self.max_index == self.min_index
     }
 }
 

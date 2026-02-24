@@ -18,7 +18,10 @@ pub trait MapExtras<K, V, Q: ?Sized = K> {
     where
         Q: Eq;
 
-    #[doc = include_str!("../doc_snippets/get_disjoint_unchecked_mut.md")]
+    /// # Safety
+    ///
+    /// The caller must ensure that no two keys in `keys` refer to the same key.
+    /// Using duplicate keys is undefined behavior.
     #[must_use]
     unsafe fn get_disjoint_unchecked_mut<const N: usize>(&mut self, keys: [&Q; N]) -> [Option<&mut V>; N];
 }

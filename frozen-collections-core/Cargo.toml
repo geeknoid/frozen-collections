@@ -28,7 +28,7 @@ rand = { workspace = true, features = ["std", "std_rng"] }
 [features]
 default = ["std", "macros", "serde", "emit"]
 macros = ["dep:syn", "dep:quote", "dep:proc-macro2"]
-emit = ["dep:syn", "dep:quote", "dep:proc-macro2"]
+emit = ["dep:syn", "dep:quote", "dep:proc-macro2", "std"]
 serde = ["dep:serde"]
 std = []
 

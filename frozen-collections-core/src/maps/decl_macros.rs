@@ -493,6 +493,10 @@ macro_rules! partial_eq_trait_funcs {
 }
 
 macro_rules! scan_primary_funcs {
+    // These scan functions iterate all entries without early return.
+    // This is intentional: for small collections (≤4 entries), branchless
+    // linear scanning avoids branch misprediction penalties and is faster
+    // than an early-return approach.
     () => {
         #[doc = include_str!("../doc_snippets/get.md")]
         #[inline]

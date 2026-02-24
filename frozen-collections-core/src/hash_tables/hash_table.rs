@@ -60,7 +60,7 @@ where
         }
 
         // sort items so hash collisions are contiguous.
-        prep_items.sort_unstable_by(|x, y| x.hash_slot_index.cmp(&y.hash_slot_index));
+        prep_items.sort_unstable_by_key(|x| x.hash_slot_index);
 
         let mut entry_index = 0;
         let mut slots = Vec::with_capacity(num_hash_slots);
@@ -99,7 +99,7 @@ where
         }
 
         Ok(Self {
-            mask: (slots.len() - 1) as u64,
+            mask,
             slots: slots.into_boxed_slice(),
             entries: final_entries.into_boxed_slice(),
         })
