@@ -37,6 +37,19 @@ impl<'a, T> Iterator for Iter<'a, T> {
     }
 }
 
+impl<T> DoubleEndedIterator for Iter<'_, T> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back().map(|entry| entry.0)
+    }
+
+    fn rfold<B, F>(self, init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        self.inner.rfold(init, |acc, (k, ())| f(acc, k))
+    }
+}
+
 impl<T> ExactSizeIterator for Iter<'_, T> {
     fn len(&self) -> usize {
         self.inner.len()
@@ -92,6 +105,19 @@ impl<T> Iterator for IntoIter<T> {
         F: FnMut(B, Self::Item) -> B,
     {
         self.inner.fold(init, |acc, (k, ())| f(acc, k))
+    }
+}
+
+impl<T> DoubleEndedIterator for IntoIter<T> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back().map(|entry| entry.0)
+    }
+
+    fn rfold<B, F>(self, init: B, mut f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        self.inner.rfold(init, |acc, (k, ())| f(acc, k))
     }
 }
 
@@ -860,5 +886,69 @@ mod tests {
         // Exercise IntoIterator
         let set3 = UnboundedHintSet(vec![1, 2].into_iter().collect());
         assert_eq!(set3.into_iter().count(), 2);
+    }
+
+    #[test]
+    fn test_iter_rev() {
+        let entries = vec![("Alice", ()), ("Bob", ()), ("Sandy", ())];
+        let map_iter = MapIter::new(&entries);
+        let iter = Iter::new(map_iter);
+        let collected: Vec<_> = iter.rev().collect();
+        assert_eq!(collected, vec![&"Sandy", &"Bob", &"Alice"]);
+    }
+
+    #[test]
+    fn test_iter_next_back() {
+        let entries = vec![("Alice", ()), ("Bob", ()), ("Sandy", ())];
+        let map_iter = MapIter::new(&entries);
+        let mut iter = Iter::new(map_iter);
+        assert_eq!(iter.next(), Some(&"Alice"));
+        assert_eq!(iter.next_back(), Some(&"Sandy"));
+        assert_eq!(iter.next(), Some(&"Bob"));
+        assert_eq!(iter.next_back(), None);
+    }
+
+    #[test]
+    fn test_iter_rfold() {
+        let entries = vec![("Alice", ()), ("Bob", ())];
+        let map_iter = MapIter::new(&entries);
+        let iter = Iter::new(map_iter);
+        let result = iter.rfold(String::new(), |mut acc, &name| {
+            acc.push_str(name);
+            acc
+        });
+        assert_eq!(result, "BobAlice");
+    }
+
+    #[test]
+    fn test_into_iter_rev() {
+        let entries = vec![("Alice", ()), ("Bob", ()), ("Sandy", ())];
+        let map_into_iter = MapIntoIter::new(entries.into_boxed_slice());
+        let into_iter = IntoIter::new(map_into_iter);
+        let collected: Vec<_> = into_iter.rev().collect();
+        assert_eq!(collected, vec!["Sandy", "Bob", "Alice"]);
+    }
+
+    #[test]
+    fn test_into_iter_next_back() {
+        let entries = vec![("Alice", ()), ("Bob", ()), ("Sandy", ())];
+        let map_into_iter = MapIntoIter::new(entries.into_boxed_slice());
+        let mut into_iter = IntoIter::new(map_into_iter);
+        assert_eq!(into_iter.next(), Some("Alice"));
+        assert_eq!(into_iter.next_back(), Some("Sandy"));
+        assert_eq!(into_iter.next(), Some("Bob"));
+        assert_eq!(into_iter.next_back(), None);
+    }
+
+    #[test]
+    fn test_into_iter_rfold() {
+        let entries = vec![("Alice", ()), ("Bob", ())];
+        let map_into_iter = MapIntoIter::new(entries.into_boxed_slice());
+        let into_iter = IntoIter::new(map_into_iter);
+        let result = into_iter.rfold(String::new(), |mut acc, name| {
+            acc.push_str(name);
+            acc
+        });
+        assert_eq!(result, "BobAlice");
     }
 }

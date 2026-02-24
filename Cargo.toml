@@ -5,6 +5,7 @@ members = [
     "frozen-collections",
     "frozen-collections-core",
     "frozen-collections-macros",
+    "no-std-test",
     "srcgen",
 ]
 

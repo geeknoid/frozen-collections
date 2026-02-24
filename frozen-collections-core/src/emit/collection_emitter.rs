@@ -89,6 +89,7 @@ pub struct CollectionEmitter {
     visibility: Visibility,
     is_mutable: bool,
     is_static: bool,
+    has_std: bool,
 
     #[cfg(feature = "macros")]
     pub(crate) inferred_key_type: bool,
@@ -123,6 +124,7 @@ impl CollectionEmitter {
             visibility: Visibility::Inherited,
             is_static: false,
             is_mutable: false,
+            has_std: cfg!(feature = "std"),
 
             #[cfg(feature = "macros")]
             inferred_key_type: false,
@@ -465,6 +467,8 @@ impl CollectionEmitter {
             Err("symbol_name is required for mutable collections".to_string())
         } else if self.alias_name.is_some() && self.symbol_name.is_none() {
             Err("alias_name cannot be used without symbol_name".to_string())
+        } else if !self.has_std && self.is_static && !(self.const_keys && self.const_values) {
+            Err("static collections with non-const keys or values require the \"std\" feature for LazyLock support".to_string())
         } else {
             Ok(Generator::new(&self.key_type, self.value_type.as_ref(), len))
         }
@@ -595,7 +599,41 @@ mod tests {
     }
 
     #[test]
-    fn test_no_alias_instance() {
+    fn test_preflight_no_std_static_non_const() {
+        let mut emitter = CollectionEmitter::new(&parse_quote! { i32 })
+            .symbol_name("SYMBOL")
+            .static_instance(true);
+        emitter.has_std = false;
+        let result = emitter.preflight(10);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err(),
+            "static collections with non-const keys or values require the \"std\" feature for LazyLock support"
+        );
+    }
+
+    #[test]
+    fn test_preflight_no_std_static_const_ok() {
+        let mut emitter = CollectionEmitter::new(&parse_quote! { i32 })
+            .symbol_name("SYMBOL")
+            .static_instance(true)
+            .const_keys(true)
+            .const_values(true);
+        emitter.has_std = false;
+        let result = emitter.preflight(10);
+        let _ = result.unwrap();
+    }
+
+    #[test]
+    fn test_preflight_no_std_static_partial_const() {
+        let mut emitter = CollectionEmitter::new(&parse_quote! { i32 })
+            .symbol_name("SYMBOL")
+            .static_instance(true)
+            .const_keys(true)
+            .const_values(false);
+        emitter.has_std = false;
+        let result = emitter.preflight(10);
+        let _ = result.unwrap_err();
         let v: Vec<CollectionEntry<i32>> = Vec::new();
 
         let result = CollectionEmitter::new(&parse_quote! { i32 })
