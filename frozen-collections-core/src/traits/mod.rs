@@ -1,5 +1,6 @@
 //! Traits to support frozen collections.
 
+pub(crate) use crate::traits::collection_magnitude::cm_to_usize;
 pub use crate::traits::collection_magnitude::{CollectionMagnitude, LargeCollection, MediumCollection, SmallCollection};
 pub use crate::traits::hasher::Hasher;
 pub use crate::traits::len::Len;

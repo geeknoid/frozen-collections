@@ -19,6 +19,7 @@ frozen-collections-core = { workspace = true }
 [dev-dependencies]
 rand = { workspace = true }
 quote = { workspace = true }
+syn = { workspace = true, features = ["printing", "parsing", "clone-impls", "derive", "extra-traits"] }
 hashbrown = { workspace = true, features = ["serde"] }
 criterion = { workspace = true }
 frozen-collections-core = { workspace = true, features = ["std", "serde", "macros", "emit" ] }

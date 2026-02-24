@@ -497,11 +497,11 @@ impl CollectionEmitter {
                 let alias_name = format_ident!("{}", alias_name);
                 quote!(
                     #visibility type #alias_name = #type_sig;
-                    #visibility static #symbol_name: std::sync::LazyLock<#alias_name> = std::sync::LazyLock::new(|| { #ctor });
+                    #visibility static #symbol_name: ::std::sync::LazyLock<#alias_name> = ::std::sync::LazyLock::new(|| { #ctor });
                 )
             } else {
                 quote!(
-                   #visibility static #symbol_name: std::sync::LazyLock<#type_sig> = std::sync::LazyLock::new(|| { #ctor });
+                   #visibility static #symbol_name: ::std::sync::LazyLock<#type_sig> = ::std::sync::LazyLock::new(|| { #ctor });
                 )
             }
         } else if let Some(symbol_name) = self.symbol_name.as_ref() {

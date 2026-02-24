@@ -1,4 +1,4 @@
-use crate::traits::{CollectionMagnitude, SmallCollection};
+use crate::traits::{CollectionMagnitude, SmallCollection, cm_to_usize};
 
 /// A specialized hash table that stores its entries inline and doesn't tolerate hash collisions.
 ///
@@ -20,11 +20,24 @@ pub struct InlineHashTableNoCollisions<T, const SZ: usize, const NHS: usize, CM 
     pub(crate) entries: [T; SZ],
 }
 
-impl<T, const SZ: usize, const NHS: usize, CM> InlineHashTableNoCollisions<T, SZ, NHS, CM> {
+impl<T, const SZ: usize, const NHS: usize, CM: CollectionMagnitude> InlineHashTableNoCollisions<T, SZ, NHS, CM> {
     /// Creates a new hash table.
     ///
-    /// This function assumes that the slots and processed entries are in proper order.
+    /// # Panics
+    ///
+    /// Panics if `NHS` is zero or not a power of two, or if any non-zero
+    /// slot value exceeds `SZ`.
     pub const fn new_raw(slots: [CM; NHS], processed_entries: [T; SZ]) -> Self {
+        assert!(NHS > 0, "number of hash slots must be greater than zero");
+        assert!(NHS.is_power_of_two(), "number of hash slots must be a power of two");
+
+        let mut i = 0;
+        while i < NHS {
+            let v = cm_to_usize(slots[i]);
+            assert!(v <= SZ, "slot value exceeds number of entries");
+            i += 1;
+        }
+
         Self {
             mask: (NHS - 1) as u64,
             slots,
@@ -117,5 +130,12 @@ mod tests {
         assert!(!table.contains(2, |_| true));
         // Hash code 3 → slot 3 → entry index 0 → empty, must return false
         assert!(!table.contains(3, |_| true));
+    }
+
+    #[test]
+    #[should_panic(expected = "slot value exceeds number of entries")]
+    fn new_raw_panics_on_slot_value_exceeding_entries() {
+        // Slot value 3 exceeds SZ=2
+        let _table: InlineHashTableNoCollisions<i32, 2, 4, SmallCollection> = InlineHashTableNoCollisions::new_raw([1, 3, 0, 0], [10, 20]);
     }
 }

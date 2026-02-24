@@ -171,7 +171,17 @@ jobs:
         run: git diff origin/main...HEAD >diff.txt
       - name: Mutate Diff
         timeout-minutes: 45
-        run: cargo mutants --test-workspace=true --colors=never --jobs=2 --build-timeout=120 --cap-lints=true --in-diff diff.txt
+        run: |
+          set +e
+          cargo mutants --test-workspace=true --colors=never --jobs=2 --build-timeout=120 --cap-lints=true --in-diff diff.txt
+          exit_code=$?
+          # Exit code 3 means timeouts only (e.g. infinite loops in const fn evaluation).
+          # These are effectively caught mutations, so treat them as success.
+          if [ "$exit_code" -eq 0 ] || [ "$exit_code" -eq 3 ]; then
+            exit 0
+          else
+            exit "$exit_code"
+          fi
 
   coverage:
     runs-on: ${{ matrix.os }}
