@@ -316,7 +316,7 @@ where
     T: Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        self.iter.fmt(f)
+        f.debug_list().entries((*self).clone()).finish()
     }
 }
 

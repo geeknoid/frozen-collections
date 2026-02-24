@@ -163,6 +163,7 @@ where
 
 impl<T, ST, const SZ: usize, const LTSZ: usize, CM> PartialEq<ST> for InlineSparseScalarLookupSet<T, SZ, LTSZ, CM>
 where
+    T: Scalar,
     ST: SetQuery<T>,
     CM: CollectionMagnitude,
 {

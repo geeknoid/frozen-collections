@@ -11,7 +11,7 @@ mod sealed {
 /// the max capacity that the collection can hold.
 ///
 /// This trait is sealed and cannot be implemented outside of this crate.
-pub trait CollectionMagnitude: sealed::Sealed + Copy + TryFrom<usize> + Into<usize> {
+pub trait CollectionMagnitude: sealed::Sealed + Copy + PartialEq + TryFrom<usize> + Into<usize> {
     /// The maximum number of entries supported in the collection.
     const MAX_CAPACITY: usize;
 
@@ -30,7 +30,7 @@ pub trait CollectionMagnitude: sealed::Sealed + Copy + TryFrom<usize> + Into<usi
 ///
 /// Panics if `CM` is not one of the supported magnitude types
 /// (`u8`, `u16`, or `usize`).
-pub const fn cm_to_usize<CM: Copy>(val: CM) -> usize {
+pub const fn cm_to_usize<CM: CollectionMagnitude>(val: CM) -> usize {
     match size_of::<CM>() {
         1 => {
             // SAFETY: CM is u8 (SmallCollection), which is 1 byte

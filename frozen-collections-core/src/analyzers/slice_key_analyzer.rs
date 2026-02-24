@@ -58,7 +58,7 @@ where
 fn analyze_lengths<T>(keys: &[&[T]]) -> SliceKeyAnalysisResult {
     const ACCEPTABLE_DUPLICATE_RATIO: usize = 20; // 5% duplicates are acceptable
 
-    let max_identical = keys.len() / ACCEPTABLE_DUPLICATE_RATIO;
+    let max_identical = (keys.len() / ACCEPTABLE_DUPLICATE_RATIO).max(1);
     let mut lengths = HashbrownMap::<usize, usize>::new();
     for s in keys {
         let v = lengths.get_mut(&s.len());
@@ -118,8 +118,8 @@ where
         }
     }
 
-    // tolerate a certain number of duplicate subslices
-    let acceptable_duplicates = keys.len() / ACCEPTABLE_DUPLICATE_RATIO;
+    // tolerate a certain number of hash collisions on subslices
+    let acceptable_hash_collisions = keys.len() / ACCEPTABLE_DUPLICATE_RATIO;
 
     // this set is reused for each call to is_sufficiently_unique
     let mut set = HashbrownSet::with_capacity(keys.len());
@@ -133,7 +133,7 @@ where
         // If any is above our threshold, we're done.
         let mut subslice_index = prefix_len;
         while subslice_index <= min_len - subslice_len {
-            if is_sufficiently_unique(keys, subslice_index, subslice_len, true, &mut set, acceptable_duplicates, bh) {
+            if is_sufficiently_unique(keys, subslice_index, subslice_len, true, &mut set, acceptable_hash_collisions, bh) {
                 return if subslice_len == max_len {
                     SliceKeyAnalysisResult::General
                 } else {
@@ -153,7 +153,7 @@ where
             // If any is above our threshold, we're done.
             subslice_index = suffix_len;
             while subslice_index <= min_len - subslice_len {
-                if is_sufficiently_unique(keys, subslice_index, subslice_len, false, &mut set, acceptable_duplicates, bh) {
+                if is_sufficiently_unique(keys, subslice_index, subslice_len, false, &mut set, acceptable_hash_collisions, bh) {
                     return SliceKeyAnalysisResult::RightHandSubslice(subslice_index..subslice_index + subslice_len);
                 }
 
@@ -174,7 +174,7 @@ fn is_sufficiently_unique<T, BH>(
     subslice_len: usize,
     left_justified: bool,
     set: &mut HashbrownSet<u64>,
-    mut acceptable_duplicates: usize,
+    mut acceptable_hash_collisions: usize,
     bh: &BH,
 ) -> bool
 where
@@ -192,11 +192,11 @@ where
         };
 
         if !set.insert(bh.hash_one(sub)) {
-            if acceptable_duplicates == 0 {
+            if acceptable_hash_collisions == 0 {
                 return false;
             }
 
-            acceptable_duplicates -= 1;
+            acceptable_hash_collisions -= 1;
         }
     }
 

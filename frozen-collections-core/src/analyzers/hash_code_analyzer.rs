@@ -33,6 +33,13 @@ pub fn analyze_hash_codes(hash_codes: impl Iterator<Item = u64>) -> HashCodeAnal
     const MAX_LARGE_INPUT_MULTIPLIER: usize = 3;
 
     let hash_codes: Vec<u64> = hash_codes.collect();
+    if hash_codes.is_empty() {
+        return HashCodeAnalysisResult {
+            num_hash_slots: 0,
+            num_hash_collisions: 0,
+        };
+    }
+
     let mut acceptable_collisions = if hash_codes.len() < MEDIUM_INPUT_SIZE_THRESHOLD {
         // for small enough inputs, we try for perfection
         0

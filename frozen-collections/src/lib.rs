@@ -873,7 +873,7 @@ pub use frozen_collections_macros::fz_scalar_map;
 /// // Scalar sets can also be used with any integer type as value.
 /// //
 /// // This declares a global static set. This results in a static variable called MY_INT_SET of type MyIntSetType.
-/// fz_scalar_set!(static MY_INT_SET: MyIntMapType<i32>, {
+/// fz_scalar_set!(static MY_INT_SET: MyIntSetType<i32>, {
 ///     10,
 ///     20,
 /// });
