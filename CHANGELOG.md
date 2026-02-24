@@ -39,6 +39,10 @@
 - Fixed incorrect `Eq` bound on `InlineEytzingerSearchMap`: changed `V: PartialEq`
   to `V: Eq`, matching every other map type in the codebase.
 
+- Fixed a bug in the implementation of various internal new_raw functions that are called by
+  macro-generated code. These functions now validate that the input data is properly formed
+  to prevent potential UBs that could theoretically happen.
+
 ## 0.8.0 - 2025-07-04
 
 ### Changed

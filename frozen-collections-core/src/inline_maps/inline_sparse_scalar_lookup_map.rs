@@ -4,7 +4,7 @@ use crate::maps::decl_macros::{
     map_query_trait_funcs, partial_eq_trait_funcs, sparse_scalar_lookup_primary_funcs,
 };
 use crate::maps::{IntoIter, IntoKeys, IntoValues, Iter, IterMut, Keys, Values, ValuesMut};
-use crate::traits::{CollectionMagnitude, Len, Map, MapExtras, MapIteration, MapQuery, Scalar, SmallCollection};
+use crate::traits::{CollectionMagnitude, Len, Map, MapExtras, MapIteration, MapQuery, Scalar, SmallCollection, cm_to_usize};
 use core::fmt::{Debug, Formatter, Result};
 use core::ops::Index;
 use equivalent::Comparable;
@@ -41,8 +41,29 @@ where
     CM: CollectionMagnitude,
 {
     /// Creates a frozen map.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `LTSZ` is zero, if `min > max`, if `max - min + 1` does not equal `LTSZ`,
+    /// or if any non-zero lookup value exceeds `SZ`.
+    ///
+    /// # Expectations
+    ///
+    /// Callers must ensure:
+    /// - Entries are sorted and deduplicated.
     #[must_use]
     pub const fn new_raw(sorted_and_dedupped_entries: [(K, V); SZ], lookup: [CM; LTSZ], min: usize, max: usize) -> Self {
+        assert!(LTSZ > 0, "LTSZ must be greater than zero");
+        assert!(min <= max, "min must not exceed max");
+        assert!(max - min == LTSZ - 1, "range size must equal lookup table size");
+
+        let mut i = 0;
+        while i < LTSZ {
+            let v = cm_to_usize(lookup[i]);
+            assert!(v <= SZ, "lookup value exceeds number of entries");
+            i += 1;
+        }
+
         Self {
             min,
             max,
@@ -191,4 +212,17 @@ where
     CM: CollectionMagnitude,
 {
     serialize_trait_funcs!();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "lookup value exceeds number of entries")]
+    fn new_raw_panics_on_lookup_value_exceeding_entries() {
+        // Lookup value 3 exceeds SZ=2
+        let _map: InlineSparseScalarLookupMap<i32, i32, 2, 3, SmallCollection> =
+            InlineSparseScalarLookupMap::new_raw([(1, 10), (2, 20)], [1, 3, 0], 1, 3);
+    }
 }

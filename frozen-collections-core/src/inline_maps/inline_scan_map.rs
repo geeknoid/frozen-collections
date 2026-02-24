@@ -50,6 +50,11 @@ impl<K, V, const SZ: usize> InlineScanMap<K, V, SZ> {
     }
 
     /// Creates a frozen map.
+    ///
+    /// # Expectations
+    ///
+    /// Callers must ensure:
+    /// - Entries are deduplicated.
     #[must_use]
     pub const fn new_raw(dedupped_entries: [(K, V); SZ]) -> Self {
         Self { entries: dedupped_entries }

@@ -58,7 +58,11 @@ impl<K, V, const SZ: usize> InlineEytzingerSearchMap<K, V, SZ> {
 
     /// Creates a frozen map.
     ///
-    /// This function assumes the vector is sorted according to the Eytzinger layout.
+    /// # Expectations
+    ///
+    /// Callers must ensure:
+    /// - Entries are arranged according to the Eytzinger layout.
+    /// - Entries are deduplicated.
     #[must_use]
     pub const fn new_raw(eytzinger_layout_dedupped_entries: [(K, V); SZ]) -> Self {
         Self {

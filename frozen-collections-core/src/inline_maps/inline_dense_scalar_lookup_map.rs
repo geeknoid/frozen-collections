@@ -36,10 +36,21 @@ pub struct InlineDenseScalarLookupMap<K, V, const SZ: usize> {
 impl<K, V, const SZ: usize> InlineDenseScalarLookupMap<K, V, SZ> {
     /// Creates a frozen map.
     ///
-    /// This function assumes that `min <= max` and that the vector is sorted according to the
-    /// order of the [`Ord`] trait.
+    /// # Panics
+    ///
+    /// Panics if `SZ` is zero, if `min > max`, or if `max - min + 1` does not equal `SZ`.
+    ///
+    /// # Expectations
+    ///
+    /// Callers must ensure:
+    /// - Entries are sorted according to the order of the [`Ord`] trait.
+    /// - Entries are deduplicated.
     #[must_use]
     pub const fn new_raw(sorted_and_dedupped_entries: [(K, V); SZ], min: usize, max: usize) -> Self {
+        assert!(SZ > 0, "SZ must be greater than zero");
+        assert!(min <= max, "min must not exceed max");
+        assert!(max - min == SZ - 1, "range size must equal number of entries");
+
         Self {
             min,
             max,

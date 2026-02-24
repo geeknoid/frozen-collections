@@ -1,4 +1,4 @@
-70
+72
 Acknowledgements
 boolean
 branchless
@@ -9,6 +9,8 @@ Clippy
 codecov
 codegen
 config
+const
+deduplicated
 deduplication
 dedupping
 deps
