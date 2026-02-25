@@ -26,8 +26,6 @@ macro_rules! common_primary_funcs {
         #[doc = include_str!("../doc_snippets/into_keys.md")]
         #[must_use]
         pub fn into_keys(self) -> IntoKeys<K, V> {
-            // NOTE: this allocates and copies everything into a vector for the sake of iterating the vector.
-            // This is the best I could come up with, let me know if you see a way around the need to copy.
             IntoKeys::new(alloc::vec::Vec::from(self$(. $entries)+).into_boxed_slice())
         }
 
@@ -46,8 +44,6 @@ macro_rules! common_primary_funcs {
         #[doc = include_str!("../doc_snippets/into_values.md")]
         #[must_use]
         pub fn into_values(self) -> IntoValues<K, V> {
-            // NOTE: this allocates and copies everything into a vector for the sake of iterating the vector.
-            // This is the best I could come up with, let me know if you see a way around the need to copy.
             IntoValues::new(alloc::vec::Vec::from(self$(. $entries)+).into_boxed_slice())
         }
 

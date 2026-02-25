@@ -57,7 +57,7 @@ impl<K, V> SparseScalarLookupMap<K, V> {
     {
         let min = entries[0].0.index();
         let max = entries[entries.len() - 1].0.index();
-        let count = max - min + 1;
+        let count = (max - min).checked_add(1).expect("key range must not span the full usize space");
 
         let mut lookup = vec![0; count];
 

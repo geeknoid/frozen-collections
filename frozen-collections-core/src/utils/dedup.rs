@@ -18,8 +18,8 @@ impl<T> DeduppedVec<T> {
             let mut dupes = HashbrownSet::new();
             for i in 0..entries.len() {
                 for j in (i + 1)..entries.len() {
-                    let (s0, s1) = entries.split_at_mut(j);
-                    if cmp(&mut s0[i], &mut s1[0]) {
+                    let (s0, s1) = entries.split_at(j);
+                    if cmp(&s0[i], &s1[0]) {
                         _ = dupes.insert(i);
                         break;
                     }
@@ -135,7 +135,7 @@ impl<T> SortedAndDeduppedVec<T> {
         if entries.len() >= 2 {
             let mut dupes = HashbrownSet::new();
             for i in 0..entries.len() - 1 {
-                let (s0, s1) = entries.split_at_mut(i + 1);
+                let (s0, s1) = entries.split_at(i + 1);
                 if cmp(&s0[i], &s1[0]) == Ordering::Equal {
                     _ = dupes.insert(i);
                 }

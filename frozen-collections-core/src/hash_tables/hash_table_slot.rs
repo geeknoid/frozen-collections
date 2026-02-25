@@ -1,4 +1,4 @@
-use crate::traits::CollectionMagnitude;
+use crate::traits::{CollectionMagnitude, cm_to_usize};
 
 /// An individual slot in a hash table.
 ///
@@ -18,6 +18,7 @@ where
 {
     /// Creates a new hash table slot with the specified minimum and maximum indices.
     pub const fn new(min_index: CM, max_index: CM) -> Self {
+        debug_assert!(cm_to_usize(min_index) <= cm_to_usize(max_index));
         Self { min_index, max_index }
     }
 
