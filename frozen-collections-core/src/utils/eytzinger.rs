@@ -59,7 +59,9 @@ pub fn eytzinger_search_by<'a, T: 'a>(data: &'a [T], f: impl Fn(&'a T) -> Orderi
                     return Some(i);
                 }
 
-                // Leverage the fact Ordering is defined as -1/0/1
+                // Leverage the fact Ordering is repr(i8) with values -1/0/1.
+                // For Less (-1): as usize wraps to usize::MAX, (usize::MAX >> 1) & 1 = 1, so i = 2*i+2 (right child).
+                // For Greater (1): as usize is 1, (1 >> 1) & 1 = 0, so i = 2*i+1 (left child).
                 let o = order as usize;
                 let o = (o >> 1) & 1;
                 i = 2 * i + 1 + o;

@@ -334,7 +334,7 @@ impl CollectionEmitter {
     /// # Errors
     ///
     /// This function fails if the emitter was misconfigured.
-    pub fn emit_string_collection(self, mut entries: Vec<CollectionEntry<String>>) -> Result<TokenStream, String> {
+    pub fn emit_string_collection(&self, mut entries: Vec<CollectionEntry<String>>) -> Result<TokenStream, String> {
         self.clean_values(&mut entries);
 
         let entries = DeduppedVec::using_cmp(entries, |x, y| x.key.cmp(&y.key));

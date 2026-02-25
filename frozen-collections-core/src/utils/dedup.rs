@@ -46,14 +46,14 @@ impl<T> DeduppedVec<T> {
 
     pub fn using_hash(mut entries: Vec<T>, hasher: impl Fn(&T) -> u64, eq: impl Fn(&T, &T) -> bool) -> Self {
         if entries.len() >= 2 {
-            let mut dupes = Vec::new();
+            let mut dupes = HashbrownSet::new();
             let mut keep = HashbrownTable::with_capacity(entries.len());
             for (index, value) in entries.iter().enumerate() {
                 let hash = hasher(value);
 
                 let r = keep.find_entry(hash, |other| eq(value, &entries[*other]));
                 if let Ok(entry) = r {
-                    dupes.push(*entry.get());
+                    _ = dupes.insert(*entry.get());
                     _ = entry.remove();
                 }
 
@@ -61,8 +61,6 @@ impl<T> DeduppedVec<T> {
             }
 
             if !dupes.is_empty() {
-                // remove the duplicates from the input vector
-
                 let mut index = 0;
                 entries.retain(|_| {
                     let result = !dupes.contains(&index);

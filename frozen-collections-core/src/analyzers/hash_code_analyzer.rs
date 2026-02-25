@@ -78,7 +78,7 @@ pub fn analyze_hash_codes(hash_codes: impl Iterator<Item = u64>) -> HashCodeAnal
 
         for code in &hash_codes {
             #[expect(clippy::cast_possible_truncation, reason = "Truncation ok on 32-bit systems")]
-            let slot = (code % (num_slots as u64)) as usize;
+            let slot = (code & ((num_slots as u64) - 1)) as usize;
 
             if use_table.get(slot) {
                 num_collisions += 1;
