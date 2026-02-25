@@ -62,6 +62,23 @@ jobs:
       - name: Release Build
         run: cargo build --verbose --color always --release
 
+  feature-checks:
+    runs-on: ubuntu-latest
+    steps:
+      # prep
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          enable-sccache: true
+          rust-toolchain: RUST_MSRV
+          cargo-tools: CARGO_HACK_VERSION
+
+      # execute
+      - name: Validating Feature Combinations
+        run: cargo hack check --feature-powerset --workspace
+
   static-analysis:
     runs-on: ${{ matrix.os }}
     strategy:

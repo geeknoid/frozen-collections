@@ -35,6 +35,7 @@ impl Generator {
         }
     }
 
+    #[cfg(feature = "macros")]
     pub fn gen_fz_hash<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
         self.gen_fz_collection(
             entries,
@@ -61,6 +62,7 @@ impl Generator {
         )
     }
 
+    #[cfg(feature = "macros")]
     fn gen_fz_collection<K>(self, entries: Vec<CollectionEntry<K>>, map_type: TokenStream, set_type: TokenStream) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
@@ -143,6 +145,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
+    #[cfg(feature = "macros")]
     pub(super) fn gen_inline_eytzinger_search_vec<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
@@ -233,6 +236,7 @@ impl Generator {
         Output { ctor, type_sig }
     }
 
+    #[cfg(feature = "macros")]
     pub fn gen_inline_scan_vec<K>(&self, entries: Vec<CollectionEntry<K>>) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
