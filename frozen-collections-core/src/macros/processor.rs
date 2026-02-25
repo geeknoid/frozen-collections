@@ -10,6 +10,8 @@ use quote::ToTokens;
 use syn::{Expr, ExprLit, Lit, LitInt, LitStr, parse_str, parse2};
 
 #[cfg(not(feature = "std"))]
+use alloc::string::String;
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
