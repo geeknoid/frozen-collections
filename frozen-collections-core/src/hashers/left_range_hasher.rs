@@ -33,7 +33,7 @@ where
             return 0;
         }
 
-        self.bh.hash_one(&value[self.range.clone()])
+        self.bh.hash_one(&value[self.range.start..self.range.end])
     }
 }
 
@@ -49,7 +49,7 @@ where
             return 0;
         }
 
-        self.bh.hash_one(&b[self.range.clone()])
+        self.bh.hash_one(&b[self.range.start..self.range.end])
     }
 }
 
@@ -66,7 +66,7 @@ where
             return 0;
         }
 
-        self.bh.hash_one(&b[self.range.clone()])
+        self.bh.hash_one(&b[self.range.start..self.range.end])
     }
 }
 

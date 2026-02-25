@@ -35,10 +35,9 @@ pub enum SliceKeyAnalysisResult {
 ///
 /// We also analyze the length of the input slices. If the lengths of the slices are sufficiently unique,
 /// we can totally skip hashing and just use their lengths as hash codes.
-pub fn analyze_slice_keys<'a, K, I, BH>(keys: I, bh: &BH) -> SliceKeyAnalysisResult
+pub fn analyze_slice_keys<'a, K, BH>(keys: impl Iterator<Item = &'a [K]>, bh: &BH) -> SliceKeyAnalysisResult
 where
     K: Hash + Eq + 'a,
-    I: Iterator<Item = &'a [K]>,
     BH: BuildHasher,
 {
     let keys: Vec<&[K]> = keys.collect();

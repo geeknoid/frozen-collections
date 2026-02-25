@@ -82,7 +82,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "slot min_index exceeds max_index")]
+    #[should_panic(expected = "cm_to_usize(min_index) <= cm_to_usize(max_index)")]
     fn new_raw_panics_on_min_index_exceeding_max_index() {
         let _table: InlineHashTable<i32, 2, 4, SmallCollection> = InlineHashTable::new_raw(
             [

@@ -77,11 +77,11 @@ pub(super) fn process(payload: Payload, emitter: CollectionEmitter, macro_kind: 
         EffectiveKeyKind::AllLiteralScalars(ScalarType::U64) => handle_literal_scalar_keys::<u64>(emitter, entries, ""),
         EffectiveKeyKind::AllLiteralScalars(ScalarType::USize) => handle_literal_scalar_keys::<usize>(emitter, entries, ""),
         EffectiveKeyKind::AllLiteralScalars(ScalarType::Undecided) => handle_literal_scalar_keys::<i32>(emitter, entries, "i32"),
-        EffectiveKeyKind::LiteralAndExpressionScalars => handle_non_literal_scalar_keys(emitter, entries),
+        EffectiveKeyKind::LiteralAndExpressionScalars => handle_expr_keys(emitter, entries, CollectionEmitter::emit_scalar_collection_expr),
         EffectiveKeyKind::AllLiteralStrings => handle_literal_string_keys(emitter, entries),
-        EffectiveKeyKind::LiteralAndExpressionStrings => handle_non_literal_string_keys(emitter, entries),
-        EffectiveKeyKind::Hashed => handle_hashed_keys(emitter, entries),
-        EffectiveKeyKind::Ordered => handle_ordered_keys(emitter, entries),
+        EffectiveKeyKind::LiteralAndExpressionStrings => handle_expr_keys(emitter, entries, CollectionEmitter::emit_string_collection_expr),
+        EffectiveKeyKind::Hashed => handle_expr_keys(emitter, entries, CollectionEmitter::emit_hash_collection_expr),
+        EffectiveKeyKind::Ordered => handle_expr_keys(emitter, entries, CollectionEmitter::emit_ordered_collection_expr),
     }
 }
 
@@ -222,7 +222,11 @@ fn handle_literal_string_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -
         .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
 }
 
-fn handle_non_literal_scalar_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
+fn handle_expr_keys(
+    emitter: CollectionEmitter,
+    entries: Vec<Entry>,
+    emit: impl FnOnce(CollectionEmitter, Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String>,
+) -> syn::Result<TokenStream> {
     let mut coll_entries = Vec::with_capacity(entries.len());
     for entry in entries {
         if let Some(value) = entry.value {
@@ -232,60 +236,5 @@ fn handle_non_literal_scalar_keys(emitter: CollectionEmitter, entries: Vec<Entry
         }
     }
 
-    emitter
-        .const_keys(false)
-        .const_values(false)
-        .emit_scalar_collection_expr(coll_entries)
-        .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
-}
-
-fn handle_non_literal_string_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
-    let mut coll_entries = Vec::with_capacity(entries.len());
-    for entry in entries {
-        if let Some(value) = entry.value {
-            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, value));
-        } else {
-            coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
-        }
-    }
-
-    emitter
-        .const_keys(false)
-        .const_values(false)
-        .emit_string_collection_expr(coll_entries)
-        .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
-}
-
-fn handle_hashed_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
-    let mut coll_entries = Vec::with_capacity(entries.len());
-    for entry in entries {
-        if let Some(value) = entry.value {
-            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, value));
-        } else {
-            coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
-        }
-    }
-
-    emitter
-        .const_keys(false)
-        .const_values(false)
-        .emit_hash_collection_expr(coll_entries)
-        .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
-}
-
-fn handle_ordered_keys(emitter: CollectionEmitter, entries: Vec<Entry>) -> syn::Result<TokenStream> {
-    let mut coll_entries = Vec::with_capacity(entries.len());
-    for entry in entries {
-        if let Some(value) = entry.value {
-            coll_entries.push(CollectionEntry::map_entry(NonLiteralKey {}, entry.key, value));
-        } else {
-            coll_entries.push(CollectionEntry::set_entry(NonLiteralKey {}, entry.key));
-        }
-    }
-
-    emitter
-        .const_keys(false)
-        .const_values(false)
-        .emit_ordered_collection_expr(coll_entries)
-        .map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
+    emit(emitter.const_keys(false).const_values(false), coll_entries).map_err(|e| syn::Error::new(Span::call_site(), e.as_str()))
 }

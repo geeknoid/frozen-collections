@@ -44,7 +44,7 @@ pub fn analyze_hash_codes(hash_codes: impl Iterator<Item = u64>) -> HashCodeAnal
         // for small enough inputs, we try for perfection
         0
     } else {
-        (hash_codes.len() / 100) * ACCEPTABLE_COLLISION_PERCENTAGE
+        hash_codes.len() * ACCEPTABLE_COLLISION_PERCENTAGE / 100
     };
 
     // the minimum table size we can tolerate, given the acceptable collision rate

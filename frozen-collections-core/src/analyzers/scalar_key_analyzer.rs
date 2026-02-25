@@ -32,7 +32,11 @@ pub fn analyze_scalar_keys(keys: impl Iterator<Item: Scalar>) -> ScalarKeyAnalys
         return ScalarKeyAnalysisResult::General;
     }
 
-    let needed_count = max - min + 1;
+    let Some(needed_count) = (max - min).checked_add(1) else {
+        // range spans the full usize space, too large for dense/sparse
+        return ScalarKeyAnalysisResult::General;
+    };
+
     if needed_count == count {
         ScalarKeyAnalysisResult::DenseRange
     } else if needed_count <= ALWAYS_SPARSE_THRESHOLD || needed_count < count.saturating_mul(MAX_SPARSE_MULTIPLIER) {
@@ -68,6 +72,12 @@ mod tests {
     #[test]
     fn test_analyze_scalar_keys_general() {
         let keys = vec![1, 2, 4, 8, 129].into_iter();
+        assert_eq!(analyze_scalar_keys(keys), ScalarKeyAnalysisResult::General);
+    }
+
+    #[test]
+    fn test_analyze_scalar_keys_full_usize_range() {
+        let keys = vec![0usize, usize::MAX].into_iter();
         assert_eq!(analyze_scalar_keys(keys), ScalarKeyAnalysisResult::General);
     }
 }

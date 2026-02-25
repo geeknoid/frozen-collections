@@ -34,18 +34,16 @@ pub const fn cm_to_usize<CM: CollectionMagnitude>(val: CM) -> usize {
     match size_of::<CM>() {
         1 => {
             // SAFETY: CM is u8 (SmallCollection), which is 1 byte
-            let b: [u8; 1] = unsafe { core::mem::transmute_copy(&val) };
-            b[0] as usize
+            unsafe { core::mem::transmute_copy::<CM, u8>(&val) as usize }
         }
         2 => {
             // SAFETY: CM is u16 (MediumCollection), which is 2 bytes
-            let b: [u8; 2] = unsafe { core::mem::transmute_copy(&val) };
-            u16::from_ne_bytes(b) as usize
+            unsafe { core::mem::transmute_copy::<CM, u16>(&val) as usize }
         }
         _ => {
             assert!(size_of::<CM>() == size_of::<usize>(), "unsupported CollectionMagnitude type");
             // SAFETY: CM is usize (LargeCollection), same size as usize
-            unsafe { core::mem::transmute_copy(&val) }
+            unsafe { core::mem::transmute_copy::<CM, usize>(&val) }
         }
     }
 }

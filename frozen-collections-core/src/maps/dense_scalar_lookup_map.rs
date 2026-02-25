@@ -51,7 +51,7 @@ impl<K, V> DenseScalarLookupMap<K, V> {
         let min = entries[0].0.index();
         let max = entries[entries.len() - 1].0.index();
 
-        if entries.len() == max - min + 1 {
+        if entries.len() - 1 == max - min {
             Ok(Self::from_sorted_and_dedupped(entries))
         } else {
             Err("keys must be in a contiguous range <= usize::MAX in size".to_string())
