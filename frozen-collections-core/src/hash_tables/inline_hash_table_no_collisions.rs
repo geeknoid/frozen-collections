@@ -23,6 +23,8 @@ pub struct InlineHashTableNoCollisions<T, const SZ: usize, const NHS: usize, CM 
 impl<T, const SZ: usize, const NHS: usize, CM: CollectionMagnitude> InlineHashTableNoCollisions<T, SZ, NHS, CM> {
     /// Creates a new hash table.
     ///
+    /// Slot values use 1-based indexing: 0 means empty, N means `entries[N-1]`.
+    ///
     /// # Panics
     ///
     /// Panics if `NHS` is zero or not a power of two, or if any non-zero

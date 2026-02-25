@@ -489,10 +489,6 @@ fn test_set_empties() {
     test_set_empty::<FzStringSet<Box<str>>, Box<str>>(&FzStringSet::default());
     test_set_empty(&FzStringSet::from(FzStringMap::new(v)));
 
-    let v: Vec<(&str, ())> = Vec::new();
-    test_set_empty::<FzStringSet<Box<str>>, Box<str>>(&FzStringSet::default());
-    test_set_empty(&FzStringSet::from(FzStringMap::new(v)));
-
     test_set_empty::<FzStringSet<&str>, &str>(&FzStringSet::default());
 }
 

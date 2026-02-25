@@ -81,6 +81,7 @@ impl<K, V> DenseScalarLookupMap<K, V> {
 impl<K, V> Default for DenseScalarLookupMap<K, V> {
     fn default() -> Self {
         Self {
+            // min > max indicates an empty map
             min: 1,
             max: 0,
             entries: Box::new([]),

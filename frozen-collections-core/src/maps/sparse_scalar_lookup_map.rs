@@ -82,6 +82,7 @@ impl<K, V> SparseScalarLookupMap<K, V> {
 impl<K, V> Default for SparseScalarLookupMap<K, V> {
     fn default() -> Self {
         Self {
+            // min > max indicates an empty map
             min: 1,
             max: 0,
             lookup: Box::new([]),

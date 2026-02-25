@@ -36,58 +36,36 @@ impl Generator {
     }
 
     pub fn gen_fz_hash<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
-        let key_type = &self.key_type;
-        let value_type = &self.value_type;
-
-        let mut ty = quote!(::frozen_collections::FzHashMap);
-        let mut generics = quote!(<#key_type, #value_type>);
-        let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new(vec![
-            #(
-                #entries,
-            )*
-        ]));
-
-        if self.gen_set {
-            ty = quote!(::frozen_collections::FzHashSet);
-            generics = quote!(<#key_type>);
-            type_sig = quote!(#ty::#generics);
-            ctor = quote!(#type_sig::from(#ctor));
-        }
-
-        Output { ctor, type_sig }
+        self.gen_fz_collection(
+            entries,
+            quote!(::frozen_collections::FzHashMap),
+            quote!(::frozen_collections::FzHashSet),
+        )
     }
 
     #[cfg(feature = "macros")]
     pub(super) fn gen_fz_scalar<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
-        let key_type = &self.key_type;
-        let value_type = &self.value_type;
-
-        let mut ty = quote!(::frozen_collections::FzScalarMap);
-        let mut generics = quote!(<#key_type, #value_type>);
-        let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new(vec![
-            #(
-                #entries,
-            )*
-        ]));
-
-        if self.gen_set {
-            ty = quote!(::frozen_collections::FzScalarSet);
-            generics = quote!(<#key_type>);
-            type_sig = quote!(#ty::#generics);
-            ctor = quote!(#type_sig::from(#ctor));
-        }
-
-        Output { ctor, type_sig }
+        self.gen_fz_collection(
+            entries,
+            quote!(::frozen_collections::FzScalarMap),
+            quote!(::frozen_collections::FzScalarSet),
+        )
     }
 
     #[cfg(feature = "macros")]
     pub(super) fn gen_fz_string<K>(self, entries: Vec<CollectionEntry<K>>) -> Output {
+        self.gen_fz_collection(
+            entries,
+            quote!(::frozen_collections::FzStringMap),
+            quote!(::frozen_collections::FzStringSet),
+        )
+    }
+
+    fn gen_fz_collection<K>(self, entries: Vec<CollectionEntry<K>>, map_type: TokenStream, set_type: TokenStream) -> Output {
         let key_type = &self.key_type;
         let value_type = &self.value_type;
 
-        let mut ty = quote!(::frozen_collections::FzStringMap);
+        let mut ty = map_type;
         let mut generics = quote!(<#key_type, #value_type>);
         let mut type_sig = quote!(#ty::#generics);
         let mut ctor = quote!(#type_sig::new(vec![
@@ -97,7 +75,7 @@ impl Generator {
         ]));
 
         if self.gen_set {
-            ty = quote!(::frozen_collections::FzStringSet);
+            ty = set_type;
             generics = quote!(<#key_type>);
             type_sig = quote!(#ty::#generics);
             ctor = quote!(#type_sig::from(#ctor));
@@ -340,7 +318,8 @@ impl Generator {
         let value_type = &self.value_type;
         let len = &self.len;
 
-        let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash_one(&x.key)).expect("failed to create hash table");
+        let ht = HashTable::<_, LargeCollection>::new(entries, |x| hasher.hash_one(&x.key))
+            .expect("failed to create hash table, which shouldn't happen given LargeCollection");
         let collisions = ht.has_collisions();
         let slots = ht.slots;
         let num_slots = Literal::usize_unsuffixed(slots.len());

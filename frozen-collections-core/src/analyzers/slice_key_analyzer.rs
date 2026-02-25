@@ -86,6 +86,10 @@ where
     const MAX_SUBSLICE_LENGTH_LIMIT: usize = 16;
     const ACCEPTABLE_DUPLICATE_RATIO: usize = 20; // 5% duplicates are acceptable
 
+    if keys.is_empty() {
+        return SliceKeyAnalysisResult::General;
+    }
+
     let mut min_len = usize::MAX;
     let mut max_len = 0;
     let mut prefix_len = usize::MAX;
@@ -290,5 +294,11 @@ mod tests {
         let y = &RandomState::default();
 
         assert_eq!(analyze_slice_keys(x, y), SliceKeyAnalysisResult::General);
+    }
+
+    #[test]
+    fn empty_subslices() {
+        let keys: &[&[u8]] = &[];
+        assert_eq!(analyze_subslices(keys, &RandomState::default()), SliceKeyAnalysisResult::General);
     }
 }
