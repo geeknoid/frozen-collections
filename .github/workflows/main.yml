@@ -222,7 +222,7 @@ jobs:
       - name: Generate Coverage
         run: cargo +${{ env.RUST_NIGHTLY }} llvm-cov --all-features --workspace --lcov --output-path lcov-all.info
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v5.5.2
+        uses: codecov/codecov-action@v6.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov-all.info
