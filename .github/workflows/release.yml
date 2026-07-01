@@ -26,7 +26,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: rust-lang/crates-io-auth-action@v1.0.4
+      - uses: rust-lang/crates-io-auth-action@v1.0.5
         id: auth
       - run: cargo publish -p frozen-collections-core
         env:
