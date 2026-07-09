@@ -30,7 +30,6 @@ frozen-collections-core = { version = "0.9.1", path = "frozen-collections-core",
 frozen-collections-macros = { version = "0.9.1", path = "frozen-collections-macros", default-features = false }
 hashbrown = { version = "0.16.1", default-features = false }
 mutants = { version = "0.0.4", default-features = false }
-proc-macro-error2 = { version = "2.0.1", default-features = false }
 proc-macro2 = { version = "1.0.106", default-features = false }
 quote = { version = "1.0.44", default-features = false }
 rand = { version = "0.10.0", default-features = false }

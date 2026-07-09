@@ -17,8 +17,8 @@ path = "src/lib.rs"
 proc-macro = true
 
 [dependencies]
-proc-macro-error2 = { workspace = true }
 frozen-collections-core = { workspace = true, features = ["macros"] }
+proc-macro2 = { workspace = true, features = ["proc-macro"] }
 
 [lints]
 workspace = true
