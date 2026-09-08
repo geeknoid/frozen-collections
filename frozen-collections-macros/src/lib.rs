@@ -14,10 +14,8 @@ use frozen_collections_core::macros::{
     fz_scalar_set_macro, fz_string_map_macro, fz_string_set_macro,
 };
 use proc_macro::TokenStream;
-use proc_macro_error2::proc_macro_error;
 
 #[proc_macro]
-#[proc_macro_error]
 pub fn fz_hash_map(item: TokenStream) -> TokenStream {
     fz_hash_map_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())
@@ -25,7 +23,6 @@ pub fn fz_hash_map(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-#[proc_macro_error]
 pub fn fz_hash_set(item: TokenStream) -> TokenStream {
     fz_hash_set_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())
@@ -33,7 +30,6 @@ pub fn fz_hash_set(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-#[proc_macro_error]
 pub fn fz_ordered_map(item: TokenStream) -> TokenStream {
     fz_ordered_map_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())
@@ -41,7 +37,6 @@ pub fn fz_ordered_map(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-#[proc_macro_error]
 pub fn fz_ordered_set(item: TokenStream) -> TokenStream {
     fz_ordered_set_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())
@@ -49,7 +44,6 @@ pub fn fz_ordered_set(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-#[proc_macro_error]
 pub fn fz_string_map(item: TokenStream) -> TokenStream {
     fz_string_map_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())
@@ -57,7 +51,6 @@ pub fn fz_string_map(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-#[proc_macro_error]
 pub fn fz_string_set(item: TokenStream) -> TokenStream {
     fz_string_set_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())
@@ -65,7 +58,6 @@ pub fn fz_string_set(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-#[proc_macro_error]
 pub fn fz_scalar_map(item: TokenStream) -> TokenStream {
     fz_scalar_map_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())
@@ -73,7 +65,6 @@ pub fn fz_scalar_map(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-#[proc_macro_error]
 pub fn fz_scalar_set(item: TokenStream) -> TokenStream {
     fz_scalar_set_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())
@@ -81,7 +72,6 @@ pub fn fz_scalar_set(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_derive(Scalar)]
-#[proc_macro_error]
 pub fn derive_scalar(item: TokenStream) -> TokenStream {
     derive_scalar_macro(item.into())
         .unwrap_or_else(|error| error.to_compile_error())

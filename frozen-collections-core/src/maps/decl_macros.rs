@@ -262,7 +262,7 @@ macro_rules! get_disjoint_mut_funcs {
     (@unsafe_body, $self:ident, $keys:ident) => {
         let ptrs: [Option<::core::ptr::NonNull<V>>; N] = ::core::array::from_fn(|i| {
             $self.get_mut($keys[i]).map(|value| {
-                let v = value as *mut V;
+                let v = ::core::ptr::from_mut(value);
                 ::core::ptr::NonNull::new(v).expect("pointer from reference is never null")
             })
         });

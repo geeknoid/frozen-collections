@@ -68,22 +68,15 @@ where
 
         slots.resize_with(num_hash_slots, || HashTableSlot::new(CM::ZERO, CM::ZERO));
 
-        while let Some(mut item) = prep_items.pop() {
+        while let Some(item) = prep_items.pop() {
             let hash_slot_index = item.hash_slot_index;
-            let mut num_entries_in_hash_slot = 0;
+            let mut num_entries_in_hash_slot = 1;
 
-            loop {
+            final_entries.push(item.entry);
+
+            while let Some(item) = prep_items.pop_if(|last| last.hash_slot_index == hash_slot_index) {
                 final_entries.push(item.entry);
                 num_entries_in_hash_slot += 1;
-
-                if let Some(last) = prep_items.last()
-                    && last.hash_slot_index == hash_slot_index
-                {
-                    item = prep_items.pop().expect("Ensure by the call to last() above");
-                    continue;
-                }
-
-                break;
             }
 
             #[expect(clippy::panic, reason = "Defensive: entry_index is bounded by entries.len() <= CM::MAX_CAPACITY")]

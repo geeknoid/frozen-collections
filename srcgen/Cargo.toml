@@ -8,8 +8,8 @@ rust-version.workspace = true
 
 [dev-dependencies]
 frozen-collections = { path = "../frozen-collections", features = ["emit"], default-features = false }
-syn = "2.0.100"
-proc-macro2 = "1.0.94"
+syn = { workspace = true }
+proc-macro2 = { workspace = true }
 
 [build-dependencies]
 frozen-collections = { workspace = true, features = ["emit"] }
