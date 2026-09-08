@@ -10,7 +10,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.9.1"
+version = "0.9.3"
 edition = "2024"
 categories = ["data-structures", "no-std"]
 keywords = ["map", "set", "collection"]
@@ -28,16 +28,15 @@ foldhash = { version = "0.2.0", default-features = false }
 frozen-collections = { version = "0.9.1", path = "frozen-collections", default-features = false }
 frozen-collections-core = { version = "0.9.1", path = "frozen-collections-core", default-features = false }
 frozen-collections-macros = { version = "0.9.1", path = "frozen-collections-macros", default-features = false }
-hashbrown = { version = "0.16.1", default-features = false }
+hashbrown = { version = "0.17.1", default-features = false }
 mutants = { version = "0.0.4", default-features = false }
-proc-macro-error2 = { version = "2.0.1", default-features = false }
-proc-macro2 = { version = "1.0.106", default-features = false }
-quote = { version = "1.0.44", default-features = false }
-rand = { version = "0.10.0", default-features = false }
+proc-macro2 = { version = "1.0.107", default-features = false }
+quote = { version = "1.0.47", default-features = false }
+rand = { version = "0.10.2", default-features = false }
 rand_chacha = { version = "0.10.0", default-features = false }
-serde = { version = "1.0.228", default-features = false }
-serde_json = { version = "1.0.149", default-features = false }
-syn = { version = "2.0.117", default-features = false }
+serde = { version = "1.0.229", default-features = false }
+serde_json = { version = "1.0.151", default-features = false }
+syn = { version = "3.0.5", default-features = false }
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
@@ -117,7 +116,6 @@ unwrap_used = "warn"
 
 # turn off annoying ones...
 too_many_lines = "allow"
-from-iter-instead-of-collect = "allow"
 cognitive_complexity = "allow"
 
 [profile.bench]

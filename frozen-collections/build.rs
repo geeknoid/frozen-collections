@@ -199,7 +199,7 @@ fn emit_ordered_suite(file: &mut BufWriter<File>, size: usize, literal_producer:
 fn emit_dense_scalar_benchmark() {
     fn dense_producer(file: &mut BufWriter<File>, size: usize) {
         for i in 0..size {
-            writeln!(file, "        {i},",).unwrap();
+            writeln!(file, "        {i},").unwrap();
         }
     }
 
@@ -217,7 +217,7 @@ fn emit_sparse_scalar_benchmark() {
     fn sparse_producer(file: &mut BufWriter<File>, size: usize) {
         for i in 0..size {
             let x = i * 2;
-            writeln!(file, "        {x},",).unwrap();
+            writeln!(file, "        {x},").unwrap();
         }
     }
 
@@ -237,7 +237,7 @@ fn emit_random_scalar_benchmark() {
 
         for _ in 0..size {
             let x: i32 = rng.random();
-            writeln!(file, "        {x},",).unwrap();
+            writeln!(file, "        {x},").unwrap();
         }
     }
 
@@ -265,7 +265,7 @@ fn emit_prefixed_string_benchmark() {
                 s.push(x as char);
             }
 
-            writeln!(file, "        \"Color-{s}\",",).unwrap();
+            writeln!(file, "        \"Color-{s}\",").unwrap();
         }
     }
 
@@ -293,7 +293,7 @@ fn emit_random_string_benchmark() {
                 s.push(x as char);
             }
 
-            writeln!(file, "        \"{s}\",",).unwrap();
+            writeln!(file, "        \"{s}\",").unwrap();
         }
     }
 

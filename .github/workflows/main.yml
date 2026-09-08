@@ -19,7 +19,7 @@ jobs:
     steps:
       # prep
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -51,7 +51,7 @@ jobs:
     steps:
       # prep
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -67,7 +67,7 @@ jobs:
     steps:
       # prep
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -88,7 +88,7 @@ jobs:
     steps:
       # prep
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -118,7 +118,7 @@ jobs:
     steps:
       # prep
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
       - name: Setup
@@ -146,7 +146,7 @@ jobs:
     steps:
       # prep
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -172,7 +172,7 @@ jobs:
     steps:
       # prep
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Setup
@@ -209,7 +209,7 @@ jobs:
     steps:
       # prep
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -222,7 +222,7 @@ jobs:
       - name: Generate Coverage
         run: cargo +${{ env.RUST_NIGHTLY }} llvm-cov --all-features --workspace --lcov --output-path lcov-all.info
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v5.5.2
+        uses: codecov/codecov-action@v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov-all.info

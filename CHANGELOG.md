@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.2 - 2026-09-08
+
+### Changed
+
+- Updated dependencies
+- Add a .gitattributes file
+
 ## 0.9.1 - 2026-02-25
 
 ### Added
@@ -124,7 +131,7 @@ errors depending on the collection used and the type of the key
 - The `emit` cargo feature controls the availability of the `emit` module, which provides
 a way to emit frozen collections from a cargo build script.
 
-- Added the `DefaultHashBuilder` alias for the hash builder used by default in the 
+- Added the `DefaultHashBuilder` alias for the hash builder used by default in the
 crate.
 
 ### Removed
@@ -154,7 +161,7 @@ situations.
 
 - The `macros` cargo feature controls the availability of the frozen collection macros.
 
-- The frozen collection facade types are now exposed as first-class types and are the 
+- The frozen collection facade types are now exposed as first-class types and are the
 recommended way to use frozen collections with data discovered at runtime, whereas the
 macros are for data known at compile time.
 

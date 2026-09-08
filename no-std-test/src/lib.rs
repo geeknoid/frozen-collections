@@ -80,7 +80,7 @@ pub fn macro_hash_map() -> usize {
         3_i64: "three",
     });
 
-    assert!(m.get(&1) == Some(&"one"));
+    assert_eq!(m.get(&1), Some(&"one"));
     m.len()
 }
 
@@ -97,7 +97,7 @@ pub fn macro_ordered_map() -> usize {
         3_i64: "three",
     });
 
-    assert!(m.get(&1) == Some(&"one"));
+    assert_eq!(m.get(&1), Some(&"one"));
     m.len()
 }
 
@@ -114,7 +114,7 @@ pub fn macro_scalar_map() -> usize {
         3_i32: "three",
     });
 
-    assert!(m.get(&1) == Some(&"one"));
+    assert_eq!(m.get(&1), Some(&"one"));
     m.len()
 }
 
@@ -131,7 +131,7 @@ pub fn macro_string_map() -> usize {
         "three": 3,
     });
 
-    assert!(m.get("one") == Some(&1));
+    assert_eq!(m.get("one"), Some(&1));
     m.len()
 }
 
