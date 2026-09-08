@@ -39,7 +39,7 @@ at creation time and cannot change, but the values can be updated at will if you
 mutable reference to the map. Frozen sets, however, are completely immutable and so never
 change after creation.
 
-See [BENCHMARKS.md](./BENCHMARKS.md) for current benchmark numbers.
+See [BENCHMARKS.md](./benchmarks) for current benchmark numbers.
 
 ## Handling Compile-Time Data
 

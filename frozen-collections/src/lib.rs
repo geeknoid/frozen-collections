@@ -21,7 +21,7 @@
 //! mutable reference to the map. Frozen sets, however, are completely immutable and so never
 //! change after creation.
 //!
-//! See [BENCHMARKS.md](https://github.com/geeknoid/frozen-collections/blob/main/BENCHMARKS.md) for
+//! See [the benchmarks folder](https://github.com/geeknoid/frozen-collections/blob/main/benchmarks) for
 //! current benchmark numbers.
 //!
 //! # Handling Compile-Time Data
@@ -237,6 +237,8 @@
 //! - **`emit`**. Enables the [`CollectionEmitter`](emit::CollectionEmitter) struct that lets you create frozen collections from a build script.
 //! - **`serde`**. Enables serialization and deserialization support for the frozen collections.
 //! - **`std`**. Enables small features only available when building with the standard library.
+//! - **`compact_str`**. Enables [`CompactString`](compact_str::CompactString) support for string keys, providing
+//!   more memory-efficient storage. When enabled, code generation uses `CompactString` for owned string keys.
 //!
 //! All features are enabled by default.
 
@@ -244,6 +246,10 @@ pub use frozen_collections_core::traits::{Map, MapExtras, MapIteration, MapQuery
 
 #[doc(hidden)]
 pub use frozen_collections_core::traits::{CollectionMagnitude, Hasher, LargeCollection, Len, MediumCollection, SmallCollection};
+
+#[cfg(feature = "compact_str")]
+#[doc(hidden)]
+pub use frozen_collections_core::CompactString;
 
 /// Creates an efficient map with a fixed set of hashable keys.
 ///

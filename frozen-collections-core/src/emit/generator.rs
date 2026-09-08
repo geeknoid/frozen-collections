@@ -18,6 +18,7 @@ pub(super) struct Generator {
     value_type: Type,
     len: TokenStream,
     gen_set: bool,
+    pub(super) use_compact_str: bool,
 }
 
 pub(super) struct Output {
@@ -32,6 +33,7 @@ impl Generator {
             value_type: value_type.map_or_else(|| parse_quote!(()), Clone::clone),
             len: Self::inject_underscores(Literal::usize_unsuffixed(len).to_token_stream()),
             gen_set: value_type.is_none(),
+            use_compact_str: false,
         }
     }
 
@@ -70,11 +72,19 @@ impl Generator {
         let mut ty = map_type;
         let mut generics = quote!(<#key_type, #value_type>);
         let mut type_sig = quote!(#ty::#generics);
-        let mut ctor = quote!(#type_sig::new(vec![
-            #(
-                #entries,
-            )*
-        ]));
+        let mut ctor = if self.use_compact_str {
+            quote!(#type_sig::new_compact(vec![
+                #(
+                    #entries,
+                )*
+            ]))
+        } else {
+            quote!(#type_sig::new(vec![
+                #(
+                    #entries,
+                )*
+            ]))
+        };
 
         if self.gen_set {
             ty = set_type;
@@ -418,5 +428,85 @@ impl Generator {
         }
 
         parse_str(&output.into_iter().collect::<String>()).expect("failed to parse generated code")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use syn::parse_quote;
+
+    #[cfg(feature = "macros")]
+    #[test]
+    fn gen_fz_collection_uses_new_by_default() {
+        let generator = Generator::new(&parse_quote! { String }, Some(&parse_quote! { i32 }), 2);
+        let entries = vec![
+            CollectionEntry::map_entry((), parse_quote! { "a" }, parse_quote! { 1 }),
+            CollectionEntry::map_entry((), parse_quote! { "b" }, parse_quote! { 2 }),
+        ];
+        let output = generator.gen_fz_collection(
+            entries,
+            quote!(::frozen_collections::FzStringMap),
+            quote!(::frozen_collections::FzStringSet),
+        );
+        let s = output.ctor.to_string();
+        assert!(s.contains(":: new ("), "default should use new(): {s}");
+        assert!(!s.contains("new_compact"), "default should NOT use new_compact: {s}");
+    }
+
+    #[cfg(feature = "macros")]
+    #[test]
+    fn gen_fz_collection_uses_new_compact_when_flag_set() {
+        let mut generator = Generator::new(&parse_quote! { String }, Some(&parse_quote! { i32 }), 2);
+        generator.use_compact_str = true;
+        let entries = vec![
+            CollectionEntry::map_entry((), parse_quote! { "a" }, parse_quote! { 1 }),
+            CollectionEntry::map_entry((), parse_quote! { "b" }, parse_quote! { 2 }),
+        ];
+        let output = generator.gen_fz_collection(
+            entries,
+            quote!(::frozen_collections::FzStringMap),
+            quote!(::frozen_collections::FzStringSet),
+        );
+        let s = output.ctor.to_string();
+        assert!(s.contains("new_compact"), "use_compact_str=true should use new_compact: {s}");
+    }
+
+    #[cfg(feature = "macros")]
+    #[test]
+    fn gen_fz_collection_set_with_compact_str() {
+        let mut generator = Generator::new(&parse_quote! { String }, None, 2);
+        generator.use_compact_str = true;
+        let entries = vec![
+            CollectionEntry::set_entry((), parse_quote! { "a" }),
+            CollectionEntry::set_entry((), parse_quote! { "b" }),
+        ];
+        let output = generator.gen_fz_collection(
+            entries,
+            quote!(::frozen_collections::FzStringMap),
+            quote!(::frozen_collections::FzStringSet),
+        );
+        let s = output.ctor.to_string();
+        assert!(s.contains("new_compact"), "set with compact_str should use new_compact: {s}");
+        assert!(s.contains("FzStringSet"), "should create a FzStringSet: {s}");
+    }
+
+    #[cfg(feature = "macros")]
+    #[test]
+    fn gen_fz_string_delegates_to_fz_collection() {
+        let generator = Generator::new(&parse_quote! { String }, Some(&parse_quote! { i32 }), 2);
+        let entries = vec![
+            CollectionEntry::map_entry((), parse_quote! { "a" }, parse_quote! { 1 }),
+            CollectionEntry::map_entry((), parse_quote! { "b" }, parse_quote! { 2 }),
+        ];
+        let output = generator.gen_fz_string(entries);
+        let s = output.ctor.to_string();
+        assert!(s.contains("FzStringMap"), "gen_fz_string should reference FzStringMap: {s}");
+    }
+
+    #[test]
+    fn use_compact_str_defaults_to_false() {
+        let generator = Generator::new(&parse_quote! { i32 }, Some(&parse_quote! { i32 }), 5);
+        assert!(!generator.use_compact_str);
     }
 }

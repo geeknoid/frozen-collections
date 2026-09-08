@@ -20,5 +20,8 @@ proc-macro = true
 frozen-collections-core = { workspace = true, features = ["macros"] }
 proc-macro2 = { workspace = true, features = ["proc-macro"] }
 
+[features]
+std = ["frozen-collections-core/std"]
+
 [lints]
 workspace = true

@@ -440,3 +440,88 @@ fn emit_pub_static() {
     assert!(tokens.contains("pub"));
     assert!(tokens.contains("PUB_MAP"));
 }
+
+// --- CompactString integration tests ---
+
+#[cfg(feature = "compact_str")]
+fn long_str_entries() -> Vec<CollectionEntry<String>> {
+    vec![
+        CollectionEntry::map_entry("this_key_exceeds_the_inline_limit_by_far_1".to_string(), parse_quote! { "k1" }, parse_quote! { 1 }),
+        CollectionEntry::map_entry("this_key_exceeds_the_inline_limit_by_far_2".to_string(), parse_quote! { "k2" }, parse_quote! { 2 }),
+        CollectionEntry::map_entry("this_key_exceeds_the_inline_limit_by_far_3".to_string(), parse_quote! { "k3" }, parse_quote! { 3 }),
+        CollectionEntry::map_entry("this_key_exceeds_the_inline_limit_by_far_4".to_string(), parse_quote! { "k4" }, parse_quote! { 4 }),
+        CollectionEntry::map_entry("this_key_exceeds_the_inline_limit_by_far_5".to_string(), parse_quote! { "k5" }, parse_quote! { 5 }),
+    ]
+}
+
+#[cfg(feature = "compact_str")]
+fn short_str_set_entries() -> Vec<CollectionEntry<String>> {
+    vec![
+        CollectionEntry::set_entry("Hi".to_string(), parse_quote! { "Hi" }),
+        CollectionEntry::set_entry("Lo".to_string(), parse_quote! { "Lo" }),
+        CollectionEntry::set_entry("Go".to_string(), parse_quote! { "Go" }),
+        CollectionEntry::set_entry("No".to_string(), parse_quote! { "No" }),
+        CollectionEntry::set_entry("Do".to_string(), parse_quote! { "Do" }),
+    ]
+}
+
+#[cfg(feature = "compact_str")]
+#[test]
+fn emit_string_map_uses_compact_string_for_short_keys() {
+    let result = CollectionEmitter::new(&parse_quote! { &'static str })
+        .value_type(&parse_quote! { i32 })
+        .symbol_name("SHORT_MAP")
+        .emit_string_collection(str_entries());
+    let tokens = result.unwrap().to_string();
+    assert!(tokens.contains("CompactString"), "short keys should use CompactString: {tokens}");
+    assert!(tokens.contains("SHORT_MAP"));
+}
+
+#[cfg(feature = "compact_str")]
+#[test]
+fn emit_string_map_skips_compact_string_for_long_keys() {
+    let result = CollectionEmitter::new(&parse_quote! { &'static str })
+        .value_type(&parse_quote! { i32 })
+        .symbol_name("LONG_MAP")
+        .emit_string_collection(long_str_entries());
+    let tokens = result.unwrap().to_string();
+    assert!(!tokens.contains("CompactString"), "long keys should NOT use CompactString: {tokens}");
+    assert!(tokens.contains("LONG_MAP"));
+}
+
+#[cfg(feature = "compact_str")]
+#[test]
+fn emit_string_set_uses_compact_string_for_short_keys() {
+    let result = CollectionEmitter::new(&parse_quote! { &'static str })
+        .symbol_name("SHORT_SET")
+        .emit_string_collection(short_str_set_entries());
+    let tokens = result.unwrap().to_string();
+    assert!(tokens.contains("CompactString"), "short key set should use CompactString: {tokens}");
+    assert!(tokens.contains("SHORT_SET"));
+}
+
+#[cfg(feature = "compact_str")]
+#[test]
+fn emit_string_map_const_keys_no_compact_string() {
+    let result = CollectionEmitter::new(&parse_quote! { &'static str })
+        .value_type(&parse_quote! { i32 })
+        .symbol_name("CONST_MAP")
+        .const_keys(true)
+        .const_values(true)
+        .emit_string_collection(str_entries());
+    let tokens = result.unwrap().to_string();
+    assert!(!tokens.contains("CompactString"), "const_keys=true should NOT use CompactString: {tokens}");
+}
+
+#[cfg(feature = "compact_str")]
+#[test]
+fn emit_string_map_static_compact_string() {
+    let result = CollectionEmitter::new(&parse_quote! { &'static str })
+        .value_type(&parse_quote! { i32 })
+        .symbol_name("STATIC_MAP")
+        .static_instance(true)
+        .emit_string_collection(str_entries());
+    let tokens = result.unwrap().to_string();
+    assert!(tokens.contains("CompactString"), "static with short keys should use CompactString: {tokens}");
+    assert!(tokens.contains("STATIC_MAP"));
+}

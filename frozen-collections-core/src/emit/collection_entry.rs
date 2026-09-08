@@ -11,7 +11,7 @@ pub(crate) struct NonLiteralKey;
 /// Represents an entry in a collection used to build a frozen collection.
 pub struct CollectionEntry<K> {
     pub(crate) key: K,
-    key_expr: Expr,
+    pub(crate) key_expr: Expr,
     pub(crate) value_expr: Expr,
 }
 

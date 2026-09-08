@@ -12,6 +12,7 @@ readme = "README.md"
 rust-version.workspace = true
 
 [dependencies]
+compact_str = { workspace = true, optional = true }
 const-random = { workspace = true }
 equivalent = { workspace = true }
 foldhash = { workspace = true }
@@ -26,7 +27,8 @@ syn = { workspace = true, optional = true, features = ["printing", "parsing", "c
 rand = { workspace = true, features = ["std", "std_rng"] }
 
 [features]
-default = ["std", "macros", "serde", "emit"]
+default = ["std", "macros", "serde", "emit", "compact_str"]
+compact_str = ["dep:compact_str"]
 macros = ["dep:syn", "dep:quote", "dep:proc-macro2"]
 emit = ["dep:syn", "dep:quote", "dep:proc-macro2", "std"]
 serde = ["dep:serde"]

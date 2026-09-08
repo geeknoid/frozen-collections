@@ -1,4 +1,6 @@
 use crate::analyzers::{ScalarKeyAnalysisResult, SliceKeyAnalysisResult, analyze_scalar_keys, analyze_slice_keys};
+#[cfg(feature = "compact_str")]
+use crate::analyzers::{StringKeyType, analyze_string_key_type};
 use crate::emit::collection_entry::CollectionEntry;
 use crate::emit::generator::{Generator, Output};
 use crate::hashers::{BridgeHasher, LeftRangeHasher, LengthHasher, RightRangeHasher, ScalarHasher};
@@ -337,9 +339,39 @@ impl CollectionEmitter {
     pub fn emit_string_collection(&self, mut entries: Vec<CollectionEntry<String>>) -> Result<TokenStream, String> {
         self.clean_values(&mut entries);
 
+        #[cfg(feature = "compact_str")]
+        let use_compact = !self.const_keys
+            && analyze_string_key_type(entries.iter().map(|e| e.key.as_str())) == StringKeyType::CompactString;
+
+        #[cfg(feature = "compact_str")]
+        if use_compact {
+            for entry in &mut entries {
+                let orig = entry.key_expr.clone();
+                entry.key_expr = parse_quote!(::frozen_collections::CompactString::from(#orig));
+            }
+        }
+
         let entries = DeduppedVec::using_cmp(entries, |x, y| x.key.cmp(&y.key));
 
-        let generator = self.preflight(entries.len())?;
+        #[cfg(feature = "compact_str")]
+        let compact_key_type: Type = parse_quote!(::frozen_collections::CompactString);
+
+        let generator = {
+            #[cfg(feature = "compact_str")]
+            {
+                if use_compact {
+                    self.preflight_with_key_type(entries.len(), &compact_key_type)?
+                } else {
+                    self.preflight(entries.len())?
+                }
+            }
+
+            #[cfg(not(feature = "compact_str"))]
+            {
+                self.preflight(entries.len())?
+            }
+        };
+
         let output = if entries.len() < 4 {
             generator.gen_inline_scan(entries)
         } else {
@@ -440,14 +472,38 @@ impl CollectionEmitter {
 
     #[cfg(feature = "macros")]
     pub(crate) fn emit_string_collection_expr(self, entries: Vec<CollectionEntry<NonLiteralKey>>) -> Result<TokenStream, String> {
-        let generator = self.preflight(entries.len())?;
-        let output = if entries.len() < 4 {
-            generator.gen_inline_scan_vec(entries)
-        } else {
-            generator.gen_fz_string(entries)
-        };
+        #[cfg(feature = "compact_str")]
+        {
+            let mut entries = entries;
+            let compact_key_type: Type = parse_quote!(::frozen_collections::CompactString);
+            let generator = self.preflight_with_key_type(entries.len(), &compact_key_type)?;
 
-        Ok(self.postflight(output))
+            let output = if entries.len() < 4 {
+                for entry in &mut entries {
+                    let orig = entry.key_expr.clone();
+                    entry.key_expr = parse_quote!(::frozen_collections::CompactString::from(#orig));
+                }
+                generator.gen_inline_scan_vec(entries)
+            } else {
+                let mut generator = generator;
+                generator.use_compact_str = true;
+                generator.gen_fz_string(entries)
+            };
+
+            Ok(self.postflight(output))
+        }
+
+        #[cfg(not(feature = "compact_str"))]
+        {
+            let generator = self.preflight(entries.len())?;
+            let output = if entries.len() < 4 {
+                generator.gen_inline_scan_vec(entries)
+            } else {
+                generator.gen_fz_string(entries)
+            };
+
+            Ok(self.postflight(output))
+        }
     }
 
     fn clean_values<K>(&self, entries: &mut [CollectionEntry<K>]) {
@@ -459,6 +515,10 @@ impl CollectionEmitter {
     }
 
     fn preflight(&self, len: usize) -> Result<Generator, String> {
+        self.preflight_with_key_type(len, &self.key_type)
+    }
+
+    fn preflight_with_key_type(&self, len: usize, key_type: &Type) -> Result<Generator, String> {
         if self.is_static && self.is_mutable {
             Err("mutable is not allowed for static collections".to_string())
         } else if self.is_static && self.symbol_name.is_none() {
@@ -470,7 +530,7 @@ impl CollectionEmitter {
         } else if !self.has_std && self.is_static && !(self.const_keys && self.const_values) {
             Err("static collections with non-const keys or values require the \"std\" feature for LazyLock support".to_string())
         } else {
-            Ok(Generator::new(&self.key_type, self.value_type.as_ref(), len))
+            Ok(Generator::new(key_type, self.value_type.as_ref(), len))
         }
     }
 
@@ -646,5 +706,137 @@ mod tests {
             "let SYMBOL : :: frozen_collections :: inline_sets :: InlineScanSet :: < i32 , 0 > = :: frozen_collections :: inline_sets :: InlineScanSet :: < i32 , 0 > :: new (:: frozen_collections :: inline_maps :: InlineScanMap :: < i32 , () , 0 > :: new_raw ([])) ;",
             result
         );
+    }
+
+    #[test]
+    fn test_preflight_with_key_type_overrides() {
+        let emitter = CollectionEmitter::new(&parse_quote! { i32 });
+        let generator = emitter.preflight_with_key_type(5, &parse_quote! { String }).unwrap();
+        assert_eq!(format!("{:?}", generator).contains("String"), true);
+    }
+
+    #[test]
+    fn test_preflight_with_key_type_validates() {
+        let emitter = CollectionEmitter::new(&parse_quote! { i32 })
+            .static_instance(true)
+            .mutable(true);
+        let result = emitter.preflight_with_key_type(5, &parse_quote! { String });
+        assert!(result.is_err());
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_emit_string_map_compact_short_keys() {
+        let entries = vec![
+            CollectionEntry::map_entry("Hi".to_string(), parse_quote! { "Hi" }, parse_quote! { 1 }),
+            CollectionEntry::map_entry("Lo".to_string(), parse_quote! { "Lo" }, parse_quote! { 2 }),
+            CollectionEntry::map_entry("Go".to_string(), parse_quote! { "Go" }, parse_quote! { 3 }),
+            CollectionEntry::map_entry("No".to_string(), parse_quote! { "No" }, parse_quote! { 4 }),
+        ];
+        let result = CollectionEmitter::new(&parse_quote! { &'static str })
+            .value_type(&parse_quote! { i32 })
+            .emit_string_collection(entries)
+            .unwrap()
+            .to_string();
+        assert!(result.contains("CompactString"), "short keys should use CompactString: {result}");
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_emit_string_set_compact_short_keys() {
+        let entries = vec![
+            CollectionEntry::set_entry("Hi".to_string(), parse_quote! { "Hi" }),
+            CollectionEntry::set_entry("Lo".to_string(), parse_quote! { "Lo" }),
+            CollectionEntry::set_entry("Go".to_string(), parse_quote! { "Go" }),
+            CollectionEntry::set_entry("No".to_string(), parse_quote! { "No" }),
+        ];
+        let result = CollectionEmitter::new(&parse_quote! { &'static str })
+            .emit_string_collection(entries)
+            .unwrap()
+            .to_string();
+        assert!(result.contains("CompactString"), "short key set should use CompactString: {result}");
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_emit_string_map_compact_long_keys() {
+        let entries = vec![
+            CollectionEntry::map_entry("this_is_a_very_long_key_exceeding_limit_1".to_string(), parse_quote! { "k1" }, parse_quote! { 1 }),
+            CollectionEntry::map_entry("this_is_a_very_long_key_exceeding_limit_2".to_string(), parse_quote! { "k2" }, parse_quote! { 2 }),
+            CollectionEntry::map_entry("this_is_a_very_long_key_exceeding_limit_3".to_string(), parse_quote! { "k3" }, parse_quote! { 3 }),
+            CollectionEntry::map_entry("this_is_a_very_long_key_exceeding_limit_4".to_string(), parse_quote! { "k4" }, parse_quote! { 4 }),
+        ];
+        let result = CollectionEmitter::new(&parse_quote! { &'static str })
+            .value_type(&parse_quote! { i32 })
+            .emit_string_collection(entries)
+            .unwrap()
+            .to_string();
+        assert!(!result.contains("CompactString"), "long keys should NOT use CompactString: {result}");
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_emit_string_map_const_keys_skips_compact() {
+        let entries = vec![
+            CollectionEntry::map_entry("Hi".to_string(), parse_quote! { "Hi" }, parse_quote! { 1 }),
+            CollectionEntry::map_entry("Lo".to_string(), parse_quote! { "Lo" }, parse_quote! { 2 }),
+            CollectionEntry::map_entry("Go".to_string(), parse_quote! { "Go" }, parse_quote! { 3 }),
+            CollectionEntry::map_entry("No".to_string(), parse_quote! { "No" }, parse_quote! { 4 }),
+        ];
+        let result = CollectionEmitter::new(&parse_quote! { &'static str })
+            .value_type(&parse_quote! { i32 })
+            .const_keys(true)
+            .const_values(true)
+            .emit_string_collection(entries)
+            .unwrap()
+            .to_string();
+        assert!(!result.contains("CompactString"), "const_keys=true should skip CompactString: {result}");
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_emit_string_map_compact_small_collection() {
+        // < 4 entries triggers gen_inline_scan path
+        let entries = vec![
+            CollectionEntry::map_entry("A".to_string(), parse_quote! { "A" }, parse_quote! { 1 }),
+            CollectionEntry::map_entry("B".to_string(), parse_quote! { "B" }, parse_quote! { 2 }),
+        ];
+        let result = CollectionEmitter::new(&parse_quote! { &'static str })
+            .value_type(&parse_quote! { i32 })
+            .emit_string_collection(entries)
+            .unwrap()
+            .to_string();
+        assert!(result.contains("CompactString"), "small collection with short keys should use CompactString: {result}");
+        assert!(result.contains("InlineScanMap"), "small collection should use InlineScanMap: {result}");
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_emit_string_map_compact_empty_collection() {
+        let entries: Vec<CollectionEntry<String>> = vec![];
+        let result = CollectionEmitter::new(&parse_quote! { &'static str })
+            .value_type(&parse_quote! { i32 })
+            .emit_string_collection(entries)
+            .unwrap()
+            .to_string();
+        // Empty collections use CompactString since analyze_string_key_type returns CompactString for empty
+        assert!(result.contains("CompactString"), "empty collection should default to CompactString: {result}");
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_emit_string_map_compact_wraps_key_exprs() {
+        let entries = vec![
+            CollectionEntry::map_entry("Hi".to_string(), parse_quote! { "Hi" }, parse_quote! { 1 }),
+            CollectionEntry::map_entry("Lo".to_string(), parse_quote! { "Lo" }, parse_quote! { 2 }),
+            CollectionEntry::map_entry("Go".to_string(), parse_quote! { "Go" }, parse_quote! { 3 }),
+            CollectionEntry::map_entry("No".to_string(), parse_quote! { "No" }, parse_quote! { 4 }),
+        ];
+        let result = CollectionEmitter::new(&parse_quote! { &'static str })
+            .value_type(&parse_quote! { i32 })
+            .emit_string_collection(entries)
+            .unwrap()
+            .to_string();
+        assert!(result.contains("CompactString :: from"), "key exprs should be wrapped in CompactString::from: {result}");
     }
 }

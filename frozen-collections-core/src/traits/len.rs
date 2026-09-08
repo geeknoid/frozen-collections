@@ -34,6 +34,13 @@ impl Len for &str {
     }
 }
 
+#[cfg(feature = "compact_str")]
+impl Len for compact_str::CompactString {
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
 impl Len for core::ffi::CStr {
     fn len(&self) -> usize {
         self.to_bytes().len()

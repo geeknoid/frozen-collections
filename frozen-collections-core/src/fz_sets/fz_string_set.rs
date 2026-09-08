@@ -12,6 +12,9 @@ use equivalent::Equivalent;
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
+#[cfg(feature = "compact_str")]
+use compact_str::CompactString;
+
 #[cfg(feature = "serde")]
 use {
     crate::sets::decl_macros::serialize_trait_funcs,
@@ -76,6 +79,31 @@ impl<'a, BH> FzStringSet<&'a str, BH> {
     {
         Self {
             map: FzStringMap::with_hasher_for_str(entries.into_iter().map(|x| (x, ())).collect(), bh),
+        }
+    }
+}
+
+#[cfg(feature = "compact_str")]
+impl FzStringSet<CompactString, DefaultBuildHasher> {
+    /// Creates a new frozen set with `CompactString` values.
+    #[doc = include_str!("../doc_snippets/duplicate_values.md")]
+    #[must_use]
+    pub fn new_compact(entries: Vec<impl AsRef<str>>) -> Self {
+        Self::with_hasher_compact(entries, DefaultBuildHasher::default())
+    }
+}
+
+#[cfg(feature = "compact_str")]
+impl<BH> FzStringSet<CompactString, BH> {
+    /// Creates a new frozen set with `CompactString` values which uses the given hash builder to hash values.
+    #[doc = include_str!("../doc_snippets/duplicate_values.md")]
+    #[must_use]
+    pub fn with_hasher_compact(entries: Vec<impl AsRef<str>>, bh: BH) -> Self
+    where
+        BH: BuildHasher + Clone + Send + Sync + 'static,
+    {
+        Self {
+            map: FzStringMap::with_hasher_compact(entries.into_iter().map(|x| (x, ())).collect(), bh),
         }
     }
 }
@@ -149,6 +177,18 @@ where
     }
 }
 
+#[cfg(feature = "compact_str")]
+impl<BH> Default for FzStringSet<CompactString, BH>
+where
+    BH: Default,
+{
+    fn default() -> Self {
+        Self {
+            map: FzStringMap::default(),
+        }
+    }
+}
+
 impl<T, BH> From<FzStringMap<T, (), BH>> for FzStringSet<T, BH> {
     fn from(map: FzStringMap<T, (), BH>) -> Self {
         Self { map }
@@ -174,6 +214,17 @@ where
     }
 }
 
+#[cfg(feature = "compact_str")]
+impl<T, const N: usize, BH> From<[T; N]> for FzStringSet<CompactString, BH>
+where
+    T: AsRef<str>,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
+{
+    fn from(entries: [T; N]) -> Self {
+        Self::with_hasher_compact(Vec::from(entries), BH::default())
+    }
+}
+
 impl<T, BH> FromIterator<T> for FzStringSet<Box<str>, BH>
 where
     T: AsRef<str>,
@@ -190,6 +241,19 @@ where
 {
     fn from_iter<IT: IntoIterator<Item = &'a str>>(iter: IT) -> Self {
         Self::from(FzStringMap::from_iter(iter.into_iter().map(|x| (x, ()))))
+    }
+}
+
+#[cfg(feature = "compact_str")]
+impl<T, BH> FromIterator<T> for FzStringSet<CompactString, BH>
+where
+    T: Into<CompactString>,
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
+{
+    fn from_iter<IT: IntoIterator<Item = T>>(iter: IT) -> Self {
+        Self::from(FzStringMap::<CompactString, (), BH>::from_iter(
+            iter.into_iter().map(|x| (x, ())),
+        ))
     }
 }
 
@@ -382,5 +446,47 @@ where
         }
 
         Ok(FzStringSet::from(FzStringMap::with_hasher(v, BH::default())))
+    }
+}
+
+#[cfg(all(feature = "serde", feature = "compact_str"))]
+impl<'de, BH> Deserialize<'de> for FzStringSet<CompactString, BH>
+where
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_seq(CompactStrSetVisitor { marker: PhantomData })
+    }
+}
+
+#[cfg(all(feature = "serde", feature = "compact_str"))]
+struct CompactStrSetVisitor<BH> {
+    marker: PhantomData<BH>,
+}
+
+#[cfg(all(feature = "serde", feature = "compact_str"))]
+impl<'de, BH> Visitor<'de> for CompactStrSetVisitor<BH>
+where
+    BH: BuildHasher + Default + Clone + Send + Sync + 'static,
+{
+    type Value = FzStringSet<CompactString, BH>;
+
+    fn expecting(&self, formatter: &mut Formatter) -> core::fmt::Result {
+        formatter.write_str("a set with string values")
+    }
+
+    fn visit_seq<M>(self, mut seq: M) -> Result<Self::Value, M::Error>
+    where
+        M: SeqAccess<'de>,
+    {
+        let mut v: Vec<(&str, ())> = Vec::with_capacity(seq.size_hint().unwrap_or(0));
+        while let Some(x) = seq.next_element()? {
+            v.push((x, ()));
+        }
+
+        Ok(FzStringSet::from(FzStringMap::with_hasher_compact(v, BH::default())))
     }
 }

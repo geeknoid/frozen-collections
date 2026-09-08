@@ -3,7 +3,11 @@
 pub use hash_code_analyzer::*;
 pub use scalar_key_analyzer::*;
 pub use slice_key_analyzer::*;
+#[cfg(feature = "compact_str")]
+pub use string_key_analyzer::*;
 
 mod hash_code_analyzer;
 mod scalar_key_analyzer;
 mod slice_key_analyzer;
+#[cfg(feature = "compact_str")]
+mod string_key_analyzer;

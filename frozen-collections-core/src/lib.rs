@@ -36,3 +36,6 @@ pub type DefaultBuildHasher = foldhash::fast::FixedState;
 /// The default hash builder used by the frozen collections.
 #[cfg(not(test))]
 pub type DefaultBuildHasher = foldhash::fast::RandomState;
+
+#[cfg(feature = "compact_str")]
+pub use compact_str::CompactString;

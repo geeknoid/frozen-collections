@@ -242,6 +242,61 @@ mod tests {
         check_impl(":: FzStringSet", quote!({ x, "2", "3", "4" }));
 
         check_impl(":: FzStringSet", quote!({ x, y, z, a, b, c, d }));
+
+        // When compact_str is enabled, expression-key string collections use CompactString
+        #[cfg(feature = "compact_str")]
+        {
+            fn check_compact(ts: TokenStream) {
+                let r = fz_string_set_macro(ts).unwrap().to_string();
+                assert!(r.contains("CompactString"), "{r} doesn't contain CompactString");
+            }
+
+            // Small collection (< 4): InlineScanSet with CompactString key type + wrapped key_exprs
+            check_compact(quote!({ x, "2", "3", }));
+            // Large collection (>= 4): FzStringSet with CompactString, uses new_compact
+            check_compact(quote!({ x, "2", "3", "4" }));
+            check_compact(quote!({ x, y, z, a, b, c, d }));
+
+            // Verify new_compact is used for large collections
+            let r = fz_string_set_macro(quote!({ x, "2", "3", "4" })).unwrap().to_string();
+            assert!(r.contains("new_compact"), "large expression-key set should use new_compact: {r}");
+
+            // Verify CompactString::from wrapping for small collections
+            let r = fz_string_set_macro(quote!({ x, "2", "3", })).unwrap().to_string();
+            assert!(r.contains("CompactString :: from"), "small expression-key set should wrap key_exprs: {r}");
+        }
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_selected_string_map_compact_str() {
+        // Verify CompactString is used for expression-key string MAPS (not just sets)
+        fn check_compact_map(ts: TokenStream) {
+            let r = fz_string_map_macro(ts).unwrap().to_string();
+            assert!(r.contains("CompactString"), "{r} doesn't contain CompactString");
+        }
+
+        // Small map (< 4): InlineScanMap with CompactString
+        check_compact_map(quote!({ x: 1, "2": 2, "3": 3 }));
+        // Large map (>= 4): FzStringMap with CompactString + new_compact
+        check_compact_map(quote!({ x: 1, "2": 2, "3": 3, "4": 4 }));
+
+        let r = fz_string_map_macro(quote!({ x: 1, "2": 2, "3": 3, "4": 4 })).unwrap().to_string();
+        assert!(r.contains("new_compact"), "large expression-key map should use new_compact: {r}");
+
+        let r = fz_string_map_macro(quote!({ x: 1, "2": 2, "3": 3 })).unwrap().to_string();
+        assert!(r.contains("CompactString :: from"), "small expression-key map should wrap key_exprs: {r}");
+    }
+
+    #[cfg(feature = "compact_str")]
+    #[test]
+    fn test_literal_string_keys_no_compact_str() {
+        // All-literal string keys use const_keys=true, so CompactString is NOT used
+        let r = fz_string_set_macro(quote!({ "a", "b", "c", "d" })).unwrap().to_string();
+        assert!(!r.contains("CompactString"), "literal string keys should not use CompactString: {r}");
+
+        let r = fz_string_map_macro(quote!({ "a": 1, "b": 2, "c": 3, "d": 4 })).unwrap().to_string();
+        assert!(!r.contains("CompactString"), "literal string map keys should not use CompactString: {r}");
     }
 
     #[test]
